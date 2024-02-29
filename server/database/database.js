@@ -6,7 +6,11 @@ const sequelize = new Sequelize(
     'root',
     'password', {
         host: 'localhost',
-        dialect: "mysql"
+        dialect: "mysql",
+        define: {
+            freezeTableName: true, //Ensure table names don't get pluralized
+            timestamps: false //Removes automatic time added and updated columns
+        }
     }
 )
 

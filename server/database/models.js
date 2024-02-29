@@ -41,9 +41,6 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-
-}, {
-  timestamps: false //Disables the date created and date updated columns
 });
 
 //Event
@@ -82,8 +79,6 @@ const Event = sequelize.define('Event', {
     is_listed: {
       type: DataTypes.BOOLEAN
     }
-  }, {
-    timestamps: false //Disables the date created and date updated columns
   });
 
 //Instrument

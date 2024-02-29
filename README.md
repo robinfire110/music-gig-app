@@ -12,8 +12,9 @@ Any IDE works theoretically though, that's just what I used
 #### MySQL Server 
 This is your local database for development until we get a hosted one running (or if you just want to run the program without connecting to the main database). 
 
-You can download a local install of the server using [this link](https://dev.mysql.com/downloads/mysql/). Here is a [quick video tutorial](https://www.youtube.com/watch?v=u96rVINbAUI) on how to set it up. It's slightly outdated, but it's mostly the same. You don't have to download MySQL Workbench if you don't want to. It's useful for viewing the database, but not required. For the local development database, set the password to ```password```. Very insecure, but it doesn't matter for the local versions with fake data. We'll use actually good passwords for the real deal.
+You can download a local install of the server using [this link](https://dev.mysql.com/downloads/installer/). Here is a [quick video tutorial](https://www.youtube.com/watch?v=u96rVINbAUI) on how to set it up. It's slightly outdated, but it's mostly the same. You don't have to download MySQL Workbench if you don't want to. It's useful for viewing the database, but not required. For the local development database, set the password to ```password```. Very insecure, but it doesn't matter for the local versions with fake data. We'll use actually good passwords for the real deal.
 
+Once you have the server installed, be sure to run ```CREATE DATABASE dev_db``` in the MySQL terminal in order to create the local database. If you used Windows to download, you can use MySQL Workbench to run the command or open the MySQL Command Line Client that was installed with the server to run it. If you're on linux, I think you can just run it straight through the terminal, but you may have to check to be sure.
 
 ## Initial Setup
 1. In your IDE terminal, change your working directory to the "server" folder. In there run ```npm install```. That will install all the backend server packages.
