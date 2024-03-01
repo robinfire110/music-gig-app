@@ -9,7 +9,8 @@ const sequelize = new Sequelize(
         dialect: "mysql",
         define: {
             freezeTableName: true, //Ensure table names don't get pluralized
-            timestamps: false //Removes automatic time added and updated columns
+            timestamps: false, //Removes automatic time added and updated columns
+            underscored: true
         }
     }
 )

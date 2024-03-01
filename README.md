@@ -16,6 +16,10 @@ You can download a local install of the server using [this link](https://dev.mys
 
 Once you have the server installed, be sure to run ```CREATE DATABASE dev_db``` in the MySQL terminal in order to create the local database. If you used Windows to download, you can use MySQL Workbench to run the command or open the MySQL Command Line Client that was installed with the server to run it. If you're on linux, I think you can just run it straight through the terminal, but you may have to check to be sure.
 
+#### Postman (or some other similar application)
+
+Postman allows you to test HTTP requests to make sure everything is functioning properly. For use with a localhost, you will have the download the app, which you can find [here](https://www.postman.com/downloads/).
+
 ## Initial Setup
 1. In your IDE terminal, change your working directory to the "server" folder. In there run ```npm install```. That will install all the backend server packages.
 2. Change your directory to the "client" folder and run the same command to install the front end packages.
