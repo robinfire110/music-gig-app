@@ -10,14 +10,16 @@ router.get("/", (req, res) => {
 /* User */
 //Get
 router.get("/user", async (req, res) => {
+
     res.send("Get User - To be implemented. Ideally, you use /api/user to get all users and /api/user/user_id to get a specific user")
 });
 
 //POST
 router.post("/user", async (req, res) => {
     const data = req.body;
+    console.log(data.bio);
     //Do something in the database (i.e)
-    await models.User.create({email: data?.email, password: data?.password, f_name: data?.f_name, l_name: data?.l_name, zip: data?.zip});
+    await models.User.create({email: data?.email, password: data?.password, f_name: data?.f_name, l_name: data?.l_name, zip: data?.zip, bio: data?.bio, is_admin: data?.is_admin});
     res.send(data);
 });
 

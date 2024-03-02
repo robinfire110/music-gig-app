@@ -162,6 +162,11 @@ const Address = sequelize.define('Address', {
 /* Instrument */
 const Instrument = sequelize.define('Instrument', {
     // Model attributes are defined here
+    instrument_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
     name: {
       type: DataTypes.STRING,
       primaryKey: true,
@@ -189,19 +194,82 @@ const UserStatus = sequelize.define("UserStatus", {
   }
 });
 
+/* FinStatus */
+const FinStatus = sequelize.define("FinStatus", {
+  user_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: User,
+      key: "user_id"
+    }
+  },
+  fin_id:{
+    type: DataTypes.INTEGER,
+    references: {
+      model: Financial,
+      key: "fin_id"
+    }
+  }
+});
+
+/* UserInstrument */
+const UserInstrument = sequelize.define("UserInstrument", {
+  user_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: User,
+      key: "user_id"
+    }
+  },
+  instrument_id:{
+    type: DataTypes.INTEGER,
+    references: {
+      model: Instrument,
+      key: "instrument_id"
+    }
+  }
+});
+
+/* EventInstrument */
+const EventInstrument = sequelize.define("EventInstrument", {
+  event_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: Instrument,
+      key: "event_id"
+    }
+  },
+  instrument_id:{
+    type: DataTypes.INTEGER,
+    references: {
+      model: Instrument,
+      key: "instrument_id"
+    }
+  }
+});
+
+
+/* Create Associations in Sequelize */
 //Creates UserStatus table
-User.belongsToMany(Event, {through: "UserStatus", foreignKey: "user_id", foreignKeyConstraint: true, sourceKey: "user_id"});
-Event.belongsToMany(User, {through: "UserStatus", foreignKey: "event_id", foreignKeyConstraint: true, sourceKey: "event_id"});
+User.belongsToMany(Event, {through: UserStatus, foreignKey: "user_id", foreignKeyConstraint: true, sourceKey: "user_id"});
+Event.belongsToMany(User, {through: UserStatus, foreignKey: "event_id", foreignKeyConstraint: true, sourceKey: "event_id"});
 
 /* FinStatus */
 //Creates FinStatus table
-User.belongsToMany(Financial, {through: "FinStatus", foreignKey: "user_id", foreignKeyConstraint: true, sourceKey: "user_id"});
-Financial.belongsToMany(User, {through: "FinStatus", foreignKey: "fin_id", foreignKeyConstraint: true, sourceKey: "fin_id"});
+User.belongsToMany(Financial, {through: FinStatus, foreignKey: "user_id", foreignKeyConstraint: true, sourceKey: "user_id"});
+Financial.belongsToMany(User, {through: FinStatus, foreignKey: "fin_id", foreignKeyConstraint: true, sourceKey: "fin_id"});
 
 /* Address with Event */
-
 Address.hasOne(Event, {foreignKey: "address_id", foreignKeyConstraint: true});
 Event.belongsTo(Address, {foreignKey: "event_id", foreignKeyConstraint: true});
 
+/* UserInstrument */
+User.belongsToMany(Instrument, {through: UserInstrument, foreignKey: "user_id", foreignKeyConstraint: true, sourceKey: "user_id"});
+Instrument.belongsToMany(User, {through: UserInstrument, foreignKey: "instrument_id", foreignKeyConstraint: true, sourceKey: "instrument_id"});
+
+/* EventInstrument */
+Event.belongsToMany(Instrument, {through: EventInstrument, foreignKey: "event_id", foreignKeyConstraint: true, sourceKey: "event_id"});
+Instrument.belongsToMany(Event, {through: EventInstrument, foreignKey: "instrument_id", foreignKeyConstraint: true, sourceKey: "instrument_id"});
+
 //Export Models
-module.exports = {User, Event, Financial, Address, Instrument};
+module.exports = {User, Event, Financial, Address, Instrument, UserStatus, FinStatus, UserInstrument, EventInstrument};

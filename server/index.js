@@ -4,7 +4,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const {sequelize, connectToDatabase} = require('./database/database'); //Get object from database function
 const models = require('./database/models');
-const { Sequelize } = require('sequelize');
+const instrumentList = require('./database/instrumentList');
 
 //Routes (connect the files with the various routes to other parts of the site)
 const routeAPI = require('./routes/API'); //Backend API
@@ -22,6 +22,8 @@ app.listen(5000, async () => {
 
     //Sync models
     await sequelize.sync({ alter: false }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
+    instrumentList.importInstruments();
+
     console.log('Server is running at http://localhost:5000');
 });
 
