@@ -7,12 +7,9 @@ const models = require('./database/models');
 const instrumentList = require('./database/instrumentList');
 
 //Routes (connect the files with the various routes to other parts of the site)
-const routeAPI = require('./routes/API'); //Backend API
-const routeAccount = require('./routes/Account');
-const routeCalcualtor = require('./routes/Calculator');
 const routeEvent = require('./routes/Event');
-const routeLanding = require('./routes/Landing');
-const routeLogin = require('./routes/Login');
+const routeFinancial = require('./routes/Financial');
+const routeInstrument = require('./routes/Instrument');
 const routeUser = require('./routes/User');
 
 //Determines where app is hosted
@@ -28,12 +25,9 @@ app.listen(5000, async () => {
 });
 
 /* Routes */
-app.use("/api", routeAPI.router);
-app.use("/account", routeAccount.router);
-app.use("/calculator", routeCalcualtor.router);
 app.use("/event", routeEvent.router);
-app.use("/", routeLanding.router);
-app.use("/login", routeLogin.router);
+app.use("/financial", routeFinancial.router);
+app.use("/instrument", routeInstrument.router);
 app.use("/user", routeUser.router);
 
 /* TESTING ROUTES */

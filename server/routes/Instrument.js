@@ -4,7 +4,7 @@ const models = require('../database/models');
 
 //GET
 router.get("/", (req, res) => {
-    res.send("Calculator Page");
+    res.send("Instrument Database");
 });
 
 //Export

@@ -4,7 +4,7 @@ const models = require('../database/models');
 
 //GET
 router.get("/", (req, res) => {
-    res.send("Login Page - /login will be login and if needed, /login/register can be register");
+    res.send("Financial database");
 });
 
 //Export
