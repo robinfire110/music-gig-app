@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const models = require('../database/models');
 
+/* GET */
 //Get all
 //Returns JSON of all users
 router.get("/", async (req, res) => {
@@ -37,7 +38,8 @@ router.get("/email/:email", async (req, res) => {
     }
 });
 
-//POST
+/* POST */
+//Add new user
 //Required - email, password, f_name, l_name, zip
 //Optional - Bio, is_admin (default: false), instrument(s)
 //Instrument can be either name or ID. Can mix and match.
@@ -77,14 +79,14 @@ router.post("/", async (req, res) => {
                 
             }
         }
-        res.send(data);
+        res.send(newUser);
     } catch (error) {
         res.status(500).send(error.message);
     }
     
 });
 
-//UPDATE
+/* UPDATE */
 //Can update fields. Only need to send the fields you wish to update
 router.put("/:id", async (req, res) => {
     try {
@@ -106,7 +108,7 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-//DELETE
+/* DELETE */
 router.delete("/:id", async (req, res) => {
     try {
         const id = req.params.id;

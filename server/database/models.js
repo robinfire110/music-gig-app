@@ -51,29 +51,40 @@ const Event = sequelize.define('Event', {
       type: DataTypes.STRING,
       allowNull: false
     },
-    date: {
-      type: DataTypes.DATEONLY,
+    date_posted: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    },
+    start_time: {
+      type: DataTypes.DATE,
       allowNull: false
     },
-    time: {
-      type: DataTypes.TIME,
+    end_time: {
+      type: DataTypes.DATE,
       allowNull: false
     },
     pay: {
       type: DataTypes.FLOAT,
       allowNull: false
     },
+    description: {
+      type: DataTypes.STRING,
+      defaultValue: ""
+    },
     event_hours: {
       type: DataTypes.FLOAT
     },
     rehearse_hours: {
-      type: DataTypes.FLOAT
+      type: DataTypes.FLOAT,
+      defaultValue: 0.0
     },
     mileage_pay: {
       type: DataTypes.FLOAT,
+      defaultValue: 0.0
     },
     is_listed: {
-      type: DataTypes.BOOLEAN
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   });
 
@@ -99,37 +110,47 @@ const Financial = sequelize.define('Financial', {
     allowNull: false
   },
   hourly_wage: {
-    type: DataTypes.FLOAT
+    type: DataTypes.FLOAT,
+    defaultValue: 0.0
   },
   event_hours: {
-    type: DataTypes.FLOAT
+    type: DataTypes.FLOAT,
+    defaultValue: 0.0
   },
   rehearse_hours: {
-    type: DataTypes.FLOAT
+    type: DataTypes.FLOAT,
+    defaultValue: 0.0
   },
   practice_hours: {
-    type: DataTypes.FLOAT
+    type: DataTypes.FLOAT,
+    defaultValue: 0.0
   },
   total_mileage: {
     type: DataTypes.FLOAT,
+    defaultValue: 0.0
   },
   mileage_pay: {
     type: DataTypes.FLOAT,
+    defaultValue: 0.0
   },
   zip: {
     type: DataTypes.STRING
   },
   gas_price: {
-    type: DataTypes.FLOAT
+    type: DataTypes.FLOAT,
+    defaultValue: 0.0
   },
   mpg: {
-    type: DataTypes.FLOAT
+    type: DataTypes.FLOAT,
+    defaultValue: 0.0
   },
   tax: {
-    type: DataTypes.FLOAT
+    type: DataTypes.FLOAT,
+    defaultValue: 0.0
   },
   fees: {
-    type: DataTypes.FLOAT
+    type: DataTypes.FLOAT,
+    defaultValue: 0.0
   },
 });
 
@@ -260,8 +281,8 @@ User.belongsToMany(Financial, {through: FinStatus, foreignKey: "user_id", foreig
 Financial.belongsToMany(User, {through: FinStatus, foreignKey: "fin_id", foreignKeyConstraint: true, sourceKey: "fin_id"});
 
 /* Address with Event */
-Address.hasOne(Event, {foreignKey: "address_id", foreignKeyConstraint: true});
-Event.belongsTo(Address, {foreignKey: "event_id", foreignKeyConstraint: true});
+Event.hasOne(Address, {foreignKey: "event_id", foreignKeyConstraint: true, onDelete: 'CASCADE'});
+Address.belongsTo(Event, {foreignKey: "address_id", foreignKeyConstraint: true, onDelete: 'CASCADE'});
 
 /* UserInstrument */
 User.belongsToMany(Instrument, {through: UserInstrument, foreignKey: "user_id", foreignKeyConstraint: true, sourceKey: "user_id"});
