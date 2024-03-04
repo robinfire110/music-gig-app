@@ -109,11 +109,11 @@ const Financial = sequelize.define('Financial', {
     type: DataTypes.FLOAT,
     allowNull: false
   },
-  hourly_wage: {
-    type: DataTypes.FLOAT,
-    defaultValue: 0.0
-  },
   event_hours: {
+    type: DataTypes.FLOAT,
+    allowNull: false
+  },
+  hourly_wage: {
     type: DataTypes.FLOAT,
     defaultValue: 0.0
   },
@@ -212,6 +212,10 @@ const UserStatus = sequelize.define("UserStatus", {
       model: Event,
       key: "event_id"
     }
+  },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: false
   }
 });
 

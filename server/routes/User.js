@@ -7,7 +7,7 @@ const models = require('../database/models');
 //Returns JSON of all users
 router.get("/", async (req, res) => {
     try {
-        const users = await models.User.findAll({include: models.Instrument});
+        const users = await models.User.findAll({include: [models.Instrument, models.Event]});
         res.json(users);
     } catch (error) {
         res.status(500).send(error.message);
@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
 router.get("/id/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const user = await models.User.findOne({where: {user_id: id}, include: models.Instrument});
+        const user = await models.User.findOne({where: {user_id: id}, include: [models.Instrument, models.Event]});
         res.json(user);
     } catch (error) {
         res.status(500).send(error.message);
@@ -33,7 +33,7 @@ router.get("/id/:id", async (req, res) => {
 router.get("/email/:email", async (req, res) => {
     try {
         const email = req.params.email;
-        const user = await models.User.findOne({where: {email: email}, include: models.Instrument});
+        const user = await models.User.findOne({where: {email: email}, include: [models.Instrument, models.Event]});
         res.json(user);
     } catch (error) {
         res.status(500).send(error.message);
@@ -87,7 +87,6 @@ router.post("/", async (req, res) => {
     } catch (error) {
         res.status(500).send(error.message);
     }
-    
 });
 
 //Add instrument

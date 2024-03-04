@@ -14,7 +14,7 @@ function getEventHours(start_time, end_time)
 //Returns JSON of all events
 router.get("/", async (req, res) => {
     try {
-        const events = await models.Event.findAll({include: [models.Instrument, models.Address]});
+        const events = await models.Event.findAll({include: [models.Instrument, models.Address, models.User]});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -26,7 +26,7 @@ router.get("/", async (req, res) => {
 router.get("/id/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const event = await models.Event.findOne({where: {event_id: id}, include: [models.Instrument, models.Address]});
+        const event = await models.Event.findOne({where: {event_id: id}, include: [models.Instrument, models.Address, models.User]});
         res.json(event);
     } catch (error) {
         res.status(500).send(error.message);
@@ -37,7 +37,7 @@ router.get("/id/:id", async (req, res) => {
 router.get("/recent/:limit", async (req, res) => {
     try {
         const limit = req.params.limit;
-        const events = await models.Event.findAll({include: [models.Instrument, models.Address], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
+        const events = await models.Event.findAll({include: [models.Instrument, models.Address, models.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -48,7 +48,7 @@ router.get("/recent/:limit", async (req, res) => {
 router.get("/soonest/:limit", async (req, res) => {
     try {
         const limit = req.params.limit;
-        const events = await models.Event.findAll({include: [models.Instrument, models.Address], order: [['start_time', 'ASC']], limit: sequelize.literal(limit)});
+        const events = await models.Event.findAll({include: [models.Instrument, models.Address, models.User], order: [['start_time', 'ASC']], limit: sequelize.literal(limit)});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -68,7 +68,7 @@ router.get("/address/:id", async (req, res) => {
 
 /* POST */
 //Add new event
-//Required - event_name, start_time, end_time, pay, address
+//Required - event_name, start_time, end_time, pay, address, user_id
 //Calculated - date_posted, event_hours
 //Optional - description, rehearse_hours, mileage_pay, is_listed, instruments
 //Instrument can be either name or ID. Can mix and match.
@@ -97,6 +97,7 @@ router.post("/", async (req, res) => {
         //Add to event & address
         const newEvent = await models.Event.create({event_name: data?.event_name, start_time: data?.start_time, end_time: data?.end_time, pay: data?.pay, address: data?.address, event_hours: event_hours, description: data?.description, rehearse_hours: data?.rehearse_hours, mileage_pay: data?.mileage_pay});
         const newAddress = await models.Address.create({event_id: newEvent.event_id, street: addressData?.street, city: addressData?.city, zip: addressData?.zip, state: addressData?.state});
+        const newStatus = await models.UserStatus.create({user_id: data?.user_id, event_id: newEvent.event_id, status: "owner"});
 
         //Add instrument (adds relation to EventInstrument table)
         let newInstrumentArray = [];
@@ -130,7 +131,23 @@ router.post("/", async (req, res) => {
         }
 
         //Send back
-        res.send({newEvent, newInstrumentArray, newAddress});
+        res.send({newEvent, newInstrumentArray, newAddress, newStatus});
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+//Add users to event
+router.post("/users/:event_id/:user_id", async (req, res) => {
+    try {
+        //Get data
+        const data = req.body;
+        const {event_id, user_id} = req.params;
+
+        //Get event
+        const newStatus = await models.UserStatus.findOrCreate({user_id: user_id, event_id: event_id, status: data?.status});
+
+        res.send({newStatus});
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -204,6 +221,28 @@ router.put("/:id", async (req, res) => {
         else
         {
             res.status(404).send(`No event of event_id ${id} found.`);
+        }
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+//Update event user status
+router.put("/users/:event_id/:user_id", async (req, res) => {
+    try {
+        const data = req.body;
+        const {event_id, user_id} = req.params;
+        const status = await models.UserStatus.findOne({where: {event_id: event_id, user_id: user_id}});
+        if (status)
+        {
+            //Set Data
+            status.set(data);
+            await status.save();
+            res.send(status);
+        }
+        else
+        {
+            res.status(404).send(`No user_id ${user_id} found in relation to event of event_id ${event_id} found.`);
         }
     } catch (error) {
         res.status(500).send(error.message);
@@ -302,8 +341,28 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
+//Delete user
+router.delete("/instrument/:event_id/:user_id", async (req, res) => {
+    try {
+        const {event_id, user_id} = req.params;
+        const status = await models.UserStatus.findOne({where: {event_id: event_id, user_id: user_id}});
+
+        if (status)
+        {
+            await status.destroy();
+            res.send(status);
+        }
+        else
+        {
+            res.status(404).send(`No user_id ${user_id} associated with event of event_id ${event_id} found.`);
+        }
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
 //Delete instrument
-router.delete("/instrument/:user_id/:instrument_id?", async (req, res) => {
+router.delete("/instrument/:user_id/:instrument_id", async (req, res) => {
     try {
         const {event_id, instrument_id} = req.params;
         const instrument = await models.EventInstrument.findOne({where: {event_id: event_id, instrument_id: instrument_id}});

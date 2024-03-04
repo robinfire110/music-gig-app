@@ -34,3 +34,7 @@ I've found that there are several common packages that may make our lives a bit 
 * **[Sequelize](https://sequelize.org/)** - It's an ORM (Object-Relational Mapping) that allows us to create and update the database using objects instead of SQL statements. There are several benefits to this. One, it makes our code for uniform (all JavaScript, no direct SQL statements). Two, it's more secure since the package takes care of vulnerabilities such as SQL Injection. And three, it can simplify some more complex queries and (hopefully) minimize errors that would arise from writing straight SQL. You can find the documentation [here](https://sequelize.org/docs/v7/models/defining-models/), luckily it's pretty straightforward.
 
 * **[Moment](https://momentjs.com/)** - Easier to use date and time manipulation and control objects. Use instead of built in JavaScript Date object. The documentation is [here](https://momentjs.com/docs/).
+
+## Resource 
+
+* **[API Documentation](https://documenter.getpostman.com/view/20451093/2sA2xcausW) - This is the documentation for our internal API. It's made through Postman (which you don't have to use, that's just what I did). It has a list of all the requests you can make. We'll add more if needed and fix any errors as they appear.
