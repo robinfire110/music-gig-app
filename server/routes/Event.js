@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const models = require('../database/models');
 const moment = require('moment');
+const {sequelize} = require('../database/database');
 
 function getEventHours(start_time, end_time)
 {
@@ -13,7 +14,7 @@ function getEventHours(start_time, end_time)
 //Returns JSON of all events
 router.get("/", async (req, res) => {
     try {
-        const events = await models.Event.findAll({});
+        const events = await models.Event.findAll({include: [models.Instrument, models.Address]});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -25,23 +26,41 @@ router.get("/", async (req, res) => {
 router.get("/id/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const event = await models.Event.findAll({where: {event_id: id}});
-
-        
-
+        const event = await models.Event.findOne({where: {event_id: id}, include: [models.Instrument, models.Address]});
         res.json(event);
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
-//Get single by many vars
-//Returns JSON of user with given email. Will be empty if does not exist.
-router.get("/email/:email", async (req, res) => {
+//Get most recent events (a given number)
+router.get("/recent/:limit", async (req, res) => {
     try {
-        const email = req.params.email;
-        const user = await models.User.findAll({where: {email: email}});
-        res.json(user);
+        const limit = req.params.limit;
+        const events = await models.Event.findAll({include: [models.Instrument, models.Address], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
+        res.json(events);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+//Get soonest events (a given number)
+router.get("/soonest/:limit", async (req, res) => {
+    try {
+        const limit = req.params.limit;
+        const events = await models.Event.findAll({include: [models.Instrument, models.Address], order: [['start_time', 'ASC']], limit: sequelize.literal(limit)});
+        res.json(events);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+//Get Address by event_id
+router.get("/address/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const address = await models.Address.findOne({where: {event_id: id}});
+        res.json(address);
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -80,6 +99,7 @@ router.post("/", async (req, res) => {
         const newAddress = await models.Address.create({event_id: newEvent.event_id, street: addressData?.street, city: addressData?.city, zip: addressData?.zip, state: addressData?.state});
 
         //Add instrument (adds relation to EventInstrument table)
+        let newInstrumentArray = [];
         if (data.instruments)
         {
             for (const instrument of data.instruments) {
@@ -98,7 +118,8 @@ router.post("/", async (req, res) => {
                 //Add if found
                 if (instrumentId)
                 {
-                    await models.EventInstrument.create({instrument_id: instrumentId, event_id: newEvent.event_id});
+                    var newInstrument = await models.EventInstrument.create({instrument_id: instrumentId, event_id: newEvent.event_id});
+                    newInstrumentArray.push(newInstrument);
                 }
                 else
                 {
@@ -109,11 +130,53 @@ router.post("/", async (req, res) => {
         }
 
         //Send back
-        res.send(newEvent);
+        res.send({newEvent, newInstrumentArray, newAddress});
     } catch (error) {
         res.status(500).send(error.message);
     }
-    
+});
+
+//Add instrument
+//Adds instrumet(s) to event with associated event_id
+router.post("/instrument/:id", async (req, res) => {
+    try {
+        //Get data
+        const data = req.body;
+        const id = req.params.id;
+
+        //Add instrument (adds relation to UserInstrument table)
+        newInstrumentArray = [];
+        if (data.instruments)
+        {
+            for (const instrument of data.instruments) {
+                let instrumentId = instrument; 
+
+                //Get Instrument by name
+                if (typeof instrument == "string")
+                {
+                    instrumentId = (await models.Instrument.findOne({where: {name: instrument}}))?.instrument_id;
+                }
+                else
+                {
+                    instrumentId = (await models.Instrument.findOne({where: {instrument_id: instrument}}))?.instrument_id;
+                }
+                
+                //Add if found
+                if (instrumentId)
+                {
+                    newInstrument = await models.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: id}});
+                    newInstrumentArray.push(newInstrument);
+                }
+                else
+                {
+                    console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+                }
+            }
+        }
+        res.send({newInstrumentArray});
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
 });
 
 /* UPDATE */
@@ -147,10 +210,77 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-//Update Address
+//Update Address (by event_id)
 router.put("/address/:id", async (req, res) => {
-    ///This really only needs to be update to update an address.
-    //There won't be a situation where you will need to delete an address where you wouldn't delete the original.
+    try {
+        const data = req.body;
+        const id = req.params.id;
+        const address = await models.Address.findOne({where: {event_id: id}});
+        if (address)
+        {
+            //Set Data
+            address.set(data);
+            await address.save();
+            res.send(address);
+        }
+        else
+        {
+            res.status(404).send(`No address associated with event_id ${id} found.`);
+        }
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+//Update instrument
+//Updates instrumet(s) to event with associated event_id
+//WILL DELETE OLD ENTIRES AND UPDATE ENTIRELY WITH NEW ONES. If you need to only add or delete one instrument, use the POST and DELETE requests instead.
+router.put("/instrument/:id", async (req, res) => {
+    try {
+        //Get data
+        const data = req.body;
+        const id = req.params.id;
+
+        //Delete old entries
+        await models.EventInstrument.destroy({where: {event_id: id}});
+
+        //Add instrument (adds relation to EventInstrument table)
+        newInstrumentArray = [];
+        if (data.instruments)
+        {
+            for (const instrument of data.instruments) {
+                let instrumentId = instrument; 
+
+                //Get Instrument by name
+                if (typeof instrument == "string")
+                {
+                    instrumentId = (await models.Instrument.findOne({where: {name: instrument}}))?.instrument_id;
+                }
+                else
+                {
+                    instrumentId = (await models.Instrument.findOne({where: {instrument_id: instrument}}))?.instrument_id;
+                }
+                
+                //Add if found
+                if (instrumentId)
+                {
+                    newInstrument = await models.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: id}});
+                    newInstrumentArray.push(newInstrument);
+                }
+                else
+                {
+                    console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+                }
+            }
+        }
+        else
+        {
+            throw {message: "No instrument object given."};
+        }
+        res.send({newInstrumentArray});
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
 });
 
 /* DELETE */
@@ -166,6 +296,26 @@ router.delete("/:id", async (req, res) => {
         else
         {
             res.status(404).send(`No event of event_id ${id} found.`);
+        }
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+//Delete instrument
+router.delete("/instrument/:user_id/:instrument_id?", async (req, res) => {
+    try {
+        const {event_id, instrument_id} = req.params;
+        const instrument = await models.EventInstrument.findOne({where: {event_id: event_id, instrument_id: instrument_id}});
+
+        if (instrument)
+        {
+            await instrument.destroy();
+            res.send(instrument);
+        }
+        else
+        {
+            res.status(404).send(`No instrument of event_id ${event_id} and instrument_id ${instrument_id} found.`);
         }
     } catch (error) {
         res.status(500).send(error.message);
