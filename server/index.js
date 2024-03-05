@@ -3,8 +3,9 @@ const app = express(); //Create the app using express
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const {sequelize, connectToDatabase} = require('./database/database'); //Get object from database function
-const models = require('./database/models');
 const instrumentList = require('./database/instrumentList');
+const models = require('./database/models');
+const port = 5000;
 
 //Routes (connect the files with the various routes to other parts of the site)
 const routeEvent = require('./routes/Event');
@@ -13,15 +14,16 @@ const routeInstrument = require('./routes/Instrument');
 const routeUser = require('./routes/User');
 
 //Determines where app is hosted
-app.listen(5000, async () => {
+app.listen(port, async () => {
     //Connect to database
     await connectToDatabase();
 
     //Sync models
     await sequelize.sync({ alter: false }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
-    instrumentList.importInstruments();
+    models.importInstruments(); //Adds instrument list if empty
+    //models.createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA
 
-    console.log('Server is running at http://localhost:5000');
+    console.log(`Server is running at http://localhost:${port}`);
 });
 
 /* Routes */
@@ -29,12 +31,3 @@ app.use("/event", routeEvent.router);
 app.use("/financial", routeFinancial.router);
 app.use("/instrument", routeInstrument.router);
 app.use("/user", routeUser.router);
-
-/* TESTING ROUTES */
-//Testing adding user to database
-app.get('/add', async (req, res) => {
-    //await models.User.create({email: "test@email.com", password: "123", f_name: "John", l_name: "Smith", zip: "12345"}); //Test insert statement using Sequelize (much easier than SQL statement!)
-    //await models.Event.create({event_name: "Test Event", date: "2023-02-02", time: "01:01:01", pay: 300.00});
-    await models.UserStatus.create({UserUserId: 1, EventEventId: 1});
-    res.json("Added");
-});

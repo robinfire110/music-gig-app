@@ -58,17 +58,8 @@ router.post("/", async (req, res) => {
         if (data.instruments)
         {
             for (const instrument of data.instruments) {
-                let instrumentId = instrument; 
-
-                //Get Instrument by name
-                if (typeof instrument == "string")
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {name: instrument}}))?.instrument_id;
-                }
-                else
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {instrument_id: instrument}}))?.instrument_id;
-                }
+                //Get instrumentId
+                let instrumentId = await models.getInstrumentId(instrument);
                 
                 //Add if found
                 if (instrumentId)
@@ -102,17 +93,8 @@ router.post("/instrument/:id", async (req, res) => {
         if (data.instruments)
         {
             for (const instrument of data.instruments) {
-                let instrumentId = instrument; 
-
-                //Get Instrument by name
-                if (typeof instrument == "string")
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {name: instrument}}))?.instrument_id;
-                }
-                else
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {instrument_id: instrument}}))?.instrument_id;
-                }
+                //Get instrumentId
+                let instrumentId = await models.getInstrumentId(instrument);
                 
                 //Add if found
                 if (instrumentId)
@@ -143,9 +125,33 @@ router.put("/:id", async (req, res) => {
         const user = await models.User.findOne({where: {user_id: id}});
         if (user)
         {
+            //Update user
             user.set(data);
             await user.save();
-            res.send(user);
+
+            //Update instrument (if exists)
+            await models.UserInstrument.destroy({where: {user_id: id}});
+            newInstrumentArray = [];
+            if (data.instruments)
+            {
+                for (const instrument of data.instruments) {
+                    //Get instrumentId
+                    let instrumentId = await models.getInstrumentId(instrument);
+                    
+                    //Add if found
+                    if (instrumentId)
+                    {
+                        newInstrument = await models.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
+                        newInstrumentArray.push(newInstrument);
+                    }
+                    else
+                    {
+                        console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+                    }
+                }
+            }
+
+            res.send({user, newInstrumentArray});
         }
         else
         {
@@ -173,17 +179,8 @@ router.put("/instrument/:id", async (req, res) => {
         if (data.instruments)
         {
             for (const instrument of data.instruments) {
-                let instrumentId = instrument; 
-
-                //Get Instrument by name
-                if (typeof instrument == "string")
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {name: instrument}}))?.instrument_id;
-                }
-                else
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {instrument_id: instrument}}))?.instrument_id;
-                }
+                //Get instrumentId
+                let instrumentId = await models.getInstrumentId(instrument);
                 
                 //Add if found
                 if (instrumentId)

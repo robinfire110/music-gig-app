@@ -4,11 +4,6 @@ const models = require('../database/models');
 const moment = require('moment');
 const {sequelize} = require('../database/database');
 
-function getEventHours(start_time, end_time)
-{
-    return (moment(end_time) - moment(start_time))/3600000;
-}
-
 /* GET */
 //Get all
 //Returns JSON of all events
@@ -91,7 +86,7 @@ router.post("/", async (req, res) => {
         if (data.start_time && data.end_time)
         {
             //Convert from milliseconds to hours
-            event_hours = getEventHours(data.start_time, data.end_time);
+            event_hours = models.getEventHours(data.start_time, data.end_time);
         }
 
         //Add to event & address
@@ -104,17 +99,8 @@ router.post("/", async (req, res) => {
         if (data.instruments)
         {
             for (const instrument of data.instruments) {
-                let instrumentId = instrument; 
-
-                //Get Instrument by name
-                if (typeof instrument == "string")
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {name: instrument}}))?.instrument_id;
-                }
-                else
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {instrument_id: instrument}}))?.instrument_id;
-                }
+                //Get instrumentId
+                let instrumentId = await models.getInstrumentId(instrument);
                 
                 //Add if found
                 if (instrumentId)
@@ -166,18 +152,9 @@ router.post("/instrument/:id", async (req, res) => {
         if (data.instruments)
         {
             for (const instrument of data.instruments) {
-                let instrumentId = instrument; 
+                //Get instrumentId
+                let instrumentId = await models.getInstrumentId(instrument); 
 
-                //Get Instrument by name
-                if (typeof instrument == "string")
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {name: instrument}}))?.instrument_id;
-                }
-                else
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {instrument_id: instrument}}))?.instrument_id;
-                }
-                
                 //Add if found
                 if (instrumentId)
                 {
@@ -202,7 +179,7 @@ router.put("/:id", async (req, res) => {
     try {
         const data = req.body;
         const id = req.params.id;
-        const event = await models.Event.findOne({where: {event_id: id}});
+        const event = await models.Event.findOne({where: {event_id: id}, include: [models.Address]});
         if (event)
         {
             //Set Data
@@ -211,12 +188,46 @@ router.put("/:id", async (req, res) => {
             //Recalculate Event Time (if needed)
             if (data.start_time || data.end_time)
             {
-                event_hours = getEventHours(data.start_time ? data.start_time : event.start_time, data.end_time ? data.end_time : event.end_time);
+                event_hours = models.getEventHours(data.start_time ? data.start_time : event.start_time, data.end_time ? data.end_time : event.end_time);
                 event.set({event_hours: event_hours});
             }
 
+            //Set Address (if exists)
+            if (data.address)
+            {
+                const address = await models.Address.findOne({where: {address_id: event.Address.address_id}});
+                address.set(data.address);
+                await address.save();
+            }
+
+            //Set Instruments (if exists)
+            //Delete old entries
+            await models.EventInstrument.destroy({where: {event_id: id}});
+
+            //Add instrument (adds relation to EventInstrument table)
+            newInstrumentArray = [];
+            if (data.instruments)
+            {
+                for (const instrument of data.instruments) {
+                    //Get instrumentId
+                    let instrumentId = await models.getInstrumentId(instrument);
+                    
+                    //Add if found
+                    if (instrumentId)
+                    {
+                        newInstrument = await models.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: event.event_id}});
+                        newInstrumentArray.push(newInstrument);
+                    }
+                    else
+                    {
+                        console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+                    }
+                }
+            }
+
+            //Save
             await event.save();
-            res.send(event);
+            res.send({event, newInstrumentArray});
         }
         else
         {
@@ -288,17 +299,8 @@ router.put("/instrument/:id", async (req, res) => {
         if (data.instruments)
         {
             for (const instrument of data.instruments) {
-                let instrumentId = instrument; 
-
-                //Get Instrument by name
-                if (typeof instrument == "string")
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {name: instrument}}))?.instrument_id;
-                }
-                else
-                {
-                    instrumentId = (await models.Instrument.findOne({where: {instrument_id: instrument}}))?.instrument_id;
-                }
+                //Get instrumentId
+                let instrumentId = await models.getInstrumentId(instrument);
                 
                 //Add if found
                 if (instrumentId)

@@ -1,6 +1,3 @@
-const models = require('./models');
-const sequelize = require('./database');
-
 const instrumentList = [
     "Accordian",
     "Bagpipes",
@@ -62,19 +59,4 @@ const instrumentList = [
     "Xylophone"
 ]
 
-async function importInstruments() {
-    const instrumentExists = await models.Instrument.findOne();
-    if (instrumentExists == null)
-    {
-        console.log("Creating instrument list.")
-        instrumentList.forEach(instrument => {
-            models.Instrument.create({name: instrument});
-        }); 
-    }
-    else
-    {
-        console.log("Instrument List exists, skipping inserts.")
-    }    
-}
-
-module.exports = {importInstruments};
+module.exports = {instrumentList};
