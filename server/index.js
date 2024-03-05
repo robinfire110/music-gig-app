@@ -1,6 +1,11 @@
 const express = require('express'); //Creates instance of express framework, which well help route things.
+const cors = require("cors"); //Creates an instance of cors, to allow cross-origin requests to be made between our front-end and the server's API endpoint
+const corsOptions = {
+    origin: "http://localhost:3000", //Note this localhost needs to be updated when hosting on cloud
+};
 const app = express(); //Create the app using express
 app.use(express.json());
+app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 const {sequelize, connectToDatabase} = require('./database/database'); //Get object from database function
 const instrumentList = require('./database/instrumentList');
