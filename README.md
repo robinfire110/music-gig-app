@@ -23,8 +23,8 @@ Postman allows you to test HTTP requests to make sure everything is functioning 
 ## Initial Setup
 1. In your IDE terminal, change your working directory to the "server" folder. In there run ```npm install```. That will install all the backend server packages.
 2. Change your directory to the "client" folder and run the same command to install the front end packages.
-3. Run the backend by changing your directory to the "client" folder and running ```npm run dev```. This will start the backend using nodemon. You can use ```npm run start``` to start node without nodemon.
-4. Frontend setup TBD
+3. Run the backend by changing your directory to the "server" folder and running ```npm run dev```. This will start the backend using nodemon. You can use ```npm run start``` to start node without nodemon.
+4. Run the frontend by changing your directory to the "client" folder and running ```npm run start```. This will start the frontend, and open a new tab in your web browser showing the website's landing page.
 
 ## Development Packages
 I've found that there are several common packages that may make our lives a bit easier in the long run. It's a bit more learning we have to do up front, but I think it'll be worth it. Here's some information about each.
