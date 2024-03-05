@@ -13,6 +13,7 @@ import Profile from "./pages/Profile";
 import IndividualEvent from "./pages/IndividualEvent";
 import Calculator from "./pages/Calculator";
 
+
 function App() {
   return (
     <div className="App">
