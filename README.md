@@ -23,8 +23,8 @@ Postman allows you to test HTTP requests to make sure everything is functioning 
 ## Initial Setup
 1. In your IDE terminal, change your working directory to the "server" folder. In there run ```npm install```. That will install all the backend server packages.
 2. Change your directory to the "client" folder and run the same command to install the front end packages.
-3. Run the backend by changing your directory to the "client" folder and running ```npm run dev```. This will start the backend using nodemon. You can use ```npm run start``` to start node without nodemon.
-4. Frontend setup TBD
+3. Run the backend by changing your directory to the "server" folder and running ```npm run dev```. This will start the backend using nodemon. You can use ```npm run start``` to start node without nodemon.
+4. Run the frontend by changing your directory to the "client" folder and running ```npm run start```. This will start the frontend, and open a new tab in your web browser showing the website's landing page.
 
 ## Development Packages
 I've found that there are several common packages that may make our lives a bit easier in the long run. It's a bit more learning we have to do up front, but I think it'll be worth it. Here's some information about each.
@@ -32,3 +32,9 @@ I've found that there are several common packages that may make our lives a bit 
 * **[Express](https://expressjs.com/)** - We already talk about this, but Express is very useful for settings up routes. The documentation is [here](https://expressjs.com/en/4x/api.html).
 
 * **[Sequelize](https://sequelize.org/)** - It's an ORM (Object-Relational Mapping) that allows us to create and update the database using objects instead of SQL statements. There are several benefits to this. One, it makes our code for uniform (all JavaScript, no direct SQL statements). Two, it's more secure since the package takes care of vulnerabilities such as SQL Injection. And three, it can simplify some more complex queries and (hopefully) minimize errors that would arise from writing straight SQL. You can find the documentation [here](https://sequelize.org/docs/v7/models/defining-models/), luckily it's pretty straightforward.
+
+* **[Moment](https://momentjs.com/)** - Easier to use date and time manipulation and control objects. Use instead of built in JavaScript Date object. The documentation is [here](https://momentjs.com/docs/).
+
+## Resource 
+
+* **[API Documentation](https://documenter.getpostman.com/view/20451093/2sA2xcausW) - This is the documentation for our internal API. It's made through Postman (which you don't have to use, that's just what I did). It has a list of all the requests you can make. We'll add more if needed and fix any errors as they appear.
