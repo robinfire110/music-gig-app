@@ -39,10 +39,14 @@ const IndividualEvent = () => {
                     <h2>{event.end_time}</h2>
                     <h2>{event.description}</h2>
                     <h2>{event.pay}</h2>
-                    <h2>{event.event_hours}</h2>
-                    <p>Individual Event Page</p>
+                    {event.Users && event.Users.length > 0 && (
+                        <>
+                            <h2>{event.Users[0].f_name}</h2>
+                            <h2>{event.Users[0].l_name}</h2>
+                        </>
+                    )}
                 </div>
-
+                <button className="update"><Link to={`/form/${event.event_id}`}>Update Event</Link></button>
         </div>
     )
 }
