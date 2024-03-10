@@ -15,14 +15,19 @@ const EventForm = () => {
         event_hours: "",
     })
 
+    const [instruments, setInstruments] = useState([])
+    const [selectedInstruments, setSelectedInstruments] = useState([])
+    
     const navigate = useNavigate()
-
-    //TODO: For some reason, this is not being stored correctly on the page.
     const { id } = useParams();
-    console.log(id)
 
     useEffect(() => {
         const fetchData = async () => {
+            //fetch instruments needed for tags
+            const res = await fetch(`http://localhost:5000/instrument/`);
+            const data = await res.json();
+            setInstruments(data);
+
             if (id) { //If the previous page had an id, then it's going to be stored and allow us to put to that id
                 const res = await fetch(`http://localhost:5000/event/id/${id}`);
                 const data = await res.json();
@@ -36,13 +41,23 @@ const EventForm = () => {
         setEvent(prev => ({ ...prev, [name]: value }))
     }
 
+    //need a separate handler for instrument changes
+    const handleInstrumentChange = (selectedInstrument) => {
+        setSelectedInstruments((prev) => [...prev, selectedInstrument]);
+    }
+
     const handleListing = async e => {
         e.preventDefault()
         try {
+            //prepare data with event details and selected instruments
+            const eventData = { ...event, instruments: selectedInstruments };
+
             if (id) { //if id already exists, we make a put to that event id
-                await axios.put(`http://localhost:5000/event/${id}`, event);
+                await axios.put(`http://localhost:5000/event/${id}`, eventData);
             } else { //if the id doesn't exist, we make a post to a new event id
-                await axios.post(`http://localhost:5000/event/${id}`, event);
+                const response = await axios.post(`http://localhost:5000/event/${id}`, eventData)
+                const newEventId = response.data.event_id;
+                navigate(`/event/${newEventId}`); //automatically throw user to the individual event page for the new event
             };
             navigate(`/event/${id}`) //automatically throw user to the individual event page for the event
         } catch (error) {
@@ -58,8 +73,22 @@ const EventForm = () => {
             <Datepicker value={event.end_time} onChange={(value) => handleChange("end_time", value)}/>
             <input type="text" placeholder='Description' onChange={handleChange} name="description" />
             <input type="number" placeholder='Pay' onChange={handleChange} name="pay" />
-            <input type="number" placeholder='Event Hours' onChange={handleChange} name="event_hours" />
-            <button className="formButton" onClick={handleListing}>List Event</button>
+            <select onChange={(e) => handleInstrumentChange(e.target.value)}>
+                <option value="" disabled>
+                    Select Instrument
+                </option>
+                {instruments.map((instrument) => (
+                    <option key={instrument.instrument_id} value={instrument.name}>
+                        {instrument.name}
+                    </option>
+                ))}
+            </select>
+            <div>
+                Selected Instruments: {selectedInstruments.map((instrument) => instrument).join(", ")}
+            </div>
+            <button className="formButton" onClick={handleListing}>
+                {id ? "Update Event" : "List Event"}
+            </button>
         </div>
     )
 }

@@ -45,6 +45,19 @@ const IndividualEvent = () => {
                             <h2>{event.Users[0].l_name}</h2>
                         </>
                     )}
+                    {event.Address && (
+                        <>
+                            <h2>{event.Address.street} {event.Address.city} {event.Address.state} {event.Address.zip}</h2>
+                        </>
+                    )}
+                    {/* getting all the instruments with the associated event. */}
+                    {event.Instruments && event.Instruments.length > 0 && (
+                        <>
+                            {event.Instruments.map((instrument, index) => (
+                                <h2 key={index}>{instrument.name}</h2>
+                            ))}
+                        </>
+                    )}
                 </div>
                 <button className="update"><Link to={`/form/${event.event_id}`}>Update Event</Link></button>
         </div>
