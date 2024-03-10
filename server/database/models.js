@@ -171,7 +171,7 @@ const Event = sequelize.define('Event', {
       allowNull: false
     },
     description: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       defaultValue: ""
     },
     event_hours: {

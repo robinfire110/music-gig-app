@@ -35,6 +35,9 @@ I've found that there are several common packages that may make our lives a bit 
 
 * **[Moment](https://momentjs.com/)** - Easier to use date and time manipulation and control objects. Use instead of built in JavaScript Date object. The documentation is [here](https://momentjs.com/docs/).
 
+
+* **[React Bootstrap](https://react-bootstrap.netlify.app/) & [Bootstrap](https://getbootstrap.com/)** - For styling and formatting. Very useful.
+
 ## Resource 
 
-* **[API Documentation](https://documenter.getpostman.com/view/20451093/2sA2xcausW) - This is the documentation for our internal API. It's made through Postman (which you don't have to use, that's just what I did). It has a list of all the requests you can make. We'll add more if needed and fix any errors as they appear.
+* **[API Documentation](https://documenter.getpostman.com/view/20451093/2sA2xcausW)** - This is the documentation for our internal API. It's made through Postman (which you don't have to use, that's just what I did). It has a list of all the requests you can make. We'll add more if needed and fix any errors as they appear.
