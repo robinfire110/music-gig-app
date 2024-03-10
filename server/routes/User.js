@@ -130,10 +130,10 @@ router.put("/:id", async (req, res) => {
             await user.save();
 
             //Update instrument (if exists)
-            await models.UserInstrument.destroy({where: {user_id: id}});
             newInstrumentArray = [];
             if (data.instruments)
             {
+                await models.UserInstrument.destroy({where: {user_id: id}});
                 for (const instrument of data.instruments) {
                     //Get instrumentId
                     let instrumentId = await models.getInstrumentId(instrument);
@@ -171,13 +171,13 @@ router.put("/instrument/:id", async (req, res) => {
         const data = req.body;
         const id = req.params.id;
 
-        //Delete old entries
-        await models.UserInstrument.destroy({where: {user_id: id}});
-
         //Add instrument (adds relation to UserInstrument table)
         newInstrumentArray = [];
         if (data.instruments)
         {
+             //Delete old entries
+            await models.UserInstrument.destroy({where: {user_id: id}});
+            
             for (const instrument of data.instruments) {
                 //Get instrumentId
                 let instrumentId = await models.getInstrumentId(instrument);
