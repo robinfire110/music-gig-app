@@ -133,7 +133,7 @@ const User = sequelize.define('User', {
     allowNull: false
   },
   bio: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     defaultValue: ""
   },
   isAdmin: {
