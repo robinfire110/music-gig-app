@@ -44,22 +44,22 @@ const IndividualEvent = () => {
     return (
         <div className="event-holder">
                 <div className="individual-event" key={event.id}>
-                    <h2>{event.event_name}</h2>
-                    <h2>{event.date_posted}</h2>
-                    <h2>{event.start_time}</h2>
-                    <h2>{event.end_time}</h2>
-                    <h2>{event.description}</h2>
-                    <h2>{event.pay}</h2>
+                    <h2>Event Name: {event.event_name}</h2>
+                    <h2>Date Posted: {event.date_posted}</h2>
+                    <h2>Start Time: {event.start_time}</h2>
+                    <h2>End Time: {event.end_time}</h2>
+                    <h2>Description: {event.description}</h2>
+                    <h2>Pay: {event.pay}</h2>
                     {/* getting the owner of the event to display */}
                     {event.Users && event.Users.length > 0 && (
                         <>
-                            <h2>{event.Users[0].f_name} {event.Users[0].l_name}</h2>
+                            <h2>Posted By: {event.Users[0].f_name} {event.Users[0].l_name}</h2>
                         </>
                     )}
                     {/* getting the address of the associated event. */}
                     {event.Address && (
                         <>
-                            <h2>{event.Address.street} {event.Address.city} {event.Address.state} {event.Address.zip}</h2>
+                            <h2>Address: {event.Address.street} {event.Address.city} {event.Address.state} {event.Address.zip}</h2>
                         </>
                     )}
                     {/* getting all the instruments with the associated event. */}
