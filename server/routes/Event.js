@@ -201,13 +201,12 @@ router.put("/:id", async (req, res) => {
             }
 
             //Set Instruments (if exists)
-            //Delete old entries
-            await models.EventInstrument.destroy({where: {event_id: id}});
-
-            //Add instrument (adds relation to EventInstrument table)
             newInstrumentArray = [];
             if (data.instruments)
             {
+                //Delete old entries
+                await models.EventInstrument.destroy({where: {event_id: id}});
+
                 for (const instrument of data.instruments) {
                     //Get instrumentId
                     let instrumentId = await models.getInstrumentId(instrument);
@@ -291,13 +290,13 @@ router.put("/instrument/:id", async (req, res) => {
         const data = req.body;
         const id = req.params.id;
 
-        //Delete old entries
-        await models.EventInstrument.destroy({where: {event_id: id}});
-
         //Add instrument (adds relation to EventInstrument table)
         newInstrumentArray = [];
         if (data.instruments)
         {
+            //Delete old entries
+            await models.EventInstrument.destroy({where: {event_id: id}});
+
             for (const instrument of data.instruments) {
                 //Get instrumentId
                 let instrumentId = await models.getInstrumentId(instrument);

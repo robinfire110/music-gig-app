@@ -133,7 +133,7 @@ const User = sequelize.define('User', {
     allowNull: false
   },
   bio: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     defaultValue: ""
   },
   isAdmin: {
@@ -171,7 +171,7 @@ const Event = sequelize.define('Event', {
       allowNull: false
     },
     description: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       defaultValue: ""
     },
     event_hours: {
