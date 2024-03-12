@@ -4,10 +4,10 @@ import 'react-datetime-picker/dist/DateTimePicker.css';
 import 'react-calendar/dist/Calendar.css';
 import 'react-clock/dist/Clock.css';
 
-function Datepicker({ value, onChange }) {
+function Datepicker({ value, onChange, name }) {
     return (
         <div className='p-5'>
-            <DateTimePicker onChange={onChange} value={value} />
+            <DateTimePicker onChange={(date) => onChange(name, date)} value={value} />
         </div>
     )
 }

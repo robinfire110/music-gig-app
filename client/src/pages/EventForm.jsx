@@ -15,14 +15,26 @@ const EventForm = () => {
         event_hours: "",
     })
 
-    const navigate = useNavigate()
+    const [instruments, setInstruments] = useState([])
+    const [selectedInstruments, setSelectedInstruments] = useState([])
 
-    //TODO: For some reason, this is not being stored correctly on the page.
+    const [address, setAddress] = useState({
+        street: "",
+        city: "",
+        zip: "",
+        state: ""
+    })
+
+    const navigate = useNavigate()
     const { id } = useParams();
-    console.log(id)
 
     useEffect(() => {
         const fetchData = async () => {
+            //fetch instruments needed for tags
+            const res = await fetch(`http://localhost:5000/instrument/`);
+            const data = await res.json();
+            setInstruments(data);
+
             if (id) { //If the previous page had an id, then it's going to be stored and allow us to put to that id
                 const res = await fetch(`http://localhost:5000/event/id/${id}`);
                 const data = await res.json();
@@ -32,19 +44,39 @@ const EventForm = () => {
         fetchData();
     }, [id]);
 
-    const handleChange = (name, value) => {
-        setEvent(prev => ({ ...prev, [name]: value }))
+    const handleChange = (e) => {
+        setEvent(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    }
+
+    const handleDateChange = (name, date) => {
+        setEvent((prev) => ({ ...prev, [name]: date }))
+    }
+
+    //need a separate handler for instrument changes
+    const handleInstrumentChange = (selectedInstrument) => {
+        setSelectedInstruments((prev) => [...prev, selectedInstrument]);
+    }
+
+    //seperate handler for address changes
+    const handleAddressChange = (name, value) => {
+        setAddress(prev => ({ ...prev, [name]: value }))
     }
 
     const handleListing = async e => {
         e.preventDefault()
         try {
+            //prepare data with event details and selected instruments
+            const eventData = { ...event, instruments: selectedInstruments, address };
+
             if (id) { //if id already exists, we make a put to that event id
-                await axios.put(`http://localhost:5000/event/${id}`, event);
+                await axios.put(`http://localhost:5000/event/${id}`, eventData);
+                navigate(`/event/${id}`) //automatically throw user to the individual event page for the event
             } else { //if the id doesn't exist, we make a post to a new event id
-                await axios.post(`http://localhost:5000/event/${id}`, event);
+                console.log(eventData);
+                const response = await axios.post(`http://localhost:5000/event/`, eventData)
+                const newEventId = response.data.event_id;
+                navigate(`/event/${newEventId}`); //automatically throw user to the individual event page for the new event
             };
-            navigate(`/event/${id}`) //automatically throw user to the individual event page for the event
         } catch (error) {
             console.log(error);
         }
@@ -54,14 +86,46 @@ const EventForm = () => {
         <div className='form'>
             <h1>Update Event</h1>
             <input type="text" placeholder='Event name' onChange={handleChange} name="event_name" />
-            <Datepicker value={event.start_time} onChange={(value) => handleChange("start_time", value)}/>
-            <Datepicker value={event.end_time} onChange={(value) => handleChange("end_time", value)}/>
+
+            {/* Date Fields */}
+            <Datepicker value={event.start_time} onChange={handleDateChange} name="start_time" />
+            <Datepicker value={event.end_time} onChange={handleDateChange} name="end_time" />
+
+            {/* Address Fields */}
+            <input type="text" placeholder='Street' onChange={(e) => handleAddressChange("street", e.target.value)} value={address.street} />
+            <input type="text" placeholder='City' onChange={(e) => handleAddressChange("city", e.target.value)} value={address.city} />
+            <input type="text" placeholder='State' onChange={(e) => handleAddressChange("state", e.target.value)} value={address.state} />
+            <input type="text" placeholder='Zip Code' onChange={(e) => handleAddressChange("zip", e.target.value)} value={address.zip} />
+
             <input type="text" placeholder='Description' onChange={handleChange} name="description" />
+
+            {/* Pay Fields */}
             <input type="number" placeholder='Pay' onChange={handleChange} name="pay" />
-            <input type="number" placeholder='Event Hours' onChange={handleChange} name="event_hours" />
-            <button className="formButton" onClick={handleListing}>List Event</button>
+            <input type="number" placeholder="Rehearse Hours" onChange={handleChange} name="rehearse_hours" />
+            <input type="number" placeholder="Mileage Pay" onChange={handleChange} name="mileage_pay" />
+
+            {/* Instrument Fields */}
+            <select onChange={(e) => handleInstrumentChange(e.target.value)}>
+                <option value="" disabled>
+                    Select Instrument
+                </option>
+                {instruments.map((instrument) => (
+                    <option key={instrument.instrument_id} value={instrument.name}>
+                        {instrument.name}
+                    </option>
+                ))}
+            </select>
+            <div>
+                Selected Instruments: {selectedInstruments.map((instrument) => instrument).join(", ")}
+            </div>
+            <button className="formButton" onClick={handleListing}>
+                {id ? "Update Event" : "List Event"}
+            </button>
+
+            {/* Set is listed to true */}
         </div>
     )
+
 }
 
 export default EventForm
