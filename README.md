@@ -26,6 +26,11 @@ Postman allows you to test HTTP requests to make sure everything is functioning 
 3. Run the backend by changing your directory to the "server" folder and running ```npm run dev```. This will start the backend using nodemon. You can use ```npm run start``` to start node without nodemon.
 4. Run the frontend by changing your directory to the "client" folder and running ```npm run start```. This will start the frontend, and open a new tab in your web browser showing the website's landing page.
 
+## Database setup
+You can use both a remote or local database to run the application. To use the local database, ensure you have a MySQL server set up on your computer as listed above. To use remote, ensure you have a .env file in the root directory with your database information. 
+
+Lastly, to switch between the two, simply change the ```sequelize``` variable in ```/server/config/database.js``` to either ```local_database``` or ```remote_database```.
+
 ## Development Packages
 I've found that there are several common packages that may make our lives a bit easier in the long run. It's a bit more learning we have to do up front, but I think it'll be worth it. Here's some information about each.
 

@@ -1,4 +1,4 @@
-const { db_sequelize, connectToDatabase } = require('./config/db');
+const { sequelize, connectToDatabase } = require('./config/db');
 
 // Function to test database connection
 const testDatabaseConnection = async () => {
@@ -10,7 +10,7 @@ const testDatabaseConnection = async () => {
         console.error('Unable to connect to the database:', error);
     } finally {
         // Close the database connection
-        await db_sequelize.close();
+        await sequelize.close();
     }
 };
 
