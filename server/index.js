@@ -24,7 +24,7 @@ app.listen(port, async () => {
     await connectToDatabase();
 
     //Sync models
-    await sequelize.sync({ alter: true }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
+    await sequelize.sync({ alter: false }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
     models.importInstruments(); //Adds instrument list if empty
     //models.createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA
 
