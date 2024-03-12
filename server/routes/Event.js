@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const models = require('../database/models');
 const moment = require('moment');
-const {sequelize} = require('../database/database');
+const {sequelize} = require('../config/database');
 
 /* GET */
 //Get all

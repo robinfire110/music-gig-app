@@ -7,7 +7,7 @@ const app = express(); //Create the app using express
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
-const {sequelize, connectToDatabase} = require('./database/database'); //Get object from database function
+const {sequelize, connectToDatabase} = require('./config/database'); //Get object from database function
 const instrumentList = require('./database/instrumentList');
 const models = require('./database/models');
 const port = 5000;

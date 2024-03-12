@@ -1,5 +1,5 @@
 const {DataTypes, Sequelize} = require('sequelize');
-const {sequelize} = require('./database');
+const {sequelize} = require('../config/database');
 const moment = require('moment');
 const {faker} = require('@faker-js/faker');
 const instrument = require('./instrumentList');
@@ -375,7 +375,6 @@ const EventInstrument = sequelize.define("EventInstrument", {
     }
   }
 });
-
 
 /* Create Associations in Sequelize */
 //Creates UserStatus table
