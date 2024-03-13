@@ -63,20 +63,20 @@ const IndividualEvent = () => {
                     <Form>
                         <Form.Group>
                             <Row className="mb-3" xs={1} lg={2}>
-                                <Col>
+                                <Col lg="3">
                                     <h5>Posted By: </h5>
                                 </Col>
-                                <Col>
+                                <Col lg="8">
                                     {event.Users && event.Users.length > 0 && (
                                         <div className="key-item"> {event.Users[0].f_name} {event.Users[0].l_name}</div>
                                     )}
                                 </Col>
                             </Row>
                             <Row className="mb-3" xs={1} lg={2}>
-                                <Col>
+                                <Col lg="3">
                                     <h5>Contact:</h5>
                                 </Col>
-                                <Col>
+                                <Col lg="8">
                                     {event.Users && event.Users.length > 0 && (
                                         <div className="key-item"> {event.Users[0].email} </div>
                                     )}
@@ -88,48 +88,48 @@ const IndividualEvent = () => {
                         <hr />
                         <Form.Group>
                             <Row className="mb-3" xs={1} lg={2}>
-                                <Col>
+                                <Col lg="3">
                                     <h5>Date: </h5>
                                 </Col>
-                                <Col>
+                                <Col lg="8">
                                     <div className="key-item"> {formatDate(event.start_time)}</div>
                                 </Col>
-                                <Col>
+                                <Col lg="4">
                                     <h5>Time: </h5>
                                 </Col>
-                                <Col>
+                                <Col lg="8">
                                     <div className="key-item"> {formatTime(event.start_time)} - {formatTime(event.end_time)}</div>
                                 </Col>
-                                <Col>
+                                <Col lg="3">
                                     <h5>Location: </h5>
                                 </Col>
-                                <Col>
+                                <Col lg="8">
                                     {event.Address && (
                                         <div className="key-item"> {event.Address.street} <br /> {event.Address.city} <br /> {event.Address.state} {event.Address.zip}</div>
                                     )}
                                 </Col>
-                                <Col>
+                                <Col lg="4">
                                     <h5>Pay: </h5>
                                 </Col>
-                                <Col>
+                                <Col lg="8">
                                     <div className="key-item"> ${event.pay}</div>
                                 </Col>
-                                <Col>
+                                <Col lg="3">
                                     <h5>Rehearsal Hours: </h5>
                                 </Col>
-                                <Col>
+                                <Col lg="8">
                                     <div className="key-item"> {event.rehearse_hours}</div>
                                 </Col>
-                                <Col>
+                                <Col lg="4">
                                     <h5>Event Hours: </h5>
                                 </Col>
-                                <Col>
+                                <Col lg="8">
                                     <div className="key-item"> {event.event_hours}</div>
                                 </Col>
-                                <Col>
+                                <Col lg="3">
                                     <h5>Total Hours: </h5>
                                 </Col>
-                                <Col>
+                                <Col lg="8">
                                     <div className="key-item"> {event.event_hours + event.rehearse_hours}</div>
                                 </Col>
                             </Row>
