@@ -3,7 +3,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import Landing from './pages/Landing';
-import Login from './pages/Login';
+import Login from './components/login.component';
+import SignUp from './components/signup.component';
 import Account from './pages/Account';
 import Events from './pages/Events';
 import EventForm from './pages/EventForm';
@@ -13,8 +14,8 @@ import Calculator from './pages/Calculator';
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
+    <BrowserRouter>
+      <div className="App">
         <Routes>
           <Route
             path="/"
@@ -29,6 +30,14 @@ function App() {
             element={
               <Layout>
                 <Login />
+              </Layout>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <Layout>
+                <SignUp />
               </Layout>
             }
           />
@@ -81,8 +90,8 @@ function App() {
             }
           />
         </Routes>
-      </BrowserRouter>
-    </div>
+      </div>
+    </BrowserRouter>
   );
 }
 

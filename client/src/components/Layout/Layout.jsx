@@ -23,6 +23,12 @@ const Layout = ({ children }) => {
               <Nav.Item>
                 <Nav.Link href="/account">Account</Nav.Link>
               </Nav.Item>
+              <Nav.Item>
+                <Nav.Link href="/login">Login</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link href="/signup">Sign up</Nav.Link>
+              </Nav.Item>
             </Nav>
           </Navbar.Collapse>
         </Container>
