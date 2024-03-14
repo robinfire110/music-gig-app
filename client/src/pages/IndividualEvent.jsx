@@ -58,113 +58,113 @@ const IndividualEvent = () => {
         <div>
             <Header />
             <hr />
+            <Container className="name-date-summary" key={event.id}>
+                <Row>
+                    <Col style={{ display: 'flex', justifyContent: 'left' }}>
+                        <div className="key-item" style={{ fontSize: "30px" }}> {event.event_name} - {formatDate(event.start_time)}</div>
+                    </Col>
+                    {/* Add logic here to check user's login status and compare id, if matched display update button, if not display send to calculator button */}
+                    <Col style={{ display: 'flex', justifyContent: 'right', gap: '20px' }}>
+                        <Button className="sendToCalc"><Link to={`/calculator/${event.event_id}?event=true`} style={{ color: "#fff" }}>Send to Calculator</Link></Button>
+                        {/* <Button className="update"><Link to={`/form/${event.event_id}`} style={{ color: "#fff" }}>Update Event</Link></Button>
+                        <Button className="delete" onClick={() => handleDelete(event.event_id)} style={{ color: "#fff", textDecorationLine: 'underline' }}>Delete Event</Button> */}
+                    </Col>
+                </Row>
+            </Container>
             <Container className="event-holder">
                 <Container className="individual-event-left" key={event.id} style={{ textAlign: "left" }}>
-                    <Form>
-                        <Form.Group>
-                            <Row className="mb-3" xs={1} lg={2}>
-                                <Col lg="3">
-                                    <h5>Posted By: </h5>
-                                </Col>
-                                <Col lg="8">
-                                    {event.Users && event.Users.length > 0 && (
-                                        <div className="key-item"> {event.Users[0].f_name} {event.Users[0].l_name}</div>
-                                    )}
-                                </Col>
-                            </Row>
-                            <Row className="mb-3" xs={1} lg={2}>
-                                <Col lg="3">
-                                    <h5>Contact:</h5>
-                                </Col>
-                                <Col lg="8">
-                                    {event.Users && event.Users.length > 0 && (
-                                        <div className="key-item"> {event.Users[0].email} </div>
-                                    )}
-                                </Col>
-                            </Row>
-                        </Form.Group>
-                        <hr />
-                        <h3>Event Information</h3>
-                        <hr />
-                        <Form.Group>
-                            <Row className="mb-3" xs={1} lg={2}>
-                                <Col lg="3">
-                                    <h5>Date: </h5>
-                                </Col>
-                                <Col lg="8">
-                                    <div className="key-item"> {formatDate(event.start_time)}</div>
-                                </Col>
-                                <Col lg="4">
-                                    <h5>Time: </h5>
-                                </Col>
-                                <Col lg="8">
-                                    <div className="key-item"> {formatTime(event.start_time)} - {formatTime(event.end_time)}</div>
-                                </Col>
-                                <Col lg="3">
-                                    <h5>Location: </h5>
-                                </Col>
-                                <Col lg="8">
-                                    {event.Address && (
-                                        <div className="key-item"> {event.Address.street} <br /> {event.Address.city} <br /> {event.Address.state} {event.Address.zip}</div>
-                                    )}
-                                </Col>
-                                <Col lg="4">
-                                    <h5>Pay: </h5>
-                                </Col>
-                                <Col lg="8">
-                                    <div className="key-item"> ${event.pay}</div>
-                                </Col>
-                                <Col lg="3">
-                                    <h5>Rehearsal Hours: </h5>
-                                </Col>
-                                <Col lg="8">
-                                    <div className="key-item"> {event.rehearse_hours}</div>
-                                </Col>
-                                <Col lg="4">
-                                    <h5>Event Hours: </h5>
-                                </Col>
-                                <Col lg="8">
-                                    <div className="key-item"> {event.event_hours}</div>
-                                </Col>
-                                <Col lg="3">
-                                    <h5>Total Hours: </h5>
-                                </Col>
-                                <Col lg="8">
-                                    <div className="key-item"> {event.event_hours + event.rehearse_hours}</div>
-                                </Col>
-                            </Row>
-                        </Form.Group>
-                    </Form>
+                    <Row className="mb-3" xs={1} lg={2}>
+                        <Col lg="2">
+                            <h5>Posted By: </h5>
+                        </Col>
+                        <Col lg="8">
+                            {event.Users && event.Users.length > 0 && (
+                                <div className="key-item"> {event.Users && <Link to={`/profile/${event.Users[0].user_id}`} style={{ color: "#000" }}>{event.Users[0].f_name} {event.Users[0].l_name}</Link>}</div>
+                            )}
+                        </Col>
+                    </Row>
+                    <Row className="mb-3" xs={1} lg={2}>
+                        <Col lg="2">
+                            <h5>Contact:</h5>
+                        </Col>
+                        <Col lg="8">
+                            {event.Users && event.Users.length > 0 && (
+                                <div className="key-item"> {event.Users[0].email} </div>
+                            )}
+                        </Col>
+                    </Row>
+                    <hr />
+                    <h3>Event Information</h3>
+                    <hr />
+                    <Row className="mb-3" xs={1} lg={2}>
+                        <Col lg="3">
+                            <h5>Date: </h5>
+                        </Col>
+                        <Col lg="8">
+                            <div className="key-item"> {formatDate(event.start_time)}</div>
+                        </Col>
+                        <Col lg="3">
+                            <h5>Time: </h5>
+                        </Col>
+                        <Col lg="8">
+                            <div className="key-item"> {formatTime(event.start_time)} - {formatTime(event.end_time)}</div>
+                        </Col>
+                        <Col lg="3">
+                            <h5>Location: </h5>
+                        </Col>
+                        <Col lg="8">
+                            {event.Address && (
+                                <div className="key-item"> {event.Address.street} <br /> {event.Address.city} <br /> {event.Address.state} {event.Address.zip}</div>
+                            )}
+                        </Col>
+                        <Col lg="3">
+                            <h5>Pay: </h5>
+                        </Col>
+                        <Col lg="8">
+                            <div className="key-item"> ${event.pay}</div>
+                        </Col>
+                        <Col lg="3">
+                            <h5>Rehearsal Hours: </h5>
+                        </Col>
+                        <Col lg="8">
+                            <div className="key-item"> {event.rehearse_hours}</div>
+                        </Col>
+                        <Col lg="3">
+                            <h5>Event Hours: </h5>
+                        </Col>
+                        <Col lg="8">
+                            <div className="key-item"> {event.event_hours}</div>
+                        </Col>
+                        <Col lg="3">
+                            <h5>Total Hours: </h5>
+                        </Col>
+                        <Col lg="8">
+                            <div className="key-item"> {event.event_hours + event.rehearse_hours}</div>
+                        </Col>
+                    </Row>
                 </Container>
                 <Container className="individual-event-right" key={event.id}>
-                    <Form>
-                        <Form.Group>
-                            <Row className="mb-3" xs={1} lg={1}>
-                                <Col>
-                                    <div className="key-item"> {event.event_name}</div>
-                                </Col>
-                                <Col>
-                                    <div className="key-item"> {event.description}</div>
-                                </Col>
-                                </Row>
-                        </Form.Group>
-                        <hr />
-                        <h3>Musicians Needed:</h3>
-                        <hr />
-                        <Form.Group>
-                            <Row className="mb-3" xs={1} lg={1}>
-                                <Col>
-                                    {event.Instruments && event.Instruments.map((instrument, index) => (
-                                        <div key={index}><div className="key-item"> {instrument.name}</div></div>
-                                    ))}
-                                </Col>
-                            </Row>
-                        </Form.Group>
-                    </Form>
+                    <Row className="mb-3" xs={1} lg={1}>
+                        <Col>
+                            <div className="key-item"> {event.event_name}</div>
+                        </Col>
+                        <Col>
+                            <div className="key-item"> {event.description}</div>
+                        </Col>
+                    </Row>
+                    <h4>Musicians Needed:</h4>
+                    <hr />
+                    <Row className="mb-3" xs={1} lg={1}>
+                        <Col>
+                            {event.Instruments && event.Instruments.map((instrument, index) => (
+                                <div key={index}><div className="key-item"> {instrument.name}</div></div>
+                            ))}
+                        </Col>
+                    </Row>
                 </Container>
             </Container>
-            <button className="update"><Link to={`/form/${event.event_id}`}>Update Event</Link></button>
-            <button className="delete" onClick={() => handleDelete(event.event_id)}>Delete Event</button>
+
+            {/* NEW <Container> to hold applications from musician users if the user's id matches the event owner's id */}
         </div>
     )
 }
