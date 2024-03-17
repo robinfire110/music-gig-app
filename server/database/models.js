@@ -3,6 +3,11 @@ const {sequelize} = require('../config/database');
 const moment = require('moment');
 const {faker} = require('@faker-js/faker');
 const instrument = require('./instrumentList');
+const axois = require('axios');
+const fs = require('fs');
+//const gasPrice = require("./gasPrice.json"); //Used for testing locally
+//const stateNames = require("./stateCodes.json");
+
 
 /* Functions */
 function getRandomInt(max)
@@ -25,6 +30,37 @@ async function importInstruments() {
       console.log("Instrument List exists, skipping inserts.")
   }    
 }
+
+//Get gas prices
+async function getGasPrices()
+{
+    //Get data
+    const gasPrice = await axois.get("https://api.collectapi.com/gasPrice/allUsaPrice", {headers: {"content-type": "application/json", "authorization": process.env.API_GAS_PRICE}});
+    const stateNames = await axois.get("https://api.collectapi.com/gasPrice/usaStateCode", {headers: {"content-type": "application/json", "authorization": process.env.API_GAS_PRICE}});   
+
+    //Create map of state abbreviations
+    const stateCodes = new Object();
+    for (let i = 0; i < stateNames.data.result.length; i++)
+    {
+      let name = stateNames.data.result[i].name;
+      if (name == "Ilinois") name = "Illinois" //Fix typo in API, great job guys (I sent them an email)
+      stateCodes[name] = stateNames.data.result[i].code;
+    }
+
+    //Add to database
+    let totalPrice = 0;
+    let count = 0;
+    for (let i = 0; i < gasPrice.data.result.length; i++)
+    {
+      let entry = await GasPrice.upsert({location: stateCodes[`${gasPrice.data.result[i].name}`], averagePrice: gasPrice.data.result[i].gasoline});
+      totalPrice += parseFloat(gasPrice.data.result[i].gasoline);
+    }
+
+    //Add other values (totalAverage, averageMPG)
+    let defaultAverage = await GasPrice.upsert({location: "defaultAverage", averagePrice: (totalPrice/gasPrice.data.result.length)});
+    let averageMPG = await GasPrice.upsert({location: "defaultMPG", averagePrice: 20}); //https://afdc.energy.gov/data/10310 (In between car and light truck)
+}
+
 
 //Create faker data
 async function createFakerData(userNum, eventNum, financialNum)
@@ -61,7 +97,7 @@ async function createFakerData(userNum, eventNum, financialNum)
       let endDate = faker.date.soon({refDate: startDate, days: .5});
       
       //Create event
-      let newEvent = await Event.create({event_name: faker.commerce.productName(), start_time: startDate, end_time: endDate, pay: (Math.random()*500).toFixed(2), event_hours: getRandomInt(7), description: faker.commerce.productDescription(), rehearse_hours: getRandomInt(4), mileage_pay: getRandomInt(25), is_listed: getRandomInt(2)});
+      let newEvent = await Event.create({event_name: faker.commerce.productName(), start_time: startDate, end_time: endDate, pay: (Math.random()*500).toFixed(2), event_hours: getRandomInt(7), description: faker.commerce.productDescription(), rehearse_hours: getRandomInt(4), mileage_pay: .05+(Math.random()*.2), is_listed: getRandomInt(2)});
       let newAddress = await Address.create({event_id: newEvent.event_id, street: faker.location.street(), city: faker.location.city(), zip: faker.location.zipCode(), state: faker.location.state()});
       let newStatus = await UserStatus.create({user_id: userIds[getRandomInt(userIds.length)], event_id: newEvent.event_id, status: "owner"});
 
@@ -191,7 +227,7 @@ const Event = sequelize.define('Event', {
     }
   });
 
-  /* Event */
+/* Financial */
 const Financial = sequelize.define('Financial', {
   // Model attributes are defined here
   fin_id: {
@@ -207,6 +243,10 @@ const Financial = sequelize.define('Financial', {
     type: DataTypes.DATEONLY,
     allowNull: false,
     defaultValue: Sequelize.NOW
+  },
+  event_num: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   },
   total_wage: {
     type: DataTypes.FLOAT,
@@ -225,6 +265,10 @@ const Financial = sequelize.define('Financial', {
     defaultValue: 0.0
   },
   practice_hours: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0.0
+  },
+  travel_hours: {
     type: DataTypes.FLOAT,
     defaultValue: 0.0
   },
@@ -255,6 +299,10 @@ const Financial = sequelize.define('Financial', {
     type: DataTypes.FLOAT,
     defaultValue: 0.0
   },
+  fees: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0.0
+  }
 });
 
 /* Address */
@@ -280,7 +328,7 @@ const Address = sequelize.define('Address', {
   state: {
     type: DataTypes.STRING,
     allowNull: false
-  },
+  }
 });
 
 /* Instrument */
@@ -376,6 +424,19 @@ const EventInstrument = sequelize.define("EventInstrument", {
   }
 });
 
+/* GasPrice */
+const GasPrice = sequelize.define("GasPrice", {
+  location: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+    allowNull: false
+  },
+  averagePrice: {
+    type: DataTypes.FLOAT,
+    allowNull: false
+  },
+});
+
 /* Create Associations in Sequelize */
 //Creates UserStatus table
 User.belongsToMany(Event, {through: UserStatus, foreignKey: "user_id", foreignKeyConstraint: true, sourceKey: "user_id"});
@@ -390,6 +451,10 @@ Financial.belongsToMany(User, {through: FinStatus, foreignKey: "fin_id", foreign
 Event.hasOne(Address, {foreignKey: "event_id", foreignKeyConstraint: true, onDelete: 'CASCADE'});
 Address.belongsTo(Event, {foreignKey: "address_id", foreignKeyConstraint: true, onDelete: 'CASCADE'});
 
+/* Financial with Event */
+Event.hasOne(Financial, {foreignKey: "event_id", foreignKeyConstraint: true, onDelete: 'CASCADE'});
+Financial.belongsTo(Event, {foreignKey: "fin_id", foreignKeyConstraint: true, onDelete: 'CASCADE'});
+
 /* UserInstrument */
 User.belongsToMany(Instrument, {through: UserInstrument, foreignKey: "user_id", foreignKeyConstraint: true, sourceKey: "user_id"});
 Instrument.belongsToMany(User, {through: UserInstrument, foreignKey: "instrument_id", foreignKeyConstraint: true, sourceKey: "instrument_id"});
@@ -399,5 +464,5 @@ Event.belongsToMany(Instrument, {through: EventInstrument, foreignKey: "event_id
 Instrument.belongsToMany(Event, {through: EventInstrument, foreignKey: "instrument_id", foreignKeyConstraint: true, sourceKey: "instrument_id"});
 
 //Export Models
-module.exports = {User, Event, Financial, Address, Instrument, UserStatus, FinStatus, UserInstrument, EventInstrument, 
-  getInstrumentId, getEventHours, createFakerData, importInstruments};
+module.exports = {User, Event, Financial, Address, Instrument, UserStatus, FinStatus, UserInstrument, EventInstrument, GasPrice,
+  getInstrumentId, getEventHours, createFakerData, importInstruments, getGasPrices};
