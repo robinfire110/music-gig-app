@@ -10,7 +10,7 @@ function restrictNumber(e, integer=true) {
 //Control input with validation (no negative numbers). Uses text input because I don't like the way number input works.
 function FormNumber({placeholder, onChange, disabled=false, integer=true, id, required, value}) {
     return (
-        <Form.Control id={id} value={value} required={required} disabled={disabled} placeholder={placeholder} onChange={onChange} onInput={e => restrictNumber(e, integer)}></Form.Control>
+        <Form.Control id={id} value={value ?? ""} required={required} disabled={disabled} placeholder={placeholder} onChange={onChange} onInput={e => restrictNumber(e, integer)}></Form.Control>
     )
 }
 

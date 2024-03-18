@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Datepicker from "../components/Datepicker";
-import { Container, Form, Col, Row, InputGroup, Button, OverlayTrigger, Popover } from "react-bootstrap";
+import { Container, Form, Col, Row, InputGroup, Button, OverlayTrigger, Popover, Modal } from "react-bootstrap";
 import moment from "moment";
 import TooltipButton from "../components/TooltipButton";
 import FormNumber from "../components/FormNumber";
@@ -14,12 +14,15 @@ const Calculator = () => {
     /* Variables */
     //Account
     const [userId, setUserId] = useState(1); /* UPDATE WITH PROPER ACCOUNT WHEN IMPLEMENTED */
+    const [userZip, setUserZip] = useState("27214");
 
     //Params
     const navigate = useNavigate();
     const [paramId, setParamId] = useState(useParams().id);
     const [finId, setFinId] = useState();
     const [eventId, setEventId] = useState();
+    const [eventData, setEventData] = useState();
+    const [isLoading, setIsLoading] = useState(true);
 
     //Search parameters
     const [searchParams] = useSearchParams();
@@ -49,7 +52,7 @@ const Calculator = () => {
     const [totalPay, setTotalPay] = useState(0);
     const [hourlyWage, setHourlyWage] = useState(0.0);
     const [gasPrices, setGasPrices] = useState();
-    const [zip, setZip] = useState();
+    const [zip, setZip] = useState("");
 
     //Enable
     const [gigNumEnabled, setGigNumEnabled] = useState(false);
@@ -65,12 +68,12 @@ const Calculator = () => {
     //On first load
     useEffect(() => {
         //Check for event
-        console.log(isEvent);
         if (isEvent) setEventId(paramId);
         else setFinId(paramId);
 
         //Load data
         if (paramId) loadFromDatabase();
+        else setIsLoading(false);
 
         //Get gas prices
         if (!gasPrices)
@@ -82,6 +85,10 @@ const Calculator = () => {
                     map[res.data[i].location] = res.data[i].averagePrice;
                 }   
                 setGasPrices(map);
+                if (isEvent)
+                {
+                    setAverageGasPrice(map);
+                } 
             });
         }
     }, []);
@@ -126,14 +133,17 @@ const Calculator = () => {
         if (data.fees && data.fees > 0) setOtherFees(data.fees);
 
         //Set switches
-        setGigNumEnabled(data.gig_num && data.gig_num > 0);
-        setTotalMileageEnabled(data.total_mileage && data.total_mileage > 0);
-        setTravelHoursEnabled(data.travel_hours && data.travel_hours > 0);
-        setMileageCoveredEnabled(data.mileage_pay && data.mileage_pay > 0);
-        setPracticeHoursEnabled(data.practice_hours && data.practice_hours > 0);
-        setRehearsalHoursEnabled(data.rehearse_hours && data.rehearse_hours > 0);
-        setTaxEnabled(data.tax && data.tax > 0);
-        setOtherFeesEnabled(data.fees && data.fees > 0);
+        setGigNumEnabled(data?.gig_num > 0);
+        setTotalMileageEnabled(data?.total_mileage > 0);
+        setTravelHoursEnabled(data?.travel_hours > 0);
+        setMileageCoveredEnabled(data?.mileage_pay > 0);
+        setPracticeHoursEnabled(data?.practice_hours > 0);
+        setRehearsalHoursEnabled(data?.rehearse_hours > 0);
+        setTaxEnabled(data?.tax > 0);
+        setOtherFeesEnabled(data?.fees > 0);
+
+        //Set isLoading
+        setIsLoading(false);
     }
 
     //Load from database (both fin_id and event_id)
@@ -145,7 +155,7 @@ const Calculator = () => {
             //Get data
             await axios.get(`http://localhost:5000/financial/user_id/fin_id/${userId}/${paramId}`).then(res => {
                 const data = res.data[0];
-                if (data.fin_id) setFinId(data.fin_id);
+                if (data && data?.fin_id) setFinId(data.fin_id);
 
                 //Financial exists!
                 if (data) loadData(data);
@@ -161,34 +171,91 @@ const Calculator = () => {
             //Check for already existing event financial
             await axios.get(`http://localhost:5000/financial/user_id/event_id/${userId}/${paramId}`).then(async res => {
                 const data = res.data[0];
-                if (data && data.fin_id) setFinId(data.fin_id);
-
-                if (data) loadData(data);
-                else loadEventData();
+                if (data) //If financial for event exists, load that data.
+                {
+                    console.log("Event Financial exists, loading...");
+                    loadEventData(false); //Get event data for later use
+                    setFinId(data.fin_id);
+                    loadData(data);
+                } 
+                else
+                {
+                    loadEventData(true);
+                    setIsNewEvent(true);
+                } 
             });
-            
         }
     }
 
     //Load event data
-    async function loadEventData()
+    async function loadEventData(fillFields)
     {
-        await axios.get(`http://localhost:5000/event/id/${paramId}`).then(res => {
-            const data = res.data;
-            let eventData = {
-                fin_name: data?.event_name,
-                total_wage: data?.pay,
-                event_hours: data?.event_hours,
-                rehearse_hours: data?.rehearse_hours,
-                mileage_pay: data?.mileage_pay,
-                zip: data?.Address.zip
-            };
-            setIsNewEvent(true);
-            loadData(eventData);
-        });
+        if (eventData)
+        {
+            if (fillFields)
+            {
+                loadData(eventData);
+                calculateBasedOnLocation(userZip.slice(0, 5), eventData.zip.slice(0, 5));
+            }
+        } 
+        else
+        {
+            await axios.get(`http://localhost:5000/event/id/${paramId}`).then(res => {
+            if (res.data)
+            {
+                const data = res.data;
+                let eventData = {
+                    event_id: data?.event_id,
+                    fin_name: data?.event_name,
+                    total_wage: data?.pay,
+                    event_hours: data?.event_hours,
+                    rehearse_hours: data?.rehearse_hours,
+                    mileage_pay: data?.mileage_pay,
+                    zip: data?.Address.zip
+                };
+
+                setEventData(data);
+                if (fillFields)
+                {   
+                    if (userZip && eventData.zip) calculateBasedOnLocation(userZip.slice(0, 5), eventData.zip.slice(0, 5));
+                    loadData(eventData);
+                    setAverageGasPrice();
+                } 
+            }
+            else
+            {
+                console.log("NO EVENT FOUND")
+            }
+            }).catch(error => {
+                console.log(error)
+            });
+        }
+        
     }
 
+    function metersToMiles(meters) {
+        return meters*0.000621371192;
+   }
 
+    async function calculateBasedOnLocation(originZip, destinationZip)
+    {
+        axios.get(`http://localhost:5000/api/distance_matrix/${originZip}/${destinationZip}/`).then(res => {
+            console.log(res.data);
+            if (res.data)
+            {
+                const distance = res.data.rows[0].elements[0].distance.value;
+                const duration = res.data.rows[0].elements[0].duration.value;
+                const distanceInMiles = metersToMiles(distance).toFixed(2);
+                const durationInHours = ((duration/60)/60).toFixed(2);
+                setTotalMileageEnabled(true);
+                setTravelHoursEnabled(true);
+                setTotalMileage(distanceInMiles);
+                setTravelHours(durationInHours);
+            }
+        }).catch(error => {
+            console.log(error);
+        });
+    }
 
     //Calculate wage
     function calculateHourlyWage() 
@@ -243,30 +310,29 @@ const Calculator = () => {
     //Calculate gas per mile
     function calculateGasPerMile() 
     {
-        if (totalMileageEnabled)
+        if (gasPricePerGallon && vehicleMPG)
         {
-            if (gasPricePerGallon && vehicleMPG)
-            {
-                //Set
-                let value = Math.round((gasPricePerGallon/vehicleMPG) * 100)/100;
-                setGasPricePerMile(value.toFixed(2));
-            }
-            else
-            {
-                setGasPricePerMile(0);
-            }
+            //Set
+            let value = Math.round((gasPricePerGallon/vehicleMPG) * 100)/100;
+            setGasPricePerMile(value.toFixed(2));
+        }
+        else
+        {
+            setGasPricePerMile("");
         }
     }
 
     //Set average gas price
-    function setAverageGasPrice()
+    function setAverageGasPrice(dataOverride=undefined)
     {
+        let data = gasPrices;
+        if (dataOverride) data = dataOverride;
         //Set data
-        if (gasPrices)
+        if (data)
         {
             /* Check if login, use local state. Else, use default. */
-            setGasPricePerGallon(Math.round(gasPrices["defaultAverage"] * 100) / 100);
-            setVehicleMPG(gasPrices["defaultMPG"]);
+            setGasPricePerGallon(Math.round(data["defaultAverage"] * 100) / 100);
+            setVehicleMPG(data["defaultMPG"]);
         }
     }
 
@@ -296,6 +362,7 @@ const Calculator = () => {
         //Save (in correct place)
         if (!spreadsheet)
         {
+            console.log(isNewEvent);
             //Save to database
             if ((!isEvent && paramId) || (isEvent && !isNewEvent)) //If exists, update
             {
@@ -332,6 +399,18 @@ const Calculator = () => {
 
     }
 
+    if (isLoading)
+    {
+        return (
+            <div>
+                <Header />
+                <p>Loading...</p>
+                <Footer />
+            </div>
+        )
+    }
+    else
+    {
     return (
         <div>
             <Header />
@@ -348,11 +427,11 @@ const Calculator = () => {
                                     <Row className="mb-3" xs={1} lg={2}>
                                         <Col lg="8">
                                             <Form.Label>Name<span style={{color: "red"}}>*</span></Form.Label>
-                                            <Form.Control id="financialName" value={calcName} type="text" required={true} placeholder="Calculator Name" onChange={e => setCalcName(e.target.value)}></Form.Control>
+                                            <Form.Control id="financialName" value={calcName || ""} type="text" required={true} placeholder="Calculator Name" onChange={e => setCalcName(e.target.value)}></Form.Control>
                                         </Col>
                                         <Col lg="4">
                                             <Form.Label>Date<span style={{color: "red"}}>*</span></Form.Label>
-                                            <Form.Control id="financialDate" value={calcDate} type="date" required={true} onChange={e => setCalcDate(e.target.value)}></Form.Control>
+                                            <Form.Control id="financialDate" value={calcDate || ""} type="date" required={true} onChange={e => setCalcDate(e.target.value)}></Form.Control>
                                         </Col>
                                     </Row>
                                     <Row className="mb-3" xs={1} lg={3}>
@@ -375,7 +454,7 @@ const Calculator = () => {
                                             <Form.Label>Number of gigs</Form.Label>
                                             <InputGroup>
                                                 <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setGigNumEnabled(!gigNumEnabled)}} checked={gigNumEnabled}></Form.Check>
-                                                <FormNumber id="gigNum" value={gigNum} placeholder="Ex. 1" disabled={!gigNumEnabled} onChange={e => setGigNum(e.target.value)} />
+                                                <FormNumber id="gigNum" value={gigNum || ""} placeholder="Ex. 1" disabled={!gigNumEnabled} onChange={e => setGigNum(e.target.value)} />
                                                 <TooltipButton text='Number of gigs. Used if you have multiple of the same gig at the same time (i.e. back-to-back performances). Will only add travel, additional hours and other expenses once.'/>
                                             </InputGroup>
                                         </Col>
@@ -391,7 +470,7 @@ const Calculator = () => {
                                             <InputGroup>
                                                 <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setTotalMileageEnabled(!totalMileageEnabled); setAverageGasPrice();}} checked={totalMileageEnabled}></Form.Check>
                                                 <FormNumber id="totalMileage" value={totalMileage} placeholder="Ex. 20" integer={false} disabled={!totalMileageEnabled} onChange={e => setTotalMileage(e.target.value)} />
-                                                <Button variant='light' disabled={!totalMileageEnabled} onClick={() => {setTravelHoursEnabled(true);}}>Calculate based on location</Button>
+                                                <Button variant='light' disabled={!totalMileageEnabled} onClick={() => {calculateBasedOnLocation(userZip, "27012");}}>Calculate based on location</Button>
                                                 <TooltipButton text='Total number of miles driven to get to event. Will multiply by "Gas Price per Mile" for final result.'/>
                                                 {/* USE BOOTSTRAP MODAL OR OFF CANVAS FOR CALCULATION MENU*/}
                                             </InputGroup>
@@ -493,9 +572,10 @@ const Calculator = () => {
                     <Col>
                         <h3>Results</h3>
                         <hr />
+                        <Container>
                         <Row>
                             <Col>
-                                <Container>
+                                
                                     <Row>
                                     <Col lg={2} md={2} sm={2} xs={2}>
                                             <h5>Payment: </h5>
@@ -538,21 +618,19 @@ const Calculator = () => {
                                     <Row>
                                         <Col lg={8} xs={7}><h4>Total Hourly Wage:</h4></Col>
                                         <Col style={{textAlign: "right"}}><h4>{formatCurrency(hourlyWage)}</h4></Col>
-                                    </Row>
-                                                
-                                </Container>
+                                    </Row>           
+                                
                             </Col>
                         </Row>
                         <br />
                         <Row>
-                            <Container>
-                                <Row>
-                                    {isEvent ? <Col><Button variant="secondary" onClick={() => {loadEventData()}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Reload Data</Button></Col> : ""}
-                                    <Col xl={{offset: 6}} lg={{offset: 5}} md={{offset: 8}} sm={{offset: 7}} xs={{offset: 5}}><Button variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={userId == -1}>{(!isEvent && paramId) || (isEvent && !isNewEvent) ? "Update" : "Save"}</Button> {/* CHECK FOR ACCOUNT WHEN LOGIN WORKING */}</Col>
-                                    <Col><Button variant="secondary" onClick={() => {saveFinancial(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Export</Button></Col>
-                                </Row>   
-                            </Container>
+                            <Row>
+                                <Col lg={3} md={2} sm={3} xs={3}><Button variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={userId == -1}>{(!isEvent && paramId) || (isEvent && !isNewEvent) ? "Update" : "Save"}</Button> {/* CHECK FOR ACCOUNT WHEN LOGIN WORKING */}</Col> 
+                                <Col lg={3} md={2} sm={3} xs={3}><Button variant="secondary" onClick={() => {saveFinancial(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Export</Button></Col>
+                                {isEvent ? <Col lg={5} md={5} sm={5} xs={5}><Button variant="secondary" onClick={() => {loadEventData(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Reload Data</Button></Col> : ""}
+                            </Row>   
                         </Row>
+                        </Container>
                     </Col>
                 </Row>
                 </Form>
@@ -560,6 +638,7 @@ const Calculator = () => {
             <Footer />
         </div>
     )
+    }
 }
 
 export default Calculator

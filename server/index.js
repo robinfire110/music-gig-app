@@ -18,6 +18,7 @@ const routeFinancial = require('./routes/Financial');
 const routeInstrument = require('./routes/Instrument');
 const routeUser = require('./routes/User');
 const routeGas = require('./routes/GasPrice');
+const routeAPI = require('./routes/API');
 
 //Determines where app is hosted
 app.listen(port, async () => {
@@ -39,3 +40,4 @@ app.use("/financial", routeFinancial.router);
 app.use("/instrument", routeInstrument.router);
 app.use("/user", routeUser.router);
 app.use("/gas", routeGas.router);
+app.use("/api", routeAPI.router)
