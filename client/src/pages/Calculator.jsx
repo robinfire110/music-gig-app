@@ -4,17 +4,18 @@ import { Link, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Datepicker from "../components/Datepicker";
-import { Container, Form, Col, Row, InputGroup, Button, OverlayTrigger, Popover, Modal } from "react-bootstrap";
+import { Container, Form, Col, Row, InputGroup, Button, OverlayTrigger, Popover, Modal, Alert } from "react-bootstrap";
 import moment from "moment";
 import TooltipButton from "../components/TooltipButton";
 import FormNumber from "../components/FormNumber";
 import axios, { spread } from "axios";
+import {BarLoader} from 'react-spinners'
 
 const Calculator = () => {
     /* Variables */
     //Account
     const [userId, setUserId] = useState(1); /* UPDATE WITH PROPER ACCOUNT WHEN IMPLEMENTED */
-    const [userZip, setUserZip] = useState("27214");
+    const [userZip, setUserZip] = useState("27413");
 
     //Params
     const navigate = useNavigate();
@@ -23,6 +24,12 @@ const Calculator = () => {
     const [eventId, setEventId] = useState();
     const [eventData, setEventData] = useState();
     const [isLoading, setIsLoading] = useState(true);
+    const [isGettingLocation, setIsGettingLocation] = useState(false);
+    const [currentState, setCurrentState] = useState("average_gas");
+    const [currentVehicle, setCurrentVehicle] = useState("average_mpg");
+    const [locationModalOpen, setLocationModalOpen] = useState(false);
+    const [gasModalOpen, setGasModalOpen] = useState(false);
+    const [saveStatus, setSaveStatus] = useState();
 
     //Search parameters
     const [searchParams] = useSearchParams();
@@ -53,6 +60,9 @@ const Calculator = () => {
     const [hourlyWage, setHourlyWage] = useState(0.0);
     const [gasPrices, setGasPrices] = useState();
     const [zip, setZip] = useState("");
+    const [zipCodeError, setZipCodeError] = useState(false);
+    const [modalOriginZip, setModalOriginZip] = useState(userZip);
+    const [modalDestinationZip, setModalDestinationZip] = useState("");
 
     //Enable
     const [gigNumEnabled, setGigNumEnabled] = useState(false);
@@ -63,6 +73,8 @@ const Calculator = () => {
     const [rehearsalHoursEnabled, setRehearsalHoursEnabled] = useState(false);
     const [taxEnabled, setTaxEnabled] = useState(false);
     const [otherFeesEnabled, setOtherFeesEnabled] = useState(false);
+    
+    const [test, setTest] = useState({AZ: 123, AB: 234, JG: 132});
 
     /* Effect */
     //On first load
@@ -85,10 +97,7 @@ const Calculator = () => {
                     map[res.data[i].location] = res.data[i].averagePrice;
                 }   
                 setGasPrices(map);
-                if (isEvent)
-                {
-                    setAverageGasPrice(map);
-                } 
+                setAverageGasPrice(map);
             });
         }
     }, []);
@@ -115,22 +124,22 @@ const Calculator = () => {
     //Load data
     function loadData(data)
     {
-        if (data.fin_name) setCalcName(data.fin_name);
-        if (data.date) setCalcDate(data.calc)
-        if (data.zip) setZip(data.zip);
-        if (data.hourly_wage) setHourlyWage(data.hourly_wage);
-        if (data.total_wage && data.total_wage > 0) setGigPay(data.total_wage);
-        if (data.event_hours && data.event_hours > 0) setGigHours(data.event_hours);
-        if (data.gig_num && data.gig_num > 0) setGigNum(data.gig_num); 
-        if (data.total_mileage && data.total_mileage > 0) setTotalMileage(data.total_mileage); 
-        if (data.travel_hours && data.travel_hours > 0) setTravelHours(data.travel_hours); 
-        if (data.mileage_pay && data.mileage_pay > 0) setMileageCovered(data.mileage_pay); 
-        if (data.gas_price && data.gas_price > 0) setGasPricePerGallon(data.gas_price);
-        if (data.mpg && data.mpg > 0) setVehicleMPG(data.mpg);
-        if (data.practice_hours && data.practice_hours > 0) setPracticeHours(data.practice_hours); 
-        if (data.rehearse_hours && data.rehearse_hours > 0) setRehearsalHours(data.rehearse_hours); 
-        if (data.tax && data.tax > 0) setTax(data.tax); 
-        if (data.fees && data.fees > 0) setOtherFees(data.fees);
+        if (data?.fin_name) setCalcName(data.fin_name);
+        if (data?.date) setCalcDate(data.date)
+        if (data?.zip) setZip(data.zip);
+        if (data?.hourly_wage) setHourlyWage(data.hourly_wage);
+        if (data?.total_wage > 0) setGigPay(data.total_wage);
+        if (data?.event_hours > 0) setGigHours(data.event_hours);
+        if (data?.gig_num > 0) setGigNum(data.gig_num); 
+        if (data?.total_mileage > 0) setTotalMileage(data.total_mileage); 
+        if (data?.travel_hours > 0) setTravelHours(data.travel_hours); 
+        if (data?.mileage_pay > 0) setMileageCovered(data.mileage_pay); 
+        if (data?.gas_price > 0) setGasPricePerGallon(data.gas_price);
+        if (data?.mpg > 0) setVehicleMPG(data.mpg);
+        if (data?.practice_hours > 0) setPracticeHours(data.practice_hours); 
+        if (data?.rehearse_hours > 0) setRehearsalHours(data.rehearse_hours); 
+        if (data?.tax > 0) setTax(data.tax); 
+        if (data?.fees > 0) setOtherFees(data.fees);
 
         //Set switches
         setGigNumEnabled(data?.gig_num > 0);
@@ -162,6 +171,7 @@ const Calculator = () => {
                 else //Financial does not exists, redirect to blank page.
                 {
                     setParamId(0);
+                    setIsLoading(false);
                     navigate(`/calculator`);
                 }
             });
@@ -190,12 +200,13 @@ const Calculator = () => {
     //Load event data
     async function loadEventData(fillFields)
     {
+        console.log(eventData);
         if (eventData)
         {
             if (fillFields)
             {
                 loadData(eventData);
-                calculateBasedOnLocation(userZip.slice(0, 5), eventData.zip.slice(0, 5));
+                if (userZip && eventData.zip) calculateBasedOnLocation(userZip.slice(0, 5), eventData.zip.slice(0, 5));
             }
         } 
         else
@@ -214,10 +225,11 @@ const Calculator = () => {
                     zip: data?.Address.zip
                 };
 
-                setEventData(data);
+                setEventData(eventData);
+                setModalDestinationZip(eventData?.zip);
                 if (fillFields)
                 {   
-                    if (userZip && eventData.zip) calculateBasedOnLocation(userZip.slice(0, 5), eventData.zip.slice(0, 5));
+                    if (userZip && eventData?.zip) calculateBasedOnLocation(userZip?.slice(0, 5), eventData.zip?.slice(0, 5));
                     loadData(eventData);
                     setAverageGasPrice();
                 } 
@@ -239,22 +251,70 @@ const Calculator = () => {
 
     async function calculateBasedOnLocation(originZip, destinationZip)
     {
+        setIsGettingLocation(true);
         axios.get(`http://localhost:5000/api/distance_matrix/${originZip}/${destinationZip}/`).then(res => {
             console.log(res.data);
             if (res.data)
             {
-                const distance = res.data.rows[0].elements[0].distance.value;
-                const duration = res.data.rows[0].elements[0].duration.value;
-                const distanceInMiles = metersToMiles(distance).toFixed(2);
-                const durationInHours = ((duration/60)/60).toFixed(2);
-                setTotalMileageEnabled(true);
-                setTravelHoursEnabled(true);
-                setTotalMileage(distanceInMiles);
-                setTravelHours(durationInHours);
+                if (res.data.status == "OK" && res.data.rows[0].elements[0].status == "OK")
+                {
+                    const distance = res.data.rows[0].elements[0].distance.value;
+                    const duration = res.data.rows[0].elements[0].duration.value;
+                    const distanceInMiles = metersToMiles(distance).toFixed(2);
+                    const durationInHours = ((duration/60)/60).toFixed(2);
+                    setTotalMileageEnabled(true);
+                    setTravelHoursEnabled(true);
+                    setTotalMileage(distanceInMiles);
+                    setTravelHours(durationInHours);
+                    setLocationModalOpen(false);
+                    setIsGettingLocation(false);
+
+                    //Set state
+                    //This works, but I'm debating if we want it or not. It may be a bit disorienting. I tried to add a setting, but I couldn't find a good place to put it.
+                    /*
+                    let string = res.data.origin_addresses[0]
+                    setCurrentState(string.substring(string.indexOf(",")+2, string.indexOf(",")+4))
+                    */
+
+                    //Add to event (if event)
+                    if (eventData && eventData.zip == destinationZip && originZip == userZip)
+                    {
+                        const newData = eventData;
+                        newData["total_mileage"] = distanceInMiles;
+                        newData["travel_hours"] = durationInHours;
+                        setEventData(newData);
+                    }
+                }
+                else
+                {
+                    //Signal Modal If Something Wrong
+                    setZipCodeError(true);
+                    setIsGettingLocation(false);
+                }
             }
         }).catch(error => {
             console.log(error);
         });
+    }
+
+    //Get Zip Codes from Modal
+    async function getZipCodes()
+    {
+        //Get elements
+        const elementOriginZip = document.getElementById("modalOriginZip");
+        const elementDestinationZip = document.getElementById("modalDestinationZip");
+        if (!isGettingLocation)
+        {
+            if (modalOriginZip.length == 5 && modalDestinationZip.length == 5)
+            {
+                calculateBasedOnLocation(modalOriginZip, modalDestinationZip);
+            }
+            else
+            {
+                if (modalOriginZip.length != 5) elementOriginZip.setCustomValidity("Zip codes must be 5 characters (#####).");
+                else if (modalDestinationZip.length != 5) elementDestinationZip.setCustomValidity("Zip codes must be 5 characters (#####).");
+            }
+        }
     }
 
     //Calculate wage
@@ -297,7 +357,7 @@ const Calculator = () => {
         if (practiceHoursEnabled && practiceHours) hours += parseFloat(practiceHours);
         if (rehearsalHoursEnabled && rehearsalHours) hours += parseFloat(rehearsalHours);
         if (travelHoursEnabled && travelHours) hours += parseFloat(travelHours);
-        setTotalHours(hours);
+        setTotalHours(hours.toFixed(2));
 
         //Final division
         setTotalPay(wage);
@@ -323,16 +383,19 @@ const Calculator = () => {
     }
 
     //Set average gas price
-    function setAverageGasPrice(dataOverride=undefined)
+    function setAverageGasPrice(dataOverride=undefined, state=currentState, vehicle=currentVehicle)
     {
         let data = gasPrices;
+        console.log(`State: ${state} | Vehicle: ${vehicle}`);
         if (dataOverride) data = dataOverride;
+
         //Set data
         if (data)
         {
             /* Check if login, use local state. Else, use default. */
-            setGasPricePerGallon(Math.round(data["defaultAverage"] * 100) / 100);
-            setVehicleMPG(data["defaultMPG"]);
+            setGasPricePerGallon(Math.round(data[state] * 100) / 100);
+            setVehicleMPG(data[vehicle]);
+            setGasModalOpen(false);
         }
     }
 
@@ -359,6 +422,16 @@ const Calculator = () => {
         }
         if (isNewEvent && isEvent) data["event_id"] = paramId;
         
+        //Check validity (will return false if not valid, HTML will take care of the rest).
+        const inputs = document.getElementById("calculatorForm").elements;
+        for (let i = 0; i < inputs.length; i++) {
+            if (!inputs[i].disabled && !inputs[i].checkValidity())
+            {
+                console.log("NOT VALID");
+                return false
+            } 
+        }
+
         //Save (in correct place)
         if (!spreadsheet)
         {
@@ -369,8 +442,9 @@ const Calculator = () => {
                 console.log(`UPDATE ${finId} ${paramId}`)
                 console.log(data);
                 await axios.put(`http://localhost:5000/financial/${finId}`, data).then(res => {
-                    //alert(`Updated ${finId}`);
+                    setSaveStatus({type: "update", status: "OK"});
                 }).catch(error => {
+                    setSaveStatus({type: "update", status: "ERROR"});
                     console.log(error);
                 });
             }
@@ -384,13 +458,18 @@ const Calculator = () => {
                     setIsNewEvent(false);
 
                     //Update URL
-                    //if (!isEvent) window.history.pushState(null, document.title, document.URL+`/${res.data.fin_id}`);
-                    if (!isEvent) navigate(`/calculator/${res.data.fin_id}`, {replace: true});
-                    //alert(`Added ${res.data.fin_id}!`);
+                    if (!isEvent) navigate(`/calculator/${res.data.fin_id}`);
+                    setSaveStatus({type: "save", status: "OK"});
                 }).catch(error => {
+                    setSaveStatus({type: "save", status: "ERROR"});
                     console.log(error);
                 });
             };
+
+            //Reset save status
+            setTimeout(() => {
+                setSaveStatus(undefined);
+            }, 5000);
         }
         else
         {
@@ -416,8 +495,8 @@ const Calculator = () => {
             <Header />
             <h2>Calculator</h2>
             <hr />
-            <Container className="" style={{textAlign: "left"}}>
-            <Form>
+            <Container className="" style={{textAlign: "left"}}>   
+            <Form id="calculatorForm" onSubmit={e => e.preventDefault()}>
                 <Row>
                     {/* Column 1: Calculator */}
                     <Col xl={8} lg={7}>
@@ -468,11 +547,36 @@ const Calculator = () => {
                                         <Row className="mb-1">
                                             <Form.Label>Total Mileage</Form.Label>
                                             <InputGroup>
-                                                <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setTotalMileageEnabled(!totalMileageEnabled); setAverageGasPrice();}} checked={totalMileageEnabled}></Form.Check>
+                                                <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setTotalMileageEnabled(!totalMileageEnabled);}} checked={totalMileageEnabled}></Form.Check>
                                                 <FormNumber id="totalMileage" value={totalMileage} placeholder="Ex. 20" integer={false} disabled={!totalMileageEnabled} onChange={e => setTotalMileage(e.target.value)} />
-                                                <Button variant='light' disabled={!totalMileageEnabled} onClick={() => {calculateBasedOnLocation(userZip, "27012");}}>Calculate based on location</Button>
-                                                <TooltipButton text='Total number of miles driven to get to event. Will multiply by "Gas Price per Mile" for final result.'/>
-                                                {/* USE BOOTSTRAP MODAL OR OFF CANVAS FOR CALCULATION MENU*/}
+                                                <Button variant='light' onClick={() => {setLocationModalOpen(!locationModalOpen)}}>Use Location</Button>
+                                                <TooltipButton text='Total number of miles driven to get to event. Will multiply by "Gas Price per Mile" for final result. Click "Use Location" to calculate based off Zip Code.'/>
+                                                <Modal show={locationModalOpen} onHide={() => {setLocationModalOpen(false); setZipCodeError(false)}} centered={true}>
+                                                    <Form onSubmit={e => e.preventDefault()}>
+                                                        <Modal.Header closeButton>
+                                                            <Modal.Title>Calculate Mileage by Location</Modal.Title>
+                                                        </Modal.Header>
+                                                        <Modal.Body>
+                                                                {zipCodeError ? <Alert variant="danger" dismissible>An error occured, please ensure zip codes are correct</Alert> : ""}
+                                                                <InputGroup>
+                                                                    <InputGroup.Text>Origin Zip</InputGroup.Text>
+                                                                    <FormNumber id="modalOriginZip" value={modalOriginZip} onChange={e => {setModalOriginZip(e.target.value); if (!isGettingLocation) e.target.setCustomValidity("")}} placeholder={"Ex. 27413"} required={true} autoFocus={true} min={5} max={5}></FormNumber>
+                                                                    <TooltipButton text="Zip code of where you are coming from."/>
+                                                                </InputGroup>
+                                                                <InputGroup>
+                                                                    <InputGroup.Text>Destination Zip</InputGroup.Text>
+                                                                    <FormNumber id="modalDestinationZip" value={modalDestinationZip} onChange={e => {setModalDestinationZip(e.target.value); if (!isGettingLocation) e.target.setCustomValidity("")}} placeholder={"Ex. 27413"} required={true} min={5} max={5}></FormNumber>
+                                                                    <TooltipButton text="Zip code of where you are going."/>
+                                                                </InputGroup>
+                                                        </Modal.Body>
+                                                        <Modal.Footer>
+                                                        <Button type="submit" variant="primary" onClick={() => {getZipCodes(); setZipCodeError(false)}}>
+                                                            {isGettingLocation ? <BarLoader color="#FFFFFF" height={4} /> : "Calculate"}
+                                                        </Button>
+                                                        </Modal.Footer>
+                                                    </Form>
+                                                </Modal>
+
                                             </InputGroup>
                                         </Row>
                                         <Row className="mb-3">
@@ -497,8 +601,44 @@ const Calculator = () => {
                                         <InputGroup>    
                                             <InputGroup.Text>$</InputGroup.Text>
                                             <FormNumber id='gasPricePerMile' value={gasPricePerMile} placeholder="Ex. 0.14" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerMile(e.target.value)} />
-                                            <Button variant='light' disabled={!totalMileageEnabled} onClick={() => {setAverageGasPrice()}}>Use Average</Button>
+                                            <Button variant='light' disabled={!totalMileageEnabled} onClick={() => {setGasModalOpen(true)}}>Use Average</Button>
                                             <TooltipButton text='Price of gas per mile. Calculated using "Gas $/Gallon" and "Vehicle MPG". Click "Calculate Average" to use average values.'/>
+                                            <Modal show={gasModalOpen} onHide={() => setGasModalOpen(false)} centered={true}>
+                                                    <Form onSubmit={e => e.preventDefault()}>
+                                                        <Modal.Header closeButton>
+                                                            <Modal.Title>Use Average Gas $ Per Mile</Modal.Title>
+                                                        </Modal.Header>
+                                                        <Modal.Body>
+                                                        <InputGroup>
+                                                            <InputGroup.Text>Select State</InputGroup.Text>
+                                                            <Form.Select id="selectState" value={currentState} onChange={(e) => {setCurrentState(e.target.value)}}>
+                                                                <option key={"average_gas"} value={"average_gas"}>Average</option>
+                                                                {gasPrices ? Object.keys(gasPrices).map((element) => {if (element.length == 2) return <option key={element} value={element}>{element}</option>}) : ""}
+                                                            </Form.Select>
+                                                            <TooltipButton text='Select State to use average values. Select "Average" for average gas price across the United States.'/>
+                                                        </InputGroup>
+                                                        <InputGroup>
+                                                            <InputGroup.Text>Select Vehicle Type</InputGroup.Text>
+                                                                <Form.Select id="selectVehicleType" value={currentVehicle} onChange={(e) => {setCurrentVehicle(e.target.value)}}>
+                                                                    <option key={"average_mpg"} value={"average_mpg"}>Average</option>
+                                                                    {gasPrices ? Object.keys(gasPrices).map((element) => {
+                                                                        if (element != "average_gas" && element != "average_mpg" && element.length > 2)
+                                                                        {
+                                                                            let displayElement = element.replace("_mpg", "").replace("_", "/").replace("van", "Van").replace("suv", "SUV");
+                                                                            displayElement = displayElement[0].toUpperCase() + displayElement.slice(1);
+                                                                            return <option key={element} value={element}>{displayElement}</option>
+                                                                        } 
+                                                                    }) : ""}
+                                                                </Form.Select>
+                                                            <TooltipButton text='Select your type of vehicle. Will determine average MPG value. Choose "Average" for average MPG value.'/>
+                                                        </InputGroup>
+                                                        </Modal.Body>
+                                                        <Modal.Footer>
+                                                        <Button type="submit" variant="primary" onClick={() => setAverageGasPrice()}>Select</Button>
+                                                        </Modal.Footer>
+                                                    </Form>
+                                                </Modal>
+
                                         </InputGroup>
                                         <Col md={{offset: 1}}>
                                             <Row >
@@ -625,11 +765,13 @@ const Calculator = () => {
                         <br />
                         <Row>
                             <Row>
-                                <Col lg={3} md={2} sm={3} xs={3}><Button variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={userId == -1}>{(!isEvent && paramId) || (isEvent && !isNewEvent) ? "Update" : "Save"}</Button> {/* CHECK FOR ACCOUNT WHEN LOGIN WORKING */}</Col> 
+                                <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={userId == -1}>{(!isEvent && paramId) || (isEvent && !isNewEvent) ? "Update" : "Save"}</Button> {/* CHECK FOR ACCOUNT WHEN LOGIN WORKING */}</Col> 
                                 <Col lg={3} md={2} sm={3} xs={3}><Button variant="secondary" onClick={() => {saveFinancial(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Export</Button></Col>
                                 {isEvent ? <Col lg={5} md={5} sm={5} xs={5}><Button variant="secondary" onClick={() => {loadEventData(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Reload Data</Button></Col> : ""}
-                            </Row>   
+                            </Row>
                         </Row>
+                        {saveStatus && saveStatus.status == "OK" ? <Alert variant="success"dismissible show={saveStatus?.status == "OK"} onClose={() => setSaveStatus(undefined)}>Data sucessfully {saveStatus.type == "save" ? "saved" : saveStatus.type == "update" ? "updated" : "exported"}. </Alert> : ""}
+                        {saveStatus && saveStatus.status == "ERROR" ? <Alert variant="danger"dismissible show={saveStatus?.status == "ERROR"} onClose={() => setSaveStatus(undefined)}>An error occured while {saveStatus.type == "save" ? "saving" : saveStatus.type == "updating" ? "updated" : "exporting"}. Please ensure all data is correct and try again.</Alert> : ""}
                         </Container>
                     </Col>
                 </Row>

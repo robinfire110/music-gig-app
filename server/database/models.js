@@ -56,9 +56,16 @@ async function getGasPrices()
       totalPrice += parseFloat(gasPrice.data.result[i].gasoline);
     }
 
+    //Add MPG Values (//https://afdc.energy.gov/data/10310, https://www.energy.gov/sites/default/files/styles/full_article_width/public/2022-05/FOTW_1237.png?itok=bOmGiBgI)
+    await GasPrice.upsert({location: "motorcyle_mpg", averagePrice: 43});
+    await GasPrice.upsert({location: "sedan_mpg", averagePrice: 23});
+    await GasPrice.upsert({location: "suv_mpg", averagePrice: 20});
+    await GasPrice.upsert({location: "truck_van_mpg", averagePrice: 15});
+    await GasPrice.upsert({location: "bus_mpg", averagePrice: 7});
+
     //Add other values (totalAverage, averageMPG)
-    let defaultAverage = await GasPrice.upsert({location: "defaultAverage", averagePrice: (totalPrice/gasPrice.data.result.length)});
-    let averageMPG = await GasPrice.upsert({location: "defaultMPG", averagePrice: 20}); //https://afdc.energy.gov/data/10310 (In between car and light truck)
+    let defaultAverage = await GasPrice.upsert({location: "average_gas", averagePrice: (totalPrice/gasPrice.data.result.length)});
+    let averageMPG = await GasPrice.upsert({location: "average_mpg", averagePrice: 20});
 }
 
 
