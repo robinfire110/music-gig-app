@@ -26,6 +26,7 @@ function Landing() {
             <Header />
             <Container>
             <h1>Harmonize</h1>
+            <br />
             <h3>Connecting musicians and organizers.</h3>
             <Container>
                 <br />
@@ -42,6 +43,8 @@ function Landing() {
                 <br />
                 <hr />
                 <h2>Your Events</h2>
+                <br />
+                <br />
                 <Button variant='primary'>Register now to create events!</Button>
             </Container>
             </Container>
