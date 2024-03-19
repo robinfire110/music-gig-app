@@ -29,7 +29,7 @@ Postman allows you to test HTTP requests to make sure everything is functioning 
 ## Database setup
 You can use both a remote or local database to run the application. To use the local database, ensure you have a MySQL server set up on your computer as listed above. To use remote, ensure you have a .env file in the root directory with your database information. 
 
-Lastly, to switch between the two, simply change the ```sequelize``` variable in ```/server/config/database.js``` to either ```local_database``` or ```remote_database```.
+Lastly, to switch between the two, simply change the ```sequelize``` variable in ```/server/config/db.config.js``` to either ```local_database``` or ```remote_database```.
 
 ## Development Packages
 I've found that there are several common packages that may make our lives a bit easier in the long run. It's a bit more learning we have to do up front, but I think it'll be worth it. Here's some information about each.
