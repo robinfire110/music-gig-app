@@ -17,6 +17,8 @@ const routeEvent = require('./routes/Event');
 const routeFinancial = require('./routes/Financial');
 const routeInstrument = require('./routes/Instrument');
 const routeUser = require('./routes/User');
+const routeGas = require('./routes/GasPrice');
+const routeAPI = require('./routes/API');
 
 //Determines where app is hosted
 app.listen(port, async () => {
@@ -26,6 +28,7 @@ app.listen(port, async () => {
     //Sync models
     await sequelize.sync({ alter: false }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
     models.importInstruments(); //Adds instrument list if empty
+    //models.getGasPrices(); //Update+Get Gas Prices (should only run once a day or so. Automation will come later)
     //models.createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA
 
     console.log(`Server is running at http://localhost:${port}`);
@@ -36,3 +39,5 @@ app.use("/event", routeEvent.router);
 app.use("/financial", routeFinancial.router);
 app.use("/instrument", routeInstrument.router);
 app.use("/user", routeUser.router);
+app.use("/gas", routeGas.router);
+app.use("/api", routeAPI.router)

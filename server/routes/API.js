@@ -1,0 +1,23 @@
+const express = require('express');
+const router = express.Router();
+const models = require('../database/models');
+const axios = require('axios');
+require('dotenv').config();
+
+/* GET */
+//Get price by location
+router.get("/distance_matrix/:origin_zip/:destination_zip", async (req, res) => {
+    try {
+        const {origin_zip, destination_zip} = req.params;
+        console.log(origin_zip, destination_zip);
+        await axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${destination_zip}&origins=${origin_zip}&region=us&units=imperial&key=${process.env.API_GOOGLE_MAPS}`).then(api_res => {
+            res.json(api_res.data);
+        });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+
+//Export
+module.exports = {router};

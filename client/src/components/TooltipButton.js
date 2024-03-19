@@ -4,7 +4,7 @@ import { OverlayTrigger, Button, Popover } from 'react-bootstrap';
 //Popovers (tool tips)
 const createPopover = (text="") => {
     return (
-        <Popover id="popover-trigger-hover-focus" title="Tool Tip" style={{padding: "5px"}}>{text}</Popover>
+        <Popover id="popover-trigger-hover-focus" title="Tool Tip" style={{padding: "10px"}}>{text}</Popover>
     )
 };
 
