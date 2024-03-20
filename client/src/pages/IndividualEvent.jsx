@@ -51,7 +51,12 @@ const IndividualEvent = () => {
 
     const formatTime = (timeString) => {
         const time = new Date(timeString);
-        return time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        const timeZoneSet = {
+            hour: 'numeric',
+            minute: '2-digit',
+            timeZone: 'UTC'
+        }
+        return time.toLocaleTimeString([], timeZoneSet);
     }
 
     return (

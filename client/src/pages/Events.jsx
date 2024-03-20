@@ -1,14 +1,17 @@
 import React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Container, Form, Col, Row, Button } from "react-bootstrap";
 import Header from "../components/Header";
 import "../styles/Events.css";
 
 const Events = () => {
 
-    const [events, setEvents] = useState([])
+    const [events, setEvents] = useState([]);
+    let [filteredEvents, setFilteredEvents] = useState([]);
+    let [searchQuery, setSearchQuery] = useState("");
+    let [dateFilter, setDateFilter] = useState("");
 
     const navigate = useNavigate();
 
@@ -19,20 +22,37 @@ const Events = () => {
                 const res = await fetch('http://localhost:5000/event')
                 const data = await res.json();
                 setEvents(data)
+                //setting this for managing what data is currently being filtered
+                setFilteredEvents(data)
             } catch (err) {
                 console.log(err)
             }
         }
         fetchEvents()
-    }, [events])
+    }, [])
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+        return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
     }
 
     const goToEvent = (event_id) => {
         navigate(`/event/${event_id}`)
+    }
+
+    const handleSearch = (event) => {
+        event.preventDefault();
+        let filteredEvents = events.filter(event => event.event_name.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        if (dateFilter) {
+            filteredEvents = filteredEvents.filter(event => event.start_time.includes(dateFilter));
+        }
+        
+        setFilteredEvents(filteredEvents);
+    };
+
+    const handleDateFilter = (event) => {
+        setDateFilter(event.target.value);
     }
 
     return (
@@ -40,13 +60,13 @@ const Events = () => {
             <Header />
             <hr />
             <Container style={{ textAlign: "left" }}>
-                <Form>
+                <Form onSubmit={handleSearch}>
                     <Row className="mb-3">
                         <Col>
-                            <Form.Control type="text" placeholder="Event Name" />
+                            <Form.Control type="text" placeholder="Event Name" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/>
                         </Col>
                         <Col>
-                            <Form.Control type="date" placeholder="Date" />
+                            <Form.Control type="date" placeholder="Date" value={dateFilter} onChange={handleDateFilter} />
                         </Col>
                         <Col>
                             <Button variant="primary" type="submit">Search</Button>
@@ -66,10 +86,10 @@ const Events = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {events.map((event) => (
+                        {filteredEvents.map((event) => (
                             <tr key={event.event_id}>
                                 <td className="venue-date"> <div className="key-item">{formatDate(event.start_time)}</div></td>
-                                <td> <div>{event.event_name}</div></td>
+                                <td> <div className="key-item">{event.event_name}</div></td>
                                 <td>
                                     <div>
                                         <div>Number of musicians: <div className="key-item">{event.Instruments && event.Instruments.length}</div></div>
