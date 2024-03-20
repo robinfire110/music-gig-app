@@ -7,9 +7,9 @@ const app = express(); //Create the app using express
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
-const {sequelize, connectToDatabase} = require('./config/database'); //Get object from database function
-const instrumentList = require('./database/instrumentList');
-const models = require('./database/models');
+const {sequelize, connectToDatabase} = require('./config/database_config'); //Get object from database function
+const models = require('./models/models');
+const {importInstruments, getGasPrices, createFakerData} = require("./helpers/model-helpers")
 const port = 5000;
 
 //Routes (connect the files with the various routes to other parts of the site)
@@ -27,9 +27,9 @@ app.listen(port, async () => {
 
     //Sync models
     await sequelize.sync({ alter: false }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
-    models.importInstruments(); //Adds instrument list if empty
-    //models.getGasPrices(); //Update+Get Gas Prices (should only run once a day or so. Automation will come later)
-    //models.createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA
+    importInstruments(); //Adds instrument list if empty
+    //getGasPrices(); //Update+Get Gas Prices (since API doesn't work anymore, only need to run when first adding data.)
+    //createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA
 
     console.log(`Server is running at http://localhost:${port}`);
 });

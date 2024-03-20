@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const models = require('../database/models');
+const db = require('../models/models');
 require('dotenv').config();
 
 /* GET */
 //Get all prices
 router.get("/", async (req, res) => {
     try {
-        const gas = await models.GasPrice.findAll();
+        const gas = await db.GasPrice.findAll();
         res.json(gas);
     } catch (error) {
         res.status(500).send(error.message);
@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
 router.get("/:location", async (req, res) => {
     try {
         const location = req.params.location;
-        const gas = await models.GasPrice.findOne({where: {location: location}});
+        const gas = await db.GasPrice.findOne({where: {location: location}});
         res.json(gas);
     } catch (error) {
         res.status(500).send(error.message);
@@ -32,7 +32,7 @@ router.post("/", async (req, res) => {
         const data = req.body;
 
         //Add to User
-        const gas = await models.GasPrice.create({location: data?.location, averagePrice: data?.averagePrice});
+        const gas = await db.GasPrice.create({location: data?.location, averagePrice: data?.averagePrice});
         res.send(gas);
     } catch (error) {
         res.status(500).send(error.message);
@@ -45,7 +45,7 @@ router.put("/:location", async (req, res) => {
         //Get data
         const location = req.params.location;
         const data = req.body;
-        const gas = await models.GasPrice.findOne({where: {location: location}});
+        const gas = await db.GasPrice.findOne({where: {location: location}});
         if (gas)
         {
             gas.set(data);
@@ -65,7 +65,7 @@ router.put("/:location", async (req, res) => {
 router.delete("/:location", async (req, res) => {
     try {
         const location = req.params.location;
-        const gas = await models.GasPrice.findOne({where: {location: location}});
+        const gas = await db.GasPrice.findOne({where: {location: location}});
         if (gas)
         {
             await gas.destroy();
