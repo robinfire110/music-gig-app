@@ -1,3 +1,10 @@
+const db = require("../models/models");
+const instrument = require('./instrumentList');
+const axois = require('axios');
+const { faker } = require("@faker-js/faker");
+const moment= require("moment");
+require('dotenv').config();
+
 /* Functions */
 function getRandomInt(max)
 {
@@ -6,62 +13,65 @@ function getRandomInt(max)
 
 //Import Instruments
 async function importInstruments() {
-const instrumentExists = await Instrument.findOne();
-if (instrumentExists == null)
-{
-    console.log("Creating instrument list.")
-    instrument.instrumentList.forEach(instrument => {
-        Instrument.create({name: instrument});
-    }); 
-}
-else
-{
-    console.log("Instrument List exists, skipping inserts.")
-}    
+    const instrumentExists = await db.Instrument.findOne();
+    if (instrumentExists == null)
+    {
+        console.log("Creating instrument list.")
+        instrument.instrumentList.forEach(instrument => {
+            db.Instrument.create({name: instrument});
+        }); 
+    }
+    else
+    {
+        console.log("Instrument List exists, skipping inserts.")
+    }    
 }
 
 //Get gas prices
 async function getGasPrices()
 {
     //Get data
-    const gasPrice = await axois.get("https://api.collectapi.com/gasPrice/allUsaPrice", {headers: {"content-type": "application/json", "authorization": process.env.API_GAS_PRICE}});
-    const stateNames = await axois.get("https://api.collectapi.com/gasPrice/usaStateCode", {headers: {"content-type": "application/json", "authorization": process.env.API_GAS_PRICE}});   
+    /* API Calls. Cost money to do. Instead, I have files. */
+    //const gasPrice = await axois.get("https://api.collectapi.com/gasPrice/allUsaPrice", {headers: {"content-type": "application/json", "authorization": process.env.API_GAS_PRICE}}).catch(error => console.log(error));
+    //const stateNames = await axois.get("https://api.collectapi.com/gasPrice/usaStateCode", {headers: {"content-type": "application/json", "authorization": process.env.API_GAS_PRICE}}).catch(error => console.log(error));;   
+    const gasPrice = require('./gasPrice.json');
+    const stateNames = require('./stateCodes.json');
 
     //Create map of state abbreviations
     const stateCodes = new Object();
-    for (let i = 0; i < stateNames.data.result.length; i++)
+    for (let i = 0; i < stateNames.result.length; i++)
     {
-    let name = stateNames.data.result[i].name;
-    if (name == "Ilinois") name = "Illinois" //Fix typo in API, great job guys (I sent them an email)
-    stateCodes[name] = stateNames.data.result[i].code;
+        let name = stateNames.result[i].name;
+        if (name == "Ilinois") name = "Illinois" //Fix typo in API, great job guys (I sent them an email)
+        stateCodes[name] = stateNames.result[i].code;
     }
 
     //Add to database
     let totalPrice = 0;
     let count = 0;
-    for (let i = 0; i < gasPrice.data.result.length; i++)
+    for (let i = 0; i < gasPrice.result.length; i++)
     {
-    let entry = await GasPrice.upsert({location: stateCodes[`${gasPrice.data.result[i].name}`], averagePrice: gasPrice.data.result[i].gasoline});
-    totalPrice += parseFloat(gasPrice.data.result[i].gasoline);
+        let entry = await db.GasPrice.upsert({location: stateCodes[`${gasPrice.result[i].name}`], averagePrice: gasPrice.result[i].gasoline});
+        totalPrice += parseFloat(gasPrice.result[i].gasoline);
     }
 
     //Add MPG Values (//https://afdc.energy.gov/data/10310, https://www.energy.gov/sites/default/files/styles/full_article_width/public/2022-05/FOTW_1237.png?itok=bOmGiBgI)
-    await GasPrice.upsert({location: "motorcyle_mpg", averagePrice: 43});
-    await GasPrice.upsert({location: "sedan_mpg", averagePrice: 23});
-    await GasPrice.upsert({location: "suv_mpg", averagePrice: 20});
-    await GasPrice.upsert({location: "truck_van_mpg", averagePrice: 15});
-    await GasPrice.upsert({location: "bus_mpg", averagePrice: 7});
+    await db.GasPrice.upsert({location: "motorcyle_mpg", averagePrice: 43});
+    await db.GasPrice.upsert({location: "sedan_mpg", averagePrice: 23});
+    await db.GasPrice.upsert({location: "suv_mpg", averagePrice: 20});
+    await db.GasPrice.upsert({location: "truck_van_mpg", averagePrice: 15});
+    await db.GasPrice.upsert({location: "bus_mpg", averagePrice: 7});
 
     //Add other values (totalAverage, averageMPG)
-    let defaultAverage = await GasPrice.upsert({location: "average_gas", averagePrice: (totalPrice/gasPrice.data.result.length)});
-    let averageMPG = await GasPrice.upsert({location: "average_mpg", averagePrice: 20});
+    let defaultAverage = await db.GasPrice.upsert({location: "average_gas", averagePrice: (totalPrice/gasPrice.result.length)});
+    let averageMPG = await db.GasPrice.upsert({location: "average_mpg", averagePrice: 20});
 }
 
 
-//Create fakerEN_US data
+//Create faker data
 async function createFakerData(userNum, eventNum, financialNum)
 {
-    console.log("Inserting fakerEN_US data");
+    console.log("Inserting faker data");
     //Vars
     let userIds = [];
     let instrument_count;
@@ -71,16 +81,16 @@ async function createFakerData(userNum, eventNum, financialNum)
     for (let i = 0; i < userNum; i++)
     {
     //Create users
-    let newUser = await User.create({email: fakerEN_US.internet.email(), password: fakerEN_US.internet.password(), f_name: fakerEN_US.person.firstName(), l_name: fakerEN_US.person.lastName(), zip: ncZipCodes[getRandomInt(ncZipCodes.length)], bio: fakerEN_US.person.bio()});
+    let newUser = await db.User.create({email: faker.internet.email(), password: faker.internet.password(), f_name: faker.person.firstName(), l_name: faker.person.lastName(), zip: ncZipCodes[getRandomInt(ncZipCodes.length)], bio: faker.person.bio()});
     userIds.push(newUser.user_id);
 
     //Create instruments
     for (let j = 0; j < getRandomInt(6); j++)
     {
         try {
-        await UserInstrument.findOrCreate({where: {instrument_id: getRandomInt(instrument.instrumentList.length), user_id: newUser.user_id}});
+            await db.UserInstrument.findOrCreate({where: {instrument_id: getRandomInt(instrument.instrumentList.length), user_id: newUser.user_id}});
         } catch (error) {
-        console.log(`Skipping - Error occured adding UserInstruments ${error}`);
+            console.log(`Skipping - Error occured adding UserInstruments ${error}`);
         }
     }
     }
@@ -90,21 +100,21 @@ async function createFakerData(userNum, eventNum, financialNum)
     {
     //Create date
     let refDate = new Date().toISOString();
-    let startDate = fakerEN_US.date.future({refDate: refDate});
-    let endDate = fakerEN_US.date.soon({refDate: startDate, days: .5});
+    let startDate = faker.date.future({refDate: refDate});
+    let endDate = faker.date.soon({refDate: startDate, days: .5});
     
     //Create event
-    let newEvent = await Event.create({event_name: fakerEN_US.commerce.productName(), start_time: startDate, end_time: endDate, pay: (Math.random()*500).toFixed(2), event_hours: getRandomInt(7), description: fakerEN_US.commerce.productDescription(), rehearse_hours: getRandomInt(4), mileage_pay: .05+(Math.random()*.2), is_listed: getRandomInt(2)});
-    let newAddress = await Address.create({event_id: newEvent.event_id, street: fakerEN_US.location.street(), city: fakerEN_US.location.city(), zip: fakerEN_US.location.zipCode({state: "NC"}), state: "NC"});
-    let newStatus = await UserStatus.create({user_id: userIds[getRandomInt(userIds.length)], event_id: newEvent.event_id, status: "owner"});
+    let newEvent = await db.Event.create({event_name: faker.commerce.productName(), start_time: startDate, end_time: endDate, pay: (Math.random()*500).toFixed(2), event_hours: getRandomInt(7), description: faker.commerce.productDescription(), rehearse_hours: getRandomInt(4), mileage_pay: .05+(Math.random()*.2), is_listed: getRandomInt(2)});
+    let newAddress = await db.Address.create({event_id: newEvent.event_id, street: faker.location.street(), city: faker.location.city(), zip: ncZipCodes[getRandomInt(ncZipCodes.length)], state: "NC"});
+    let newStatus = await db.UserStatus.create({user_id: userIds[getRandomInt(userIds.length)], event_id: newEvent.event_id, status: "owner"});
 
     //Create instruments
     for (let j = 0; j < getRandomInt(3); j++)
     {
         try {
-        await EventInstrument.findOrCreate({where: {instrument_id: getRandomInt(instrument.instrumentList.length), event_id: newEvent.event_id}});
+            await db.EventInstrument.findOrCreate({where: {instrument_id: getRandomInt(instrument.instrumentList.length), event_id: newEvent.event_id}});
         } catch (error) {
-        console.log(`Skipping - Error occured adding EventInstruments ${error}}`);
+            console.log(`Skipping - Error occured adding EventInstruments ${error}}`);
         }
     }
     }
@@ -112,22 +122,22 @@ async function createFakerData(userNum, eventNum, financialNum)
     //Financial
     for (let i = 0; i < financialNum; i++)
     {
-    //Create users
-    let newFinancial = await Financial.create({fin_name: fakerEN_US.company.name(), date: fakerEN_US.date.recent(), total_wage: (Math.random()*500).toFixed(2), event_hours: getRandomInt(6)});
-    let newFinStatus = await FinStatus.create({user_id: userIds[getRandomInt(userIds.length)], fin_id: newFinancial.fin_id});
+        //Create users
+        let newFinancial = await db.Financial.create({fin_name: faker.company.name(), date: faker.date.recent(), total_wage: (Math.random()*500).toFixed(2), event_hours: getRandomInt(6)});
+        let newFinStatus = await db.FinStatus.create({user_id: userIds[getRandomInt(userIds.length)], fin_id: newFinancial.fin_id});
     }
 }
 
 async function getInstrumentId(instrument)
 {
-    //Get Instrument by name
+    //Get db.Instrument by name
     if (typeof instrument == "string")
     {
-        instrumentId = (await Instrument.findOne({where: {name: instrument}}))?.instrument_id;
+        instrumentId = (await db.Instrument.findOne({where: {name: instrument}}))?.instrument_id;
     }
     else
     {
-        instrumentId = (await Instrument.findOne({where: {instrument_id: instrument}}))?.instrument_id;
+        instrumentId = (await db.Instrument.findOne({where: {instrument_id: instrument}}))?.instrument_id;
     }
     return instrumentId;
 }

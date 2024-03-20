@@ -1,4 +1,4 @@
-module.exports = (sequelize,Sequelize,) => {
+module.exports = (sequelize,Sequelize) => {
   const Event = sequelize.define('Event', {
     // Model attributes are defined here
     event_id: {

@@ -1,12 +1,12 @@
 module.exports = (sequelize, Sequelize,) => {
     const GasPrice = sequelize.define("GasPrice", {
         location: {
-          type: DataTypes.STRING,
+          type: Sequelize.STRING,
           primaryKey: true,
           allowNull: false
         },
         averagePrice: {
-          type: DataTypes.FLOAT,
+          type: Sequelize.FLOAT,
           allowNull: false
         },
       });
