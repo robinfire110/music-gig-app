@@ -42,7 +42,7 @@ const Events = () => {
                 <Form>
                     <Row className="mb-3">
                         <Col>
-                            <Form.Control type="text" placeholder="Event or Venue Name" />
+                            <Form.Control type="text" placeholder="Event Name" />
                         </Col>
                         <Col>
                             <Form.Control type="date" placeholder="Date" />
@@ -53,7 +53,7 @@ const Events = () => {
                     </Row>
                 </Form>
 
-                
+
                 <table className="table">
                     <thead>
                         <tr>
@@ -61,7 +61,7 @@ const Events = () => {
                             <th>Event Name</th>
                             <th>Event Requirements</th>
                             <th>Venue Details</th>
-                            <th>Go to Event</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,9 +69,21 @@ const Events = () => {
                             <tr key={event.event_id}>
                                 <td>{formatDate(event.start_time)}</td>
                                 <td>{event.event_name}</td>
-                                <td>{event.description}</td>
+                                <td>
+                                    <div>
+                                        <div>Number of musicians: {event.Instruments && event.Instruments.length}</div>
+                                        <div>Instruments needed: </div>
+                                        {event.Instruments && event.Instruments.map((instrument, index) => (
+                                            <div className="key-item"> {instrument.name}</div>
+                                        ))}
+                                    </div>
+                                </td>
                                 <td>{event.Address && (
-                                    <div> {event.Address.street} <br /> {event.Address.city} <br /> {event.Address.state} {event.Address.zip}</div>
+                                    <div>
+                                        <div> <strong>Address:</strong> <br /> {event.Address.street} <br /> {event.Address.city} <br /> {event.Address.state} {event.Address.zip}</div>
+                                        <div> <strong>Time: </strong> {event.event_hours} hours </div>
+                                        <div> <strong>Total Pay: </strong> ${event.pay} </div>
+                                    </div>
                                 )}</td>
                                 <td><Button onClick={() => goToEvent(event.event_id)}>View</Button></td>
                             </tr>
