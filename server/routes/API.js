@@ -17,6 +17,18 @@ router.get("/distance_matrix/:origin_zip/:destination_zip", async (req, res) => 
     }
 });
 
+//Get location data by zip
+router.get("/geocoding/zip/:zip", async (req, res) => {
+    try {
+        const {zip} = req.params;
+        await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${zip}}&key=${process.env.API_GOOGLE_MAPS}`).then(api_res => {
+            res.json(api_res.data);
+        });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
 
 //Export
 module.exports = {router};

@@ -104,7 +104,7 @@ async function createFakerData(userNum, eventNum, financialNum)
     let endDate = faker.date.soon({refDate: startDate, days: .5});
     
     //Create event
-    let newEvent = await db.Event.create({event_name: faker.commerce.productName(), start_time: startDate, end_time: endDate, pay: (Math.random()*500).toFixed(2), event_hours: getRandomInt(7), description: faker.commerce.productDescription(), rehearse_hours: getRandomInt(4), mileage_pay: .05+(Math.random()*.2), is_listed: getRandomInt(2)});
+    let newEvent = await db.Event.create({event_name: faker.commerce.productName(), start_time: startDate, end_time: endDate, pay: (Math.random()*500).toFixed(2), description: faker.commerce.productDescription(), rehearse_hours: getRandomInt(4), mileage_pay: .05+(Math.random()*.2), is_listed: getRandomInt(2)});
     let newAddress = await db.Address.create({event_id: newEvent.event_id, street: faker.location.street(), city: faker.location.city(), zip: ncZipCodes[getRandomInt(ncZipCodes.length)], state: "NC"});
     let newStatus = await db.UserStatus.create({user_id: userIds[getRandomInt(userIds.length)], event_id: newEvent.event_id, status: "owner"});
 

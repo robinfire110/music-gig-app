@@ -210,9 +210,17 @@ router.put("/instrument/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const user = await db.User.findOne({where: {user_id: id}});
+        const user = await db.User.findOne({where: {user_id: id}, include: [{model: db.Event}]});
         if (user)
         {
+            //Destroy events
+            user.Events.forEach(async event => {
+                //If owner, delete
+                if (event.UserStatus.status == "owner")
+                {
+                    await event.destroy();
+                }
+            });
             await user.destroy();
             res.send(user);
         }
