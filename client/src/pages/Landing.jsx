@@ -26,14 +26,17 @@ function Landing() {
             <Header />
             <Container>
             <h1>Harmonize</h1>
+            <br />
             <h3>Connecting musicians and organizers.</h3>
             <Container>
                 <br />
                 <hr />
                 <h2>Recently Added Events</h2>
+                <br />
+                <br />
                 <Row>
                     {recentEvents && recentEvents.map(event => {
-                        return (<Col><EventCard eventId={event.event_id}/></Col>)
+                        return (<Col key={event.event_id}><EventCard eventId={event.event_id}/></Col>)
                     })
                     }
                 </Row>
@@ -42,6 +45,8 @@ function Landing() {
                 <br />
                 <hr />
                 <h2>Your Events</h2>
+                <br />
+                <br />
                 <Button variant='primary'>Register now to create events!</Button>
             </Container>
             </Container>

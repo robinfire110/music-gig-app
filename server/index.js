@@ -7,9 +7,9 @@ const app = express(); //Create the app using express
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
-const {sequelize, connectToDatabase} = require('./config/database'); //Get object from database function
-const instrumentList = require('./database/instrumentList');
-const models = require('./database/models');
+const {sequelize, connectToDatabase} = require('./config/database_config'); //Get object from database function
+const db = require('./models/models');
+const {importInstruments, getGasPrices, createFakerData, fixData} = require("./helpers/model-helpers")
 const port = 5000;
 
 //Routes (connect the files with the various routes to other parts of the site)
@@ -17,6 +17,8 @@ const routeEvent = require('./routes/Event');
 const routeFinancial = require('./routes/Financial');
 const routeInstrument = require('./routes/Instrument');
 const routeUser = require('./routes/User');
+const routeGas = require('./routes/GasPrice');
+const routeAPI = require('./routes/API');
 
 //Determines where app is hosted
 app.listen(port, async () => {
@@ -25,8 +27,10 @@ app.listen(port, async () => {
 
     //Sync models
     await sequelize.sync({ alter: false }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
-    models.importInstruments(); //Adds instrument list if empty
-    //models.createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA
+    importInstruments(); //Adds instrument list if empty
+    //getGasPrices(); //Update+Get Gas Prices (since API doesn't work anymore, only need to run when first adding data.)
+    //createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA    
+    //fixData(); //Function to fix all sorts of things
 
     console.log(`Server is running at http://localhost:${port}`);
 });
@@ -36,3 +40,5 @@ app.use("/event", routeEvent.router);
 app.use("/financial", routeFinancial.router);
 app.use("/instrument", routeInstrument.router);
 app.use("/user", routeUser.router);
+app.use("/gas", routeGas.router);
+app.use("/api", routeAPI.router)
