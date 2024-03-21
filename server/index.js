@@ -28,7 +28,7 @@ app.listen(port, async () => {
     //Sync models
     await sequelize.sync({ alter: false }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
     importInstruments(); //Adds instrument list if empty
-    //getGasPrices(); //Update+Get Gas Prices (since API doesn't work anymore, only need to run when first adding data.)
+    //getGasPrices(); //Update+Get Gas Prices (Will get from AAA site, automate later)
     //createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA    
     //fixData(); //Function to fix all sorts of things
 

@@ -5,7 +5,7 @@ module.exports = (sequelize, Sequelize,) => {
           primaryKey: true,
           allowNull: false
         },
-        averagePrice: {
+        average_price: {
           type: Sequelize.FLOAT,
           allowNull: false
         },

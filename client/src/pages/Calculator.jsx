@@ -33,7 +33,7 @@ const Calculator = () => {
 
     //Search parameters
     const [searchParams] = useSearchParams();
-    const [isEvent, setIsEvent] = useState(searchParams.get("event") == "true");
+    const [isEvent, setIsEvent] = useState(searchParams.get("event") === "true");
     const [isNewEvent, setIsNewEvent] = useState(false);
 
     //States
@@ -73,8 +73,6 @@ const Calculator = () => {
     const [rehearsalHoursEnabled, setRehearsalHoursEnabled] = useState(false);
     const [taxEnabled, setTaxEnabled] = useState(false);
     const [otherFeesEnabled, setOtherFeesEnabled] = useState(false);
-    
-    const [test, setTest] = useState({AZ: 123, AB: 234, JG: 132});
 
     /* Effect */
     //On first load
@@ -94,7 +92,7 @@ const Calculator = () => {
                 let map = {};
                 for (let i = 0; i < res.data.length; i++)
                 {
-                    map[res.data[i].location] = res.data[i].averagePrice;
+                    map[res.data[i].location] = res.data[i].average_price;
                 }   
                 setGasPrices(map);
                 setAverageGasPrice(map);
@@ -117,7 +115,7 @@ const Calculator = () => {
     //Format number to currency
     function formatCurrency(value) 
     {
-        if (value && value != "") return Intl.NumberFormat('en-US', {style: 'currency', currency: "USD"}).format(value);
+        if (value && value !== "") return Intl.NumberFormat('en-US', {style: 'currency', currency: "USD"}).format(value);
         return "$0.00";
     }
 
@@ -611,6 +609,7 @@ const Calculator = () => {
                                                             <Modal.Title>Use Average Gas $ Per Mile</Modal.Title>
                                                         </Modal.Header>
                                                         <Modal.Body>
+                                                        <p>Average gas price obtained from <a href="https://gasprices.aaa.com/state-gas-price-averages/" target="_blank">AAA daily average.</a></p>
                                                         <InputGroup>
                                                             <InputGroup.Text>Select State</InputGroup.Text>
                                                             <Form.Select id="selectState" value={currentState} onChange={(e) => {setCurrentState(e.target.value)}}>
