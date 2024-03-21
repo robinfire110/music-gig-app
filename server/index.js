@@ -8,8 +8,8 @@ app.use(express.json());
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 const {sequelize, connectToDatabase} = require('./config/database_config'); //Get object from database function
-const models = require('./models/models');
-const {importInstruments, getGasPrices, createFakerData} = require("./helpers/model-helpers")
+const db = require('./models/models');
+const {importInstruments, getGasPrices, createFakerData, fixData} = require("./helpers/model-helpers")
 const port = 5000;
 
 //Routes (connect the files with the various routes to other parts of the site)
@@ -29,7 +29,8 @@ app.listen(port, async () => {
     await sequelize.sync({ alter: false }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
     importInstruments(); //Adds instrument list if empty
     //getGasPrices(); //Update+Get Gas Prices (since API doesn't work anymore, only need to run when first adding data.)
-    //createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA
+    //createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA    
+    //fixData(); //Function to fix all sorts of things
 
     console.log(`Server is running at http://localhost:${port}`);
 });

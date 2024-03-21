@@ -200,7 +200,7 @@ const Calculator = () => {
     //Load event data
     async function loadEventData(fillFields)
     {
-        console.log(eventData);
+        console.log("Event Data", eventData);
         if (eventData)
         {
             if (fillFields)
@@ -253,7 +253,7 @@ const Calculator = () => {
     {
         setIsGettingLocation(true);
         axios.get(`http://localhost:5000/api/distance_matrix/${originZip}/${destinationZip}/`).then(res => {
-            console.log(res.data);
+            console.log("Event Location Data", res.data);
             if (res.data)
             {
                 if (res.data.status == "OK" && res.data.rows[0].elements[0].status == "OK")
