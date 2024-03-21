@@ -20,6 +20,7 @@ const EventForm = () => {
     })
 
     const [instruments, setInstruments] = useState([])
+    const [selectedInstrument, setSelectedInstrument] = useState("")
     const [selectedInstruments, setSelectedInstruments] = useState([])
 
     const [address, setAddress] = useState({
@@ -57,8 +58,10 @@ const EventForm = () => {
     }
 
     //need a separate handler for instrument changes
-    const handleInstrumentChange = (selectedInstrument) => {
-        setSelectedInstruments((prev) => [...prev, selectedInstrument]);
+    const handleAddInstrument = () => {
+        if (selectedInstrument) {
+            setSelectedInstruments((prev) => [...prev, selectedInstrument]);
+        }
     }
 
     //seperate handler for address changes
@@ -104,6 +107,13 @@ const EventForm = () => {
                                 {/* <input type="text" placeholder='Event name' onChange={handleChange} name="event_name" /> */}
                             </Row>
                             <Row className="mb-3">
+                                <Col lg="2"><Form.Label>Description:</Form.Label></Col>
+                                <Col lg="5">
+                                    <Form.Control type="text" placeholder='Event Description' onChange={handleChange} name="description"></Form.Control>
+                                </Col>
+                            </Row>
+                            <hr />
+                            <Row className="mb-3">
                                 <Col lg="2"><Form.Label>Address:</Form.Label></Col>
                                 {/* Address Fields */}
                                 <Col lg="5">
@@ -121,6 +131,7 @@ const EventForm = () => {
                                     </Row>
                                 </Col>
                             </Row>
+                            <hr />
                             <Row className="mb-3">
                                 <Col lg="2"><Form.Label>Date:</Form.Label></Col>
                                 <Col lg="2">
@@ -140,41 +151,60 @@ const EventForm = () => {
                                     </Col>
                                 </Col>
                             </Row>
+                            <hr />
+                            <Row className="mb-3">
+                                <Col lg="1"><Form.Label>Pay:</Form.Label></Col>
+                                <Col lg="2">
+                                    <Form.Control type="number" placeholder='Event Pay' onChange={handleChange} name="pay"></Form.Control>
+                                </Col>
+                                <Col lg="1"><Form.Label>Rehearse Hours:</Form.Label></Col>
+                                <Col lg="2">
+                                    <Form.Control type="number" placeholder='Rehearsal Hours' onChange={handleChange} name="rehearse_hours"></Form.Control>
+                                </Col>
+                                <Col lg="1"><Form.Label>Mileage Pay:</Form.Label></Col>
+                                <Col lg="2">
+                                    <Form.Control type="number" placeholder='Pay Per Mile' onChange={handleChange} name="mileage_pay"></Form.Control>
+                                </Col>
+                            </Row>
+                            <Row className="mb-3">
 
-
-                            {/* Date Fields */}
-                            <Datepicker value={event.start_time} onChange={handleDateChange} name="start_time" />
-                            <Datepicker value={event.end_time} onChange={handleDateChange} name="end_time" />
-
-
-
-                            <input type="text" placeholder='Description' onChange={handleChange} name="description" />
+                            </Row>
+                            <hr />
+                            <Row className="mb-3">
+                                <Col lg="1"><Form.Label>Instruments:</Form.Label></Col>
+                                <Col lg="2">
+                                    <Form.Select onChange={(e) => setSelectedInstrument(e.target.value)} name="Instrument">
+                                        <option value="" disabled selected>Select</option>
+                                        {instruments.map((instrument) => (
+                                            <option key={instrument.instrument_id} value={instrument.name}>
+                                                {instrument.name}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                </Col>
+                                <Col sm="2">
+                                    <Button onClick={handleAddInstrument}>Add Instrument</Button>
+                                </Col>
+                                <Col sm="2">
+                                    <div>
+                                        Selected Instruments:
+                                    </div>
+                                </Col>
+                                <Col sm="5">
+                                    <div>
+                                        {selectedInstruments.map((instrument, index) => (
+                                            <span key={index} className="key-item">{instrument}</span>
+                                        ))}
+                                    </div>
+                                </Col>
+                            </Row>
                         </Form.Group>
                     </Form>
-
-                    {/* Pay Fields */}
-                    <input type="number" placeholder='Pay' onChange={handleChange} name="pay" />
-                    <input type="number" placeholder="Rehearse Hours" onChange={handleChange} name="rehearse_hours" />
-                    <input type="number" placeholder="Mileage Pay" onChange={handleChange} name="mileage_pay" />
-
-                    {/* Instrument Fields */}
-                    <select onChange={(e) => handleInstrumentChange(e.target.value)}>
-                        <option value="" disabled>
-                            Select Instrument
-                        </option>
-                        {instruments.map((instrument) => (
-                            <option key={instrument.instrument_id} value={instrument.name}>
-                                {instrument.name}
-                            </option>
-                        ))}
-                    </select>
-                    <div>
-                        Selected Instruments: {selectedInstruments.map((instrument) => instrument).join(", ")}
-                    </div>
                 </Container>
-                <button className="formButton" onClick={handleListing}>
+                {/* Add if else logic: If event=true (Event is being updated), update event, else (this is a new event) list event */}
+                <Button className="formButton" onClick={handleListing}>
                     {id ? "Update Event" : "List Event"}
-                </button>
+                </Button>
 
                 {/* Set is listed to true */}
             </div>
