@@ -1,13 +1,11 @@
 import React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Datepicker from "../components/Datepicker"
 import Header from "../components/Header";
-import { Container, Form, Col, Row, InputGroup, Button, OverlayTrigger, Popover } from "react-bootstrap";
+import { Container, Form, Col, Row, Button } from "react-bootstrap";
 import moment from "moment";
-import DateTimePicker from "react-datetime-picker";
 
 const EventForm = () => {
     const [event, setEvent] = useState({
@@ -22,6 +20,8 @@ const EventForm = () => {
     const [instruments, setInstruments] = useState([])
     const [selectedInstrument, setSelectedInstrument] = useState("")
     const [selectedInstruments, setSelectedInstruments] = useState([])
+    const [startTime, setStartTime] = useState("");
+    const [endTime, setEndTime] = useState("")
 
     const [address, setAddress] = useState({
         street: "",
@@ -57,6 +57,17 @@ const EventForm = () => {
         setEvent((prev) => ({ ...prev, [name]: date }))
     }
 
+    //need to put together date and time from selections into format transferrable to the database
+    const formatDateTime = (date, time) => {
+        //format the date as "YYYY-MM-DD"
+        const formattedDate = moment(date).format("YYYY-MM-DD");
+
+        //Concat this with the time(s) selected by the user
+        const formattedDateTime = `${formattedDate} ${time}:00`
+
+        return formattedDateTime
+    }
+
     //need a separate handler for instrument changes
     const handleAddInstrument = () => {
         if (selectedInstrument) {
@@ -69,21 +80,26 @@ const EventForm = () => {
         setAddress(prev => ({ ...prev, [name]: value }))
     }
 
-    const handleListing = async e => {
+    const handleListEvent = async e => {
         e.preventDefault()
         try {
-            //prepare data with event details and selected instruments
-            const eventData = { ...event, instruments: selectedInstruments, address };
+            const isListed = 1
+            const startDateTime = formatDateTime(event.date, startTime);
+            const endDateTime = formatDateTime(event.date, endTime);
 
-            if (id) { //if id already exists, we make a put to that event id
+            //prepare data to be sent to database with event details
+            const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, isListed: isListed };
+
+            //if an id is present, that means the event already exists and we need to put
+            if (id) {
                 await axios.put(`http://localhost:5000/event/${id}`, eventData);
-                navigate(`/event/${id}`) //automatically throw user to the individual event page for the event
-            } else { //if the id doesn't exist, we make a post to a new event id
-                console.log(eventData);
+                navigate(`/event/${id}`) //automatically throw user to the individual event page for the updated event
+            } else {
+                //event does not exist, so make a post
                 const response = await axios.post(`http://localhost:5000/event/`, eventData)
                 const newEventId = response.data.event_id;
                 navigate(`/event/${newEventId}`); //automatically throw user to the individual event page for the new event
-            };
+            }
         } catch (error) {
             console.log(error);
         }
@@ -94,7 +110,7 @@ const EventForm = () => {
             <Header />
             <div className='form'>
                 {/* Add if check here based on the passed ID, if present say Edit, if not say Create */}
-                <h1>Edit Event</h1>
+                <h1>{id ? "Edit Event" : "Create Event"}</h1>
                 <hr />
                 <Container style={{ textAlign: "left" }}>
                     <h3>Event Information</h3>
@@ -102,21 +118,21 @@ const EventForm = () => {
                     <Form>
                         <Form.Group>
                             <Row className="mb-3">
-                                <Col lg="2"><Form.Label>Event name:</Form.Label></Col>
-                                <Col lg="5"><Form.Control type="text" placeholder='Event name' onChange={handleChange} name="event_name"></Form.Control></Col>
+                                <Col lg="3"><Form.Label>Event name:</Form.Label></Col>
+                                <Col lg="9"><Form.Control type="text" placeholder='Event name' onChange={handleChange} name="event_name"></Form.Control></Col>
                                 {/* <input type="text" placeholder='Event name' onChange={handleChange} name="event_name" /> */}
                             </Row>
                             <Row className="mb-3">
-                                <Col lg="2"><Form.Label>Description:</Form.Label></Col>
-                                <Col lg="5">
+                                <Col lg="3"><Form.Label>Description:</Form.Label></Col>
+                                <Col lg="9">
                                     <Form.Control type="text" placeholder='Event Description' onChange={handleChange} name="description"></Form.Control>
                                 </Col>
                             </Row>
                             <hr />
                             <Row className="mb-3">
-                                <Col lg="2"><Form.Label>Address:</Form.Label></Col>
+                                <Col lg="3"><Form.Label>Address:</Form.Label></Col>
                                 {/* Address Fields */}
-                                <Col lg="5">
+                                <Col lg="9">
                                     <Row>
                                         <Form.Control type="text" placeholder='Street' onChange={(e) => handleAddressChange("street", e.target.value)} value={address.street} />
                                     </Row>
@@ -133,22 +149,34 @@ const EventForm = () => {
                             </Row>
                             <hr />
                             <Row className="mb-3">
-                                <Col lg="2"><Form.Label>Date:</Form.Label></Col>
+                                <Col lg="12">
+                                    <h3>Event Schedule</h3>
+                                </Col>
+                            </Row>
+                            <hr />
+                            <Row className="mb-3">
+                                <Col lg="1"><Form.Label>Date:</Form.Label></Col>
                                 <Col lg="2">
-                                    <Form.Control type="date" defaultValue={moment().format("YYYY-MM-DD")}></Form.Control>
+                                    <Form.Control type="date" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => handleDateChange(e.target.value)}></Form.Control>
                                 </Col>
                             </Row>
                             <Row className="mb-3">
-                                <Col lg="2">
+                                <Col lg="1">
                                     <Form.Label>Time:</Form.Label>
                                 </Col>
                                 <Col lg="10">
                                     <Col lg="2">
-                                        <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")}></Form.Control>
+                                        <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => setStartTime(e.target.value)}></Form.Control>
                                     </Col>
                                     <Col lg="2">
-                                        <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")}></Form.Control>
+                                        <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => setEndTime(e.target.value)}></Form.Control>
                                     </Col>
+                                </Col>
+                            </Row>
+                            <hr />
+                            <Row className="mb-3">
+                                <Col lg="12">
+                                    <h3>Event Finance</h3>
                                 </Col>
                             </Row>
                             <hr />
@@ -167,7 +195,12 @@ const EventForm = () => {
                                 </Col>
                             </Row>
                             <Row className="mb-3">
-
+                            </Row>
+                            <hr />
+                            <Row className="mb-3">
+                                <Col lg="12">
+                                    <h3>Instrument Select</h3>
+                                </Col>
                             </Row>
                             <hr />
                             <Row className="mb-3">
@@ -202,11 +235,9 @@ const EventForm = () => {
                     </Form>
                 </Container>
                 {/* Add if else logic: If event=true (Event is being updated), update event, else (this is a new event) list event */}
-                <Button className="formButton" onClick={handleListing}>
+                <Button className="formButton" onClick={handleListEvent} style={{ marginBottom: "2em" }}>
                     {id ? "Update Event" : "List Event"}
                 </Button>
-
-                {/* Set is listed to true */}
             </div>
         </div>
     )
