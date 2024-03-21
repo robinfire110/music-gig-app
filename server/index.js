@@ -1,5 +1,7 @@
 const express = require('express'); //Creates instance of express framework, which well help route things.
 const cors = require("cors"); //Creates an instance of cors, to allow cross-origin requests to be made between our front-end and the server's API endpoint
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const corsOptions = {
     origin: "http://localhost:3000", //Note this localhost needs to be updated when hosting on cloud
 };
@@ -7,6 +9,8 @@ const app = express(); //Create the app using express
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
+
+//DB
 const {sequelize, connectToDatabase} = require('./config/database_config'); //Get object from database function
 const models = require('./models/models');
 const {importInstruments, getGasPrices, createFakerData} = require("./helpers/model-helpers")
@@ -19,6 +23,8 @@ const routeInstrument = require('./routes/Instrument');
 const routeUser = require('./routes/User');
 const routeGas = require('./routes/GasPrice');
 const routeAPI = require('./routes/API');
+const { router: authRoutes } = require('./routes/AuthRoutes'); //it's called destructuring, makes code cleaner
+
 
 //Determines where app is hosted
 app.listen(port, async () => {
@@ -40,4 +46,8 @@ app.use("/financial", routeFinancial.router);
 app.use("/instrument", routeInstrument.router);
 app.use("/user", routeUser.router);
 app.use("/gas", routeGas.router);
-app.use("/api", routeAPI.router)
+app.use("/api", routeAPI.router);
+
+//auth
+app.use(authRoutes);
+

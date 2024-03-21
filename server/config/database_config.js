@@ -1,5 +1,5 @@
 const {Sequelize} = require('sequelize');
-require('dotenv').config();
+
 
 //Set up Sequelize object and connection to database
 const local_database = new Sequelize(
