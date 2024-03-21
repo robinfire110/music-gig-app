@@ -4,12 +4,12 @@ import { Link, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Datepicker from "../components/Datepicker";
-import { Container, Form, Col, Row, InputGroup, Button, OverlayTrigger, Popover, Modal, Alert } from "react-bootstrap";
+import { Container, Form, Col, Row, InputGroup, Button, OverlayTrigger, Popover, Modal, Alert, Collapse } from "react-bootstrap";
 import moment from "moment";
 import TooltipButton from "../components/TooltipButton";
 import FormNumber from "../components/FormNumber";
 import axios, { spread } from "axios";
-import {BarLoader} from 'react-spinners'
+import {BarLoader, ClipLoader} from 'react-spinners'
 
 const Calculator = () => {
     /* Variables */
@@ -117,7 +117,7 @@ const Calculator = () => {
     //Format number to currency
     function formatCurrency(value) 
     {
-        if (value) return Intl.NumberFormat('en-US', {style: 'currency', currency: "USD"}).format(value);
+        if (value && value != "") return Intl.NumberFormat('en-US', {style: 'currency', currency: "USD"}).format(value);
         return "$0.00";
     }
 
@@ -200,7 +200,7 @@ const Calculator = () => {
     //Load event data
     async function loadEventData(fillFields)
     {
-        console.log(eventData);
+        console.log("Event Data", eventData);
         if (eventData)
         {
             if (fillFields)
@@ -253,7 +253,7 @@ const Calculator = () => {
     {
         setIsGettingLocation(true);
         axios.get(`http://localhost:5000/api/distance_matrix/${originZip}/${destinationZip}/`).then(res => {
-            console.log(res.data);
+            console.log("Event Location Data", res.data);
             if (res.data)
             {
                 if (res.data.status == "OK" && res.data.rows[0].elements[0].status == "OK")
@@ -483,7 +483,9 @@ const Calculator = () => {
         return (
             <div>
                 <Header />
-                <p>Loading...</p>
+                <br />
+                <ClipLoader />
+                <br />
                 <Footer />
             </div>
         )
@@ -712,44 +714,45 @@ const Calculator = () => {
                     <Col>
                         <h3>Results</h3>
                         <hr />
+                        <div>
                         <Container>
                         <Row>
                             <Col>
                                 
                                     <Row>
                                     <Col lg={2} md={2} sm={2} xs={2}>
-                                            <h5>Payment: </h5>
+                                            <h5 style={{display: "block"}}>Payment: </h5>
                                         </Col>
                                         <Col>
-                                        <h5 style={{whiteSpace: "pre-wrap", textAlign: "right"}}>{formatCurrency(gigPay)}{gigNumEnabled && gigNum ? ` x ${gigNum} = ${formatCurrency(gigPay*gigNum)}` : ""}</h5>
+                                        <h5 style={{whiteSpace: "pre-wrap", textAlign: "right", display: "block"}}>{formatCurrency(gigPay)}{gigNumEnabled && gigNum ? ` x ${gigNum} = ${formatCurrency(gigPay*gigNum)}` : ""}</h5>
                                         </Col>
                                     </Row>
                                     <Row>
                                         <Col lg={7} md={9} sm={8} xs={7}>
-                                            {taxEnabled ? <h5>Tax Cut ({tax ? tax : "0"}%):</h5> : ""}
-                                            {totalMileageEnabled ? <h5>Total Travel Cost:</h5> : ""}
-                                            {otherFeesEnabled ? <h5>Other Fees:</h5> : ""}
+                                            {taxEnabled ? <h5 style={{display: "block"}}>Tax Cut ({tax ? tax : "0"}%):</h5> : ""}
+                                            {totalMileageEnabled ? <h5 style={{display: "block"}}>Total Travel Cost:</h5> : ""}
+                                            {otherFeesEnabled ? <h5 style={{display: "block"}}>Other Fees:</h5> : ""}
                                             <hr style={{margin: "0px ", textAlign: "right", width: "0px"}}/>
-                                            <h5><br /></h5>
-                                            <h5>Total Hours: </h5>
+                                            <h5 style={{display: "block"}}><br /></h5>
+                                            <h5 style={{display: "block"}}>Total Hours: </h5>
                                         </Col>
                                         <Col lg={1} md={1} sm={1} xs={1}>
                                             <div style={{whiteSpace: "pre-wrap"}}>
-                                            {taxEnabled ? <h5>-</h5> : ""}
-                                            {totalMileageEnabled ? <h5>-</h5> : ""}
-                                            {otherFeesEnabled ? <h5>-</h5> : ""}
-                                            <h5><br /></h5>
-                                            <h5>÷</h5>
+                                            {taxEnabled ? <h5 style={{display: "block"}}>-</h5> : ""}
+                                            {totalMileageEnabled ? <h5 style={{display: "block"}}>-</h5> : ""}
+                                            {otherFeesEnabled ? <h5 style={{display: "block"}}>-</h5> : ""}
+                                            <h5 style={{display: "block"}}><br /></h5>
+                                            <h5 style={{display: "block"}}>÷</h5>
                                             </div>
                                         </Col>
                                         <Col>
-                                            <div style={{whiteSpace: "pre-wrap", textAlign: "right"}}>
-                                                {taxEnabled ? <h5>{formatCurrency(totalTax)}</h5> : ""}
-                                                {totalMileageEnabled ? <h5>{totalMileage ? formatCurrency(totalGas) : formatCurrency(0)}</h5> : ""}
-                                                {otherFeesEnabled ? <h5>{formatCurrency(otherFees)}</h5> : ""}
+                                            <div style={{whiteSpace: "pre-wrap", textAlign: "right", display: "block"}}>
+                                                {taxEnabled ? <h5 style={{display: "block"}}>{formatCurrency(totalTax)}</h5> : ""}
+                                                {totalMileageEnabled ? <h5 style={{display: "block"}}>{totalMileage ? formatCurrency(totalGas) : formatCurrency(0)}</h5> : ""}
+                                                {otherFeesEnabled ? <h5 style={{display: "block"}}>{formatCurrency(otherFees)}</h5> : ""}
                                                 <hr style={{margin: "0px ", textAlign: "right"}}/>
-                                                <h5>{formatCurrency(totalPay)}</h5>
-                                                <h5>{totalHours}</h5>
+                                                <h5 style={{display: "block"}}>{formatCurrency(totalPay)}</h5>
+                                                <h5 style={{display: "block"}}>{totalHours}</h5>
                                             </div>
                                             
                                         </Col>
@@ -773,6 +776,7 @@ const Calculator = () => {
                         {saveStatus && saveStatus.status == "OK" ? <Alert variant="success"dismissible show={saveStatus?.status == "OK"} onClose={() => setSaveStatus(undefined)}>Data sucessfully {saveStatus.type == "save" ? "saved" : saveStatus.type == "update" ? "updated" : "exported"}. </Alert> : ""}
                         {saveStatus && saveStatus.status == "ERROR" ? <Alert variant="danger"dismissible show={saveStatus?.status == "ERROR"} onClose={() => setSaveStatus(undefined)}>An error occured while {saveStatus.type == "save" ? "saving" : saveStatus.type == "updating" ? "updated" : "exporting"}. Please ensure all data is correct and try again.</Alert> : ""}
                         </Container>
+                        </div>
                     </Col>
                 </Row>
                 </Form>
