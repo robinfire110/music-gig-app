@@ -9,6 +9,8 @@ import TooltipButton from "../components/TooltipButton";
 import FormNumber from "../components/FormNumber";
 import axios from "axios";
 import {BarLoader, ClipLoader} from 'react-spinners'
+import * as ExcelJS from "exceljs"
+import {saveAs} from "file-saver"
 
 const Calculator = () => {
     /* Variables */
@@ -437,7 +439,6 @@ const Calculator = () => {
             if ((!isEvent && paramId) || (isEvent && !isNewEvent)) //If exists, update
             {
                 console.log(`UPDATE ${finId} ${paramId}`)
-                console.log(data);
                 await axios.put(`http://localhost:5000/financial/${finId}`, data).then(res => {
                     setSaveStatus({type: "update", status: "OK"});
                 }).catch(error => {
@@ -470,7 +471,20 @@ const Calculator = () => {
         }
         else
         {
-            
+            //Create workbook
+            const workbook = new ExcelJS.Workbook();
+            workbook.created = new Date();
+            workbook.modified = new Date();
+
+            //Create worksheet
+            const worksheet = workbook.addWorksheet("Calculator Results");
+
+            //Set Rows
+            const row1 = worksheet.addRow(["Name", "Date", "Total Wage"]);
+            row1.font = {bold: true};
+
+            const buf = await workbook.xlsx.writeBuffer();
+            saveAs(new Blob([buf]), `${calcName.replace(/ /g,"_")}.xlsx`);
         }
 
     }
