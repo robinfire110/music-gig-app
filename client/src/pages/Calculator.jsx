@@ -3,12 +3,11 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import Datepicker from "../components/Datepicker";
-import { Container, Form, Col, Row, InputGroup, Button, OverlayTrigger, Popover, Modal, Alert, Collapse } from "react-bootstrap";
+import { Container, Form, Col, Row, InputGroup, Button, Modal, Alert } from "react-bootstrap";
 import moment from "moment";
 import TooltipButton from "../components/TooltipButton";
 import FormNumber from "../components/FormNumber";
-import axios, { spread } from "axios";
+import axios from "axios";
 import {BarLoader, ClipLoader} from 'react-spinners'
 
 const Calculator = () => {
@@ -471,7 +470,7 @@ const Calculator = () => {
         }
         else
         {
-            //Export to spreadsheet
+            
         }
 
     }
