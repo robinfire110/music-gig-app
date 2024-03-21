@@ -6,6 +6,8 @@ import axios from "axios";
 import Datepicker from "../components/Datepicker"
 import Header from "../components/Header";
 import { Container, Form, Col, Row, InputGroup, Button, OverlayTrigger, Popover } from "react-bootstrap";
+import moment from "moment";
+import DateTimePicker from "react-datetime-picker";
 
 const EventForm = () => {
     const [event, setEvent] = useState({
@@ -88,7 +90,8 @@ const EventForm = () => {
         <div>
             <Header />
             <div className='form'>
-                <h1>Update Event</h1>
+                {/* Add if check here based on the passed ID, if present say Edit, if not say Create */}
+                <h1>Edit Event</h1>
                 <hr />
                 <Container style={{ textAlign: "left" }}>
                     <h3>Event Information</h3>
@@ -96,16 +99,46 @@ const EventForm = () => {
                     <Form>
                         <Form.Group>
                             <Row className="mb-3">
-                                <Col lg="2"><Form.Label>Event name: </Form.Label></Col>
-                                <Col lg="6"><Form.Control type="text" placeholder='Event name' onChange={handleChange} name="event_name"></Form.Control></Col>
+                                <Col lg="2"><Form.Label>Event name:</Form.Label></Col>
+                                <Col lg="5"><Form.Control type="text" placeholder='Event name' onChange={handleChange} name="event_name"></Form.Control></Col>
                                 {/* <input type="text" placeholder='Event name' onChange={handleChange} name="event_name" /> */}
                             </Row>
                             <Row className="mb-3">
+                                <Col lg="2"><Form.Label>Address:</Form.Label></Col>
                                 {/* Address Fields */}
-                                <input type="text" placeholder='Street' onChange={(e) => handleAddressChange("street", e.target.value)} value={address.street} />
-                                <input type="text" placeholder='City' onChange={(e) => handleAddressChange("city", e.target.value)} value={address.city} />
-                                <input type="text" placeholder='State' onChange={(e) => handleAddressChange("state", e.target.value)} value={address.state} />
-                                <input type="text" placeholder='Zip Code' onChange={(e) => handleAddressChange("zip", e.target.value)} value={address.zip} />
+                                <Col lg="5">
+                                    <Row>
+                                        <Form.Control type="text" placeholder='Street' onChange={(e) => handleAddressChange("street", e.target.value)} value={address.street} />
+                                    </Row>
+                                    <Row>
+                                        <Form.Control type="text" placeholder='City' onChange={(e) => handleAddressChange("city", e.target.value)} value={address.city} />
+                                    </Row>
+                                    <Row>
+                                        <Form.Control type="text" placeholder='State' onChange={(e) => handleAddressChange("state", e.target.value)} value={address.state} />
+                                    </Row>
+                                    <Row>
+                                        <Form.Control type="text" placeholder='Zip Code' onChange={(e) => handleAddressChange("zip", e.target.value)} value={address.zip} />
+                                    </Row>
+                                </Col>
+                            </Row>
+                            <Row className="mb-3">
+                                <Col lg="2"><Form.Label>Date:</Form.Label></Col>
+                                <Col lg="2">
+                                    <Form.Control type="date" defaultValue={moment().format("YYYY-MM-DD")}></Form.Control>
+                                </Col>
+                            </Row>
+                            <Row className="mb-3">
+                                <Col lg="2">
+                                    <Form.Label>Time:</Form.Label>
+                                </Col>
+                                <Col lg="10">
+                                    <Col lg="2">
+                                        <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")}></Form.Control>
+                                    </Col>
+                                    <Col lg="2">
+                                        <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")}></Form.Control>
+                                    </Col>
+                                </Col>
                             </Row>
 
 
