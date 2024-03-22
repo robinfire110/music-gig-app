@@ -1,8 +1,26 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { Navbar, NavDropdown, Nav, Container} from 'react-bootstrap';
 
 function Header() {
-    let isAuthenticated;
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    useEffect(() => {
+        const fetchAuthenticationStatus = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/auth/status', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                setIsAuthenticated(data.isAuthenticated);
+            } catch (error) {
+                console.error('Error fetching authentication status:', error);
+            }
+        };
+        fetchAuthenticationStatus();
+    }, []);
     return (
         <Navbar bg="light" expand="lg">
             <Container>
@@ -25,5 +43,4 @@ function Header() {
         </Navbar>
     )
 }
-
 export default Header;
