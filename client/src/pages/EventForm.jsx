@@ -17,18 +17,20 @@ const EventForm = () => {
         event_hours: "",
     })
 
-    const [instruments, setInstruments] = useState([])
-    const [selectedInstrument, setSelectedInstrument] = useState("")
-    const [selectedInstruments, setSelectedInstruments] = useState([])
-    const [startTime, setStartTime] = useState("");
-    const [endTime, setEndTime] = useState("")
-
     const [address, setAddress] = useState({
         street: "",
         city: "",
         zip: "",
         state: ""
     })
+
+    const [userId, setUserId] = useState(1); //NOTE: REPLACE WITH PROPER ACCOUNT ID WHEN IMPLEMENTED
+    const [instruments, setInstruments] = useState([])
+    const [selectedInstrument, setSelectedInstrument] = useState("")
+    const [selectedInstruments, setSelectedInstruments] = useState([])
+    const [selectedToRemove, setSelectedToRemove] = useState([])
+    const [startTime, setStartTime] = useState("");
+    const [endTime, setEndTime] = useState("")
 
     const navigate = useNavigate()
     const { id } = useParams();
@@ -40,10 +42,20 @@ const EventForm = () => {
             const data = await res.json();
             setInstruments(data);
 
-            if (id) { //If the previous page had an id, then it's going to be stored and allow us to put to that id
+            if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
                 const res = await fetch(`http://localhost:5000/event/id/${id}`);
                 const data = await res.json();
                 setEvent(data);
+                setAddress({
+                    street: data.Address.street,
+                    city: data.Address.city,
+                    zip: data.Address.zip,
+                    state: data.Address.state
+                })
+
+                //autofill selectedInstruments from id
+                const selectedInstrumentsData = data.Instruments.map(instrument => instrument.name);
+                setSelectedInstruments(selectedInstrumentsData);
             }
         };
         fetchData();
@@ -59,11 +71,12 @@ const EventForm = () => {
 
     //need to put together date and time from selections into format transferrable to the database
     const formatDateTime = (date, time) => {
-        //format the date as "YYYY-MM-DD"
-        const formattedDate = moment(date).format("YYYY-MM-DD");
 
-        //Concat this with the time(s) selected by the user
-        const formattedDateTime = `${formattedDate} ${time}:00`
+        //combine date and time into a single string
+        const dateTimeString = `${date} ${time}`;
+
+        //format the combined string as a DATETIME object
+        const formattedDateTime = moment(dateTimeString, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm:ss');
 
         return formattedDateTime
     }
@@ -75,30 +88,50 @@ const EventForm = () => {
         }
     }
 
+    const handleToggleCheckbox = (isChecked, instrument) => {
+        if (isChecked) { //if the box is checked by the user, add that item
+            setSelectedToRemove(prev => [...prev, instrument]);
+        } else { //if the user UNCHECKS a checked box, remove that item
+            setSelectedToRemove(prev => prev.filter(item => item !== instrument));
+        }
+    }
+
+    const handleRemoveInstrument = () => {
+        setSelectedInstruments(prev => prev.filter(instrument => !selectedToRemove.includes(instrument)));
+        //clear the selectedToRemove array
+        setSelectedToRemove([]);
+    }
+
     //seperate handler for address changes
     const handleAddressChange = (name, value) => {
         setAddress(prev => ({ ...prev, [name]: value }))
     }
 
-    const handleListEvent = async e => {
+    const handleEvent = async e => {
         e.preventDefault()
         try {
             const isListed = 1
-            const startDateTime = formatDateTime(event.date, startTime);
-            const endDateTime = formatDateTime(event.date, endTime);
+            const startDateTime = formatDateTime(event.start_time, startTime);
+            const endDateTime = formatDateTime(event.end_time, endTime);
 
             //prepare data to be sent to database with event details
             const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, isListed: isListed };
 
             //if an id is present, that means the event already exists and we need to put
             if (id) {
-                await axios.put(`http://localhost:5000/event/${id}`, eventData);
-                navigate(`/event/${id}`) //automatically throw user to the individual event page for the updated event
+                const response = await axios.put(`http://localhost:5000/event/${id}`, eventData);
+                navigate(`../event/${id}`)
             } else {
                 //event does not exist, so make a post
+                /*
+                NOTE THIS IS A PLACEHOLDER UNTIL WE GET USER ID STATUS FROM THE BROWSER
+                MANUALLY SETTING THE EVENT TO BE OWNED BY USER_ID 1 UNTIL ID LOGGING AVAILABLE
+                THIS NEEDS TO BE REMOVED WHEN SUCH FUNCTIONALITY IS IN PLACE
+                */
+                const eventData = { ...event, user_id: userId, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, isListed: isListed };
                 const response = await axios.post(`http://localhost:5000/event/`, eventData)
                 const newEventId = response.data.event_id;
-                navigate(`/event/${newEventId}`); //automatically throw user to the individual event page for the new event
+                navigate(`../event/${newEventId}`);
             }
         } catch (error) {
             console.log(error);
@@ -118,32 +151,39 @@ const EventForm = () => {
                     <Form>
                         <Form.Group>
                             <Row className="mb-3">
-                                <Col lg="3"><Form.Label>Event name:</Form.Label></Col>
-                                <Col lg="9"><Form.Control type="text" placeholder='Event name' onChange={handleChange} name="event_name"></Form.Control></Col>
-                                {/* <input type="text" placeholder='Event name' onChange={handleChange} name="event_name" /> */}
+                                <Col lg="2"><Form.Label>Event name:</Form.Label></Col>
+                                <Col lg="9"><Form.Control type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name"></Form.Control></Col>
                             </Row>
                             <Row className="mb-3">
-                                <Col lg="3"><Form.Label>Description:</Form.Label></Col>
+                                <Col lg="2"><Form.Label>Description:</Form.Label></Col>
                                 <Col lg="9">
-                                    <Form.Control type="text" placeholder='Event Description' onChange={handleChange} name="description"></Form.Control>
+                                    <Form.Control type="text" placeholder='Event Description' value={event.description} onChange={handleChange} name="description"></Form.Control>
                                 </Col>
                             </Row>
                             <hr />
                             <Row className="mb-3">
-                                <Col lg="3"><Form.Label>Address:</Form.Label></Col>
+                                <Col lg="2">
+                                    <Form.Label>
+                                        Address:
+                                    </Form.Label>
+                                </Col>
                                 {/* Address Fields */}
-                                <Col lg="9">
-                                    <Row>
-                                        <Form.Control type="text" placeholder='Street' onChange={(e) => handleAddressChange("street", e.target.value)} value={address.street} />
+                                <Col lg="6">
+                                    <Row className="mb-3 align-items-center">
+                                        <Col lg="2"><Form.Label>Street: </Form.Label></Col>
+                                        <Col lg="5"><Form.Control type="text" placeholder='Street' value={address.street} onChange={(e) => handleAddressChange("street", e.target.value)} /></Col>
                                     </Row>
-                                    <Row>
-                                        <Form.Control type="text" placeholder='City' onChange={(e) => handleAddressChange("city", e.target.value)} value={address.city} />
+                                    <Row className="mb-3 align-items-center">
+                                        <Col lg="2"><Form.Label>City: </Form.Label></Col>
+                                        <Col lg="5"><Form.Control type="text" placeholder='City' value={address.city} onChange={(e) => handleAddressChange("city", e.target.value)} /></Col>
                                     </Row>
-                                    <Row>
-                                        <Form.Control type="text" placeholder='State' onChange={(e) => handleAddressChange("state", e.target.value)} value={address.state} />
+                                    <Row className="mb-3 align-items-center">
+                                        <Col lg="2"><Form.Label>State: </Form.Label></Col>
+                                        <Col lg="5"><Form.Control type="text" placeholder='State' value={address.state} onChange={(e) => handleAddressChange("state", e.target.value)} /></Col>
                                     </Row>
-                                    <Row>
-                                        <Form.Control type="text" placeholder='Zip Code' onChange={(e) => handleAddressChange("zip", e.target.value)} value={address.zip} />
+                                    <Row className="mb-3 align-items-center">
+                                        <Col lg="2"><Form.Label>Zip Code: </Form.Label></Col>
+                                        <Col lg="5"><Form.Control type="text" placeholder='Zip Code' value={address.zip} onChange={(e) => handleAddressChange("zip", e.target.value)} /></Col>
                                     </Row>
                                 </Col>
                             </Row>
@@ -154,23 +194,26 @@ const EventForm = () => {
                                 </Col>
                             </Row>
                             <hr />
-                            <Row className="mb-3">
+                            <Row className="mb-3 align-items-center">
                                 <Col lg="1"><Form.Label>Date:</Form.Label></Col>
-                                <Col lg="2">
+                                <Col lg="2" sm="4">
                                     <Form.Control type="date" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => handleDateChange(e.target.value)}></Form.Control>
                                 </Col>
                             </Row>
                             <Row className="mb-3">
-                                <Col lg="1">
-                                    <Form.Label>Time:</Form.Label>
-                                </Col>
                                 <Col lg="10">
-                                    <Col lg="2">
-                                        <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => setStartTime(e.target.value)}></Form.Control>
-                                    </Col>
-                                    <Col lg="2">
-                                        <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => setEndTime(e.target.value)}></Form.Control>
-                                    </Col>
+                                    <Row className="mb-3 align-items-center">
+                                        <Col lg="2" sm="4"><Form.Label>Start Time:</Form.Label></Col>
+                                        <Col lg="2" sm="4">
+                                            <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => setStartTime(e.target.value)}></Form.Control>
+                                        </Col>
+                                    </Row>
+                                    <Row className="mb-3 align-items-center">
+                                        <Col lg="2" sm="4"><Form.Label>End Time:</Form.Label></Col>
+                                        <Col lg="2" sm="4">
+                                            <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => setEndTime(e.target.value)}></Form.Control>
+                                        </Col>
+                                    </Row>
                                 </Col>
                             </Row>
                             <hr />
@@ -180,18 +223,18 @@ const EventForm = () => {
                                 </Col>
                             </Row>
                             <hr />
-                            <Row className="mb-3">
-                                <Col lg="1"><Form.Label>Pay:</Form.Label></Col>
-                                <Col lg="2">
-                                    <Form.Control type="number" placeholder='Event Pay' onChange={handleChange} name="pay"></Form.Control>
+                            <Row className="mb-3 align-items-center">
+                                <Col lg="1" sm="2"><Form.Label>Pay:</Form.Label></Col>
+                                <Col lg="2" sm="4">
+                                    <Form.Control type="number" placeholder='Event Pay' value={event.pay} onChange={handleChange} name="pay"></Form.Control>
                                 </Col>
-                                <Col lg="1"><Form.Label>Rehearse Hours:</Form.Label></Col>
-                                <Col lg="2">
-                                    <Form.Control type="number" placeholder='Rehearsal Hours' onChange={handleChange} name="rehearse_hours"></Form.Control>
+                                <Col lg="1" sm="2"><Form.Label>Rehearse Hours:</Form.Label></Col>
+                                <Col lg="2" sm="4">
+                                    <Form.Control type="number" placeholder='Rehearsal Hours' value={event.rehearse_hours} onChange={handleChange} name="rehearse_hours"></Form.Control>
                                 </Col>
-                                <Col lg="1"><Form.Label>Mileage Pay:</Form.Label></Col>
-                                <Col lg="2">
-                                    <Form.Control type="number" placeholder='Pay Per Mile' onChange={handleChange} name="mileage_pay"></Form.Control>
+                                <Col lg="1" sm="2"><Form.Label>Mileage Pay:</Form.Label></Col>
+                                <Col lg="2" sm="4">
+                                    <Form.Control type="number" placeholder='Pay Per Mile' value={event.mileage_pay} onChange={handleChange} name="mileage_pay"></Form.Control>
                                 </Col>
                             </Row>
                             <Row className="mb-3">
@@ -204,9 +247,9 @@ const EventForm = () => {
                             </Row>
                             <hr />
                             <Row className="mb-3">
-                                <Col lg="1"><Form.Label>Instruments:</Form.Label></Col>
-                                <Col lg="2">
-                                    <Form.Select onChange={(e) => setSelectedInstrument(e.target.value)} name="Instrument">
+                                <Col lg="1" sm="2"><Form.Label>Instruments:</Form.Label></Col>
+                                <Col lg="3" sm="4">
+                                    <Form.Select onChange={(e) => setSelectedInstrument(e.target.value)} name="instrument">
                                         <option value="" disabled selected>Select</option>
                                         {instruments.map((instrument) => (
                                             <option key={instrument.instrument_id} value={instrument.name}>
@@ -215,27 +258,35 @@ const EventForm = () => {
                                         ))}
                                     </Form.Select>
                                 </Col>
-                                <Col sm="2">
+                                <Col lg="2" sm="3">
                                     <Button onClick={handleAddInstrument}>Add Instrument</Button>
                                 </Col>
+                            </Row>
+                            <Row>
                                 <Col sm="2">
                                     <div>
                                         Selected Instruments:
                                     </div>
                                 </Col>
-                                <Col sm="5">
+                                <Col lg="2" sm="2">
                                     <div>
                                         {selectedInstruments.map((instrument, index) => (
-                                            <span key={index} className="key-item">{instrument}</span>
+                                            <div key={index}>
+                                                <input type="checkbox" style={{ marginRight: "1em" }} checked={selectedToRemove.includes(instrument)} onChange={(e) => handleToggleCheckbox(e.target.checked, instrument)} />
+                                                <span key={index}>{instrument}</span>
+                                            </div>
                                         ))}
                                     </div>
+                                </Col>
+                                <Col lg="2" sm="6">
+                                    <Button onClick={handleRemoveInstrument}>Remove Instruments</Button>
                                 </Col>
                             </Row>
                         </Form.Group>
                     </Form>
                 </Container>
                 {/* Add if else logic: If event=true (Event is being updated), update event, else (this is a new event) list event */}
-                <Button className="formButton" onClick={handleListEvent} style={{ marginBottom: "2em" }}>
+                <Button className="formButton" onClick={handleEvent} style={{ marginBottom: "2em", marginTop: "2em" }}>
                     {id ? "Update Event" : "List Event"}
                 </Button>
             </div>
