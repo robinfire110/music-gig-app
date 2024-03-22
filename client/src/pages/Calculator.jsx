@@ -372,8 +372,8 @@ const Calculator = () => {
         if (gasPricePerGallon && vehicleMPG)
         {
             //Set
-            let value = Math.round((gasPricePerGallon/vehicleMPG) * 100)/100;
-            setGasPricePerMile(value.toFixed(2));
+            let value = (gasPricePerGallon/vehicleMPG);
+            setGasPricePerMile(value);
         }
         else
         {
@@ -479,9 +479,89 @@ const Calculator = () => {
             //Create worksheet
             const worksheet = workbook.addWorksheet("Calculator Results");
 
+            //Parse values
+            function parseFloatZero(value)
+            {
+                if (value) return parseFloat(value);
+                else return 0
+            }
+
+            function parseIntZero(value)
+            {
+                if (value) return parseInt(value);
+                else return 0
+            }
+
             //Set Rows
-            const row1 = worksheet.addRow(["Name", "Date", "Total Wage"]);
-            row1.font = {bold: true};
+            const rows = [];
+            rows.push(worksheet.addRow(["Name", "Date", "Total Wage", "Number of Gigs"]));
+            rows.push(worksheet.addRow([calcName, calcDate, parseFloatZero(gigPay), parseIntZero(gigNum) == 0 ? 1 : parseIntZero(gigNum), "", "Payment", parseFloatZero(gigPay)]));
+            rows[1].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
+            rows.push(worksheet.addRow(["", "", "", "", "", "Tax Cut", parseFloatZero(totalTax)])); //Results row
+            rows.push(worksheet.addRow(["Event Hours", "Rehearsal Hours", "Individual Practice Hours", "", "", "Travel Cost", parseFloatZero(totalGas)]));
+            rows.push(worksheet.addRow([parseFloatZero(gigHours), parseFloatZero(rehearsalHours), parseFloatZero(practiceHours), "", "", "Other Fees", parseFloatZero(otherFees)]));
+            rows.push(worksheet.addRow([""])); //Results row
+            rows.push(worksheet.addRow(["Total Mileage", "Travel Hours", "Mileage Covered", "", "", "Total Hours", parseFloatZero(totalHours)]));
+            rows.push(worksheet.addRow([parseFloatZero(totalMileage), parseFloatZero(travelHours), parseFloatZero(mileageCovered), "", "", "Total Hourly Wage", parseFloatZero(hourlyWage)]));
+            rows[7].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
+            rows.push(worksheet.addRow([""])); //Results row
+            rows.push(worksheet.addRow(["Gas Price per Gallon", "Vehicle MPG", "Gas Price per Mile"]));
+            rows.push(worksheet.addRow([parseFloatZero(gasPricePerGallon), parseFloatZero(vehicleMPG), parseFloatZero(gasPricePerMile)]));
+            rows[10].getCell(1).numFmt = '$#,##0.00'; //Format cell as currency
+            rows[10].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
+            rows.push(worksheet.addRow([""])); //Results row
+            rows.push(worksheet.addRow(["Tax Percentage (%)", "Other Fees"]));
+            rows.push(worksheet.addRow([parseFloatZero(tax), parseFloatZero(otherFees)]));
+            rows[13].getCell(1).numFmt = '0.00##\\%'; //Format cell as currency
+            rows[13].getCell(2).numFmt = '$#,##0.00'; //Format cell as currency
+
+            //Bold
+            const boldRows = [1, 4, 7, 10, 13];
+            boldRows.forEach(row => {
+                rows[row-1].font = {bold: true};
+            });
+            worksheet.getColumn("F").font = {bold: true};
+            worksheet.getColumn("G").font = {bold: false};
+
+            //Merge Cells
+            worksheet.mergeCells("F1:G1");
+            worksheet.getCell('F1').value = 'Results';
+            worksheet.getCell('F1').alignment = {horizontal: "center"};
+            worksheet.getCell('F1').font = {bold: true};
+            
+            //Format currency
+            worksheet.getColumn("G").numFmt = '$#,##0.00';
+            worksheet.getCell('G7').numFmt = "";
+
+            //Borders
+            worksheet.getCell("F5").border = {bottom: {style: "thin"}};
+            worksheet.getCell("G5").border = {bottom: {style: "thin"}};
+            worksheet.getCell("F7").border = {bottom: {style: "thin"}};
+            worksheet.getCell("G7").border = {bottom: {style: "thin"}};
+
+            //Set formulas
+            worksheet.getCell("G2").value = {formula: 'C2*D2'}; //Payment
+            worksheet.getCell("G3").value = {formula: '=G2*(0.01*A14)'}; //Tax Cut
+            worksheet.getCell("G4").value = {formula: 'A8*(C11-C8)'}; //Travel Cost
+            worksheet.getCell("G5").value = {formula: 'B14'}; //Other Fees 
+            worksheet.getCell("G6").value = {formula: 'G2-G3-G4-G5'}; //Total Income
+            worksheet.getCell("G7").value = {formula: '(A5*D2)+B5+C5+B8'}; //Total Hours
+            worksheet.getCell("G8").value = {formula: 'G6/G7'}; //Total Hourly Wage
+            worksheet.getCell("C11").value = {formula: 'A11/20'}; //Gas Price per Mile
+
+            //Fit Column Width
+            worksheet.columns.forEach(column => {
+                let maxLength = 0;
+                column["eachCell"]((cell) => {
+                    var columnLength = cell.value ? cell.value.toString().length : 10;
+                    if (columnLength > maxLength) {
+                        maxLength = columnLength;
+                    }
+                });
+                column.width = maxLength < 10 ? 10 : maxLength;
+              });
+
+
 
             const buf = await workbook.xlsx.writeBuffer();
             saveAs(new Blob([buf]), `${calcName.replace(/ /g,"_")}.xlsx`);
@@ -781,7 +861,7 @@ const Calculator = () => {
                         <Row>
                             <Row>
                                 <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={userId == -1}>{(!isEvent && paramId) || (isEvent && !isNewEvent) ? "Update" : "Save"}</Button> {/* CHECK FOR ACCOUNT WHEN LOGIN WORKING */}</Col> 
-                                <Col lg={3} md={2} sm={3} xs={3}><Button variant="secondary" onClick={() => {saveFinancial(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Export</Button></Col>
+                                <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="secondary" onClick={() => {saveFinancial(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Export</Button></Col>
                                 {isEvent ? <Col lg={5} md={5} sm={5} xs={5}><Button variant="secondary" onClick={() => {loadEventData(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Reload Data</Button></Col> : ""}
                             </Row>
                         </Row>
