@@ -32,9 +32,11 @@ function Landing() {
                 <br />
                 <hr />
                 <h2>Recently Added Events</h2>
+                <br />
+                <br />
                 <Row>
                     {recentEvents && recentEvents.map(event => {
-                        return (<Col><EventCard eventId={event.event_id}/></Col>)
+                        return (<Col key={event.event_id}><EventCard eventId={event.event_id}/></Col>)
                     })
                     }
                 </Row>

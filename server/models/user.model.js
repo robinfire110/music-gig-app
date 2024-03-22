@@ -1,6 +1,6 @@
 // This sequelize model is used to define the user table in the database.
 module.exports = (sequelize,Sequelize,) => {
-  const User = sequelize.define("user", {
+  const User = sequelize.define("User", {
     user_id: {
       type: Sequelize.INTEGER,
       primaryKey: true,

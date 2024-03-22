@@ -142,7 +142,7 @@ router.post("/users/:event_id/:user_id", async (req, res) => {
         const {event_id, user_id} = req.params;
 
         //Get event
-        const newStatus = await db.UserStatus.findOrCreate({where: {user_id: user_id, event_id: event_id, status: data?.status}});
+        const newStatus = await db.UserStatus.findOrCreate({where :{user_id: user_id, event_id: event_id, status: data?.status}});
 
         res.send({newStatus});
     } catch (error) {
