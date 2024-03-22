@@ -82,10 +82,6 @@ const Calculator = () => {
         if (isEvent) setEventId(paramId);
         else setFinId(paramId);
 
-        //Load data
-        if (paramId) loadFromDatabase();
-        else setIsLoading(false);
-
         //Get gas prices
         if (!gasPrices)
         {
@@ -97,6 +93,15 @@ const Calculator = () => {
                 }   
                 setGasPrices(map);
                 setAverageGasPrice(map);
+
+                //Load data
+                if (paramId)
+                {
+                    loadFromDatabase().then(() => {
+                        setIsLoading(false);
+                    });
+                } 
+                else setIsLoading(false);
             });
         }
     }, []);
@@ -149,9 +154,6 @@ const Calculator = () => {
         setRehearsalHoursEnabled(data?.rehearse_hours > 0);
         setTaxEnabled(data?.tax > 0);
         setOtherFeesEnabled(data?.fees > 0);
-
-        //Set isLoading
-        setIsLoading(false);
     }
 
     //Load from database (both fin_id and event_id)
@@ -170,7 +172,6 @@ const Calculator = () => {
                 else //Financial does not exists, redirect to blank page.
                 {
                     setParamId(0);
-                    setIsLoading(false);
                     navigate(`/calculator`);
                 }
             });
@@ -183,13 +184,13 @@ const Calculator = () => {
                 if (data) //If financial for event exists, load that data.
                 {
                     console.log("Event Financial exists, loading...");
-                    loadEventData(false); //Get event data for later use
+                    await loadEventData(false); //Get event data for later use
                     setFinId(data.fin_id);
                     loadData(data);
                 } 
                 else
                 {
-                    loadEventData(true);
+                    await loadEventData(true);
                     setIsNewEvent(true);
                 } 
             });
@@ -205,12 +206,12 @@ const Calculator = () => {
             if (fillFields)
             {
                 loadData(eventData);
-                if (userZip && eventData.zip) calculateBasedOnLocation(userZip.slice(0, 5), eventData.zip.slice(0, 5));
+                if (userZip && eventData.zip) await calculateBasedOnLocation(userZip.slice(0, 5), eventData.zip.slice(0, 5));
             }
         } 
         else
         {
-            await axios.get(`http://localhost:5000/event/id/${paramId}`).then(res => {
+            await axios.get(`http://localhost:5000/event/id/${paramId}`).then(async res => {
             if (res.data)
             {
                 const data = res.data;
@@ -228,7 +229,7 @@ const Calculator = () => {
                 setModalDestinationZip(eventData?.zip);
                 if (fillFields)
                 {   
-                    if (userZip && eventData?.zip) calculateBasedOnLocation(userZip?.slice(0, 5), eventData.zip?.slice(0, 5));
+                    if (userZip && eventData?.zip) await calculateBasedOnLocation(userZip?.slice(0, 5), eventData.zip?.slice(0, 5));
                     loadData(eventData);
                     setAverageGasPrice();
                 } 
@@ -471,102 +472,184 @@ const Calculator = () => {
         }
         else
         {
+            saveSpreadsheet();
+        }
+    }
+
+    //Parse values
+    function parseFloatZero(value)
+    {
+        if (value && value != NaN) return parseFloat(value);
+        else return 0
+    }
+
+    function parseIntZero(value)
+    {
+        if (value) return parseInt(value);
+        else return 0
+    }
+
+    //Auto fit column width
+    function autoSizeColumn(worksheet)
+    {
+        worksheet.columns.forEach(function (column, i) {
+            let maxLength = 0;
+            column["eachCell"]({ includeEmpty: true }, function (cell) {
+                var columnLength = cell.value ? cell.value.toString().length : 10;
+                if (columnLength > maxLength ) {
+                    maxLength = columnLength;
+                }
+            });
+            column.width = maxLength;
+        });
+    }
+
+    async function saveSpreadsheetAll()
+    {
+        await axios.get(`http://localhost:5000/financial/user_id/${userId}`).then(async res => {
+            const data = res.data;
             //Create workbook
             const workbook = new ExcelJS.Workbook();
             workbook.created = new Date();
             workbook.modified = new Date();
 
             //Create worksheet
-            const worksheet = workbook.addWorksheet("Calculator Results");
-
-            //Parse values
-            function parseFloatZero(value)
-            {
-                if (value) return parseFloat(value);
-                else return 0
-            }
-
-            function parseIntZero(value)
-            {
-                if (value) return parseInt(value);
-                else return 0
-            }
-
-            //Set Rows
-            const rows = [];
-            rows.push(worksheet.addRow(["Name", "Date", "Total Wage", "Number of Gigs"]));
-            rows.push(worksheet.addRow([calcName, calcDate, parseFloatZero(gigPay), parseIntZero(gigNum) == 0 ? 1 : parseIntZero(gigNum), "", "Payment", parseFloatZero(gigPay)]));
-            rows[1].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
-            rows.push(worksheet.addRow(["", "", "", "", "", "Tax Cut", parseFloatZero(totalTax)])); //Results row
-            rows.push(worksheet.addRow(["Event Hours", "Rehearsal Hours", "Individual Practice Hours", "", "", "Travel Cost", parseFloatZero(totalGas)]));
-            rows.push(worksheet.addRow([parseFloatZero(gigHours), parseFloatZero(rehearsalHours), parseFloatZero(practiceHours), "", "", "Other Fees", parseFloatZero(otherFees)]));
-            rows.push(worksheet.addRow([""])); //Results row
-            rows.push(worksheet.addRow(["Total Mileage", "Travel Hours", "Mileage Covered", "", "", "Total Hours", parseFloatZero(totalHours)]));
-            rows.push(worksheet.addRow([parseFloatZero(totalMileage), parseFloatZero(travelHours), parseFloatZero(mileageCovered), "", "", "Total Hourly Wage", parseFloatZero(hourlyWage)]));
-            rows[7].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
-            rows.push(worksheet.addRow([""])); //Results row
-            rows.push(worksheet.addRow(["Gas Price per Gallon", "Vehicle MPG", "Gas Price per Mile"]));
-            rows.push(worksheet.addRow([parseFloatZero(gasPricePerGallon), parseFloatZero(vehicleMPG), parseFloatZero(gasPricePerMile)]));
-            rows[10].getCell(1).numFmt = '$#,##0.00'; //Format cell as currency
-            rows[10].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
-            rows.push(worksheet.addRow([""])); //Results row
-            rows.push(worksheet.addRow(["Tax Percentage (%)", "Other Fees"]));
-            rows.push(worksheet.addRow([parseFloatZero(tax), parseFloatZero(otherFees)]));
-            rows[13].getCell(1).numFmt = '0.00##\\%'; //Format cell as currency
-            rows[13].getCell(2).numFmt = '$#,##0.00'; //Format cell as currency
-
-            //Bold
-            const boldRows = [1, 4, 7, 10, 13];
-            boldRows.forEach(row => {
-                rows[row-1].font = {bold: true};
+            const worksheet = workbook.addWorksheet("Calculator Results", {
+                views: [{ state: "frozen", ySplit: 1 }]
+                
             });
-            worksheet.getColumn("F").font = {bold: true};
-            worksheet.getColumn("G").font = {bold: false};
 
-            //Merge Cells
-            worksheet.mergeCells("F1:G1");
-            worksheet.getCell('F1').value = 'Results';
-            worksheet.getCell('F1').alignment = {horizontal: "center"};
-            worksheet.getCell('F1').font = {bold: true};
+            //Fomatting
+            const moneyColumns = ["C", "J", "L", "O", "P", "Q", "S"];
+            moneyColumns.forEach(column => {
+                worksheet.getColumn(column).numFmt = '$#,##0.00';
+            });
+            worksheet.getColumn("N").numFmt = '0.00##\\%'; //Format percen
+            worksheet.getColumn("S").font = {bold: true};
+
+            //Set header
+            const headerRow = ["Name", "Date", "Total Wage", "# of Gigs", "Event Hours", "Practice Hours", "Rehearsal Hours", "Total Mileage", "Travel Hours", "Gas $/Gallon", "Vehicle MPG", "Gas $/Mile", "Mileage Covered", "Tax %", "Other Fees", "Tax Cut", "Travel Cost", "Total Hours", "Hourly Wage"]
+            worksheet.addRow(headerRow).commit();
+            worksheet.getRow(1).font = {bold: true};
+            worksheet.getRow(1).numFmt = "";
+            worksheet.getCell(`P1`).border = {left: {style: "thin"}};
+
+            //Size columns
+            autoSizeColumn(worksheet);
+            worksheet.getColumn("A").width = 20; //Name width
+            worksheet.getColumn("B").width = 11; //Date width
+            worksheet.getColumn("N").width = 8; //Tax width
+
+            //Set data
+            let rowCount = 1;
+            data.forEach(fin => {
+                rowCount++;
+                var row = worksheet.addRow([fin.fin_name, fin.date, parseFloatZero(fin.total_wage), parseIntZero(gigNum) == 0 ? 1 : parseIntZero(gigNum), parseFloatZero(fin.event_hours), parseFloatZero(fin.practice_hours), parseFloatZero(fin.rehearse_hours), parseFloatZero(fin.total_mileage), parseFloatZero(fin.travel_hours), parseFloatZero(fin.gas_price), parseFloatZero(fin.mpg), parseFloatZero(fin.gas_price/fin.mpg), parseFloatZero(fin.mileage_pay), parseFloatZero(fin.tax), parseFloatZero(fin.fees), fin.total_wage*(.01*parseFloatZero(fin.tax)), parseFloatZero(fin.gas_price/fin.mpg)*parseFloatZero(fin.total_mileage), 0, parseFloatZero(fin.hourly_wage)]);
             
-            //Format currency
-            worksheet.getColumn("G").numFmt = '$#,##0.00';
-            worksheet.getCell('G7').numFmt = "";
+                //Set Formulas
+                worksheet.getCell(`L${rowCount}`).value = {formula: `IFERROR(J${rowCount}/K${rowCount}, 0)`}; //Gas Price Per Mile
+                worksheet.getCell(`P${rowCount}`).value = {formula: `(C${rowCount}*D${rowCount})*(0.01*N${rowCount})`}; //Tax Cut
+                worksheet.getCell(`Q${rowCount}`).value = {formula: `H${rowCount}*(L${rowCount}-M${rowCount})`}; //Travel Costs
+                worksheet.getCell(`R${rowCount}`).value = {formula: `((E${rowCount}*D${rowCount})+F${rowCount}+G${rowCount}+I${rowCount})`}; //Total Hours
+                worksheet.getCell(`S${rowCount}`).value = {formula: `IFERROR(((C${rowCount}*D${rowCount})-O${rowCount}-P${rowCount}-Q${rowCount})/R${rowCount}, 0)`}; //Total Hourly Wage
+                
+                //Border
+                worksheet.getCell(`P${rowCount}`).border = {left: {style: "thin"}};
+                row.commit();
+            });
 
-            //Borders
-            worksheet.getCell("F5").border = {bottom: {style: "thin"}};
-            worksheet.getCell("G5").border = {bottom: {style: "thin"}};
-            worksheet.getCell("F7").border = {bottom: {style: "thin"}};
-            worksheet.getCell("G7").border = {bottom: {style: "thin"}};
+            //Final sum
+            worksheet.getCell(`O${rowCount+2}`).value = "Total";
+            worksheet.getCell(`O${rowCount+2}`).border = {top: {style: "medium"}};
+            const sumRows = ["P", "Q", "R", "S"];
+            sumRows.forEach(row => {
+                var cell = worksheet.getCell(`${row}${rowCount+2}`);
+                cell.value = {formula: `SUM(${row}2:${row}${rowCount})`};
+                cell.border = {top: {style: "medium"}};
+            });
+            worksheet.getRow(rowCount+2).font = {bold: true};
 
-            //Set formulas
-            worksheet.getCell("G2").value = {formula: 'C2*D2'}; //Payment
-            worksheet.getCell("G3").value = {formula: '=G2*(0.01*A14)'}; //Tax Cut
-            worksheet.getCell("G4").value = {formula: 'A8*(C11-C8)'}; //Travel Cost
-            worksheet.getCell("G5").value = {formula: 'B14'}; //Other Fees 
-            worksheet.getCell("G6").value = {formula: 'G2-G3-G4-G5'}; //Total Income
-            worksheet.getCell("G7").value = {formula: '(A5*D2)+B5+C5+B8'}; //Total Hours
-            worksheet.getCell("G8").value = {formula: 'G6/G7'}; //Total Hourly Wage
-            worksheet.getCell("C11").value = {formula: 'A11/20'}; //Gas Price per Mile
-
-            //Fit Column Width
-            worksheet.columns.forEach(column => {
-                let maxLength = 0;
-                column["eachCell"]((cell) => {
-                    var columnLength = cell.value ? cell.value.toString().length : 10;
-                    if (columnLength > maxLength) {
-                        maxLength = columnLength;
-                    }
-                });
-                column.width = maxLength < 10 ? 10 : maxLength;
-              });
-
-
-
+            //Save
             const buf = await workbook.xlsx.writeBuffer();
-            saveAs(new Blob([buf]), `${calcName.replace(/ /g,"_")}.xlsx`);
-        }
+            saveAs(new Blob([buf]), `Harmonize_Export.xlsx`);
 
+        }).catch(error => {
+            console.log(error)
+        })
+    }
+
+    async function saveSpreadsheet()
+    {
+        //Create workbook
+        const workbook = new ExcelJS.Workbook();
+        workbook.created = new Date();
+        workbook.modified = new Date();
+
+        //Create worksheet
+        const worksheet = workbook.addWorksheet("Calculator Results");
+
+        //Set Rows
+        const rows = [];
+        rows.push(worksheet.addRow(["Name", "Date", "Total Wage", "Number of Gigs"]));
+        rows.push(worksheet.addRow([calcName, calcDate, parseFloatZero(gigPay), parseIntZero(gigNum) == 0 ? 1 : parseIntZero(gigNum), "", "Payment", parseFloatZero(gigPay)]));
+        rows[1].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
+        rows.push(worksheet.addRow(["", "", "", "", "", "Tax Cut", parseFloatZero(totalTax)])); //Results row
+        rows.push(worksheet.addRow(["Event Hours", "Individual Practice Hours", "Rehearsal Hours", "", "", "Travel Cost", parseFloatZero(totalGas)]));
+        rows.push(worksheet.addRow([parseFloatZero(gigHours), parseFloatZero(practiceHours), parseFloatZero(rehearsalHours), "", "", "Other Fees", parseFloatZero(otherFees)]));
+        rows.push(worksheet.addRow([""])); //Results row
+        rows.push(worksheet.addRow(["Total Mileage", "Travel Hours", "Mileage Covered", "", "", "Total Hours", parseFloatZero(totalHours)]));
+        rows.push(worksheet.addRow([parseFloatZero(totalMileage), parseFloatZero(travelHours), parseFloatZero(mileageCovered), "", "", "Total Hourly Wage", parseFloatZero(hourlyWage)]));
+        rows[7].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
+        rows.push(worksheet.addRow([""])); //Results row
+        rows.push(worksheet.addRow(["Gas Price per Gallon", "Vehicle MPG", "Gas Price per Mile"]));
+        rows.push(worksheet.addRow([parseFloatZero(gasPricePerGallon), parseFloatZero(vehicleMPG), parseFloatZero(gasPricePerMile)]));
+        rows[10].getCell(1).numFmt = '$#,##0.00'; //Format cell as currency
+        rows[10].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
+        rows.push(worksheet.addRow([""])); //Results row
+        rows.push(worksheet.addRow(["Tax Percentage (%)", "Other Fees"]));
+        rows.push(worksheet.addRow([parseFloatZero(tax), parseFloatZero(otherFees)]));
+        rows[13].getCell(1).numFmt = '0.00##\\%'; //Format cell as currency
+        rows[13].getCell(2).numFmt = '$#,##0.00'; //Format cell as currency
+
+        //Bold
+        const boldRows = [1, 4, 7, 10, 13];
+        boldRows.forEach(row => {
+            rows[row-1].font = {bold: true};
+        });
+        worksheet.getColumn("F").font = {bold: true};
+        worksheet.getColumn("G").font = {bold: false};
+
+        //Merge Cells
+        worksheet.mergeCells("F1:G1");
+        worksheet.getCell('F1').value = 'Results';
+        worksheet.getCell('F1').alignment = {horizontal: "center"};
+        worksheet.getCell('F1').font = {bold: true};
+        
+        //Format
+        worksheet.getColumn("G").numFmt = '$#,##0.00';
+        worksheet.getCell('G7').numFmt = "0.00";
+
+        //Borders
+        worksheet.getCell("F5").border = {bottom: {style: "thin"}};
+        worksheet.getCell("G5").border = {bottom: {style: "thin"}};
+        worksheet.getCell("F7").border = {bottom: {style: "thin"}};
+        worksheet.getCell("G7").border = {bottom: {style: "thin"}};
+
+        //Set formulas
+        worksheet.getCell("G2").value = {formula: 'C2*D2'}; //Payment
+        worksheet.getCell("G3").value = {formula: '=G2*(0.01*A14)'}; //Tax Cut
+        worksheet.getCell("G4").value = {formula: 'A8*(C11-C8)'}; //Travel Cost
+        worksheet.getCell("G5").value = {formula: 'B14'}; //Other Fees 
+        worksheet.getCell("G6").value = {formula: 'G2-G3-G4-G5'}; //Total Income
+        worksheet.getCell("G7").value = {formula: '(A5*D2)+B5+C5+B8'}; //Total Hours
+        worksheet.getCell("G8").value = {formula: 'IFERROR(G6/G7, 0)'}; //Total Hourly Wage
+        worksheet.getCell("C11").value = {formula: 'IFERROR(A11/B11, 0)'}; //Gas Price per Mile
+
+        //Fit Column Width
+        autoSizeColumn(worksheet);
+
+        const buf = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buf]), `${calcName.replace(/ /g,"_")}.xlsx`);
     }
 
     if (isLoading)
@@ -693,7 +776,7 @@ const Calculator = () => {
                                         <Form.Label>Gas Price per Mile</Form.Label>
                                         <InputGroup>    
                                             <InputGroup.Text>$</InputGroup.Text>
-                                            <FormNumber id='gasPricePerMile' value={gasPricePerMile} placeholder="Ex. 0.14" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerMile(e.target.value)} />
+                                            <FormNumber id='gasPricePerMile' value={gasPricePerMile == "" ? gasPricePerMile : gasPricePerMile.toFixed(2)} placeholder="Ex. 0.14" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerMile(e.target.value)} />
                                             <Button variant='light' disabled={!totalMileageEnabled} onClick={() => {setGasModalOpen(true)}}>Use Average</Button>
                                             <TooltipButton text='Price of gas per mile. Calculated using "Gas $/Gallon" and "Vehicle MPG". Click "Calculate Average" to use average values.'/>
                                             <Modal show={gasModalOpen} onHide={() => setGasModalOpen(false)} centered={true}>

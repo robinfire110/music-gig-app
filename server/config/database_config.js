@@ -33,7 +33,7 @@ const remote_database = new Sequelize(
 );
 
 //Select if you want to use local_sequelize or db_sequelize
-let sequelize = local_database;
+let sequelize = remote_database;
 
 //Connect to database
 const connectToDatabase = async () => {
