@@ -43,7 +43,7 @@ const Login = () => {
                         generateError(password)
                     }
                 }else{
-                    navigate("/calculator");
+                    navigate("/");
                 }
             }
         }catch (err){

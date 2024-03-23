@@ -38,7 +38,7 @@ const handleErrors = (err) => {
 module.exports.register = async (req, res, next) => {
 	let newInstrumentArray;
 	let newInstrument;
-	try {//validation to forms will make sure these don't get sent back w/out values
+	try {
 		const {
 			email,
 			password,
@@ -113,7 +113,15 @@ module.exports.login = async (req, res, next) => {
 
 module.exports.account = async (req,res,next) => {
 	try{
+		console.log("is this account method being hit?")
+		const userId = req.user.id;
+		const user = await db.User.findOne({where: {user_id: userId}, include: [db.Instrument, db.Event]});
 
+		if (user) {
+			res.status(200).json({ user });
+		} else {
+			res.status(404).json({ error: "User not found" });
+		}
 	}catch (err){
 		console.error(err);
 		const errors = handleErrors(err);

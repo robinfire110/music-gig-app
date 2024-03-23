@@ -2,6 +2,7 @@ import React from "react";
 import { Nav } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useCookies } from "react-cookie";
+import {toast, ToastContainer} from 'react-toastify';
 
 const LogoutButton = () => {
     const navigate = useNavigate();
@@ -9,7 +10,11 @@ const LogoutButton = () => {
 
     const logOut = () => {
         removeCookie("jwt");
-        navigate("/register");
+        navigate("/");
+        toast.success('You have been successfully logged out!', {
+            position: "top",
+            autoClose: 3000
+        });
     };
 
     return (
