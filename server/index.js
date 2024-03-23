@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const { sequelize, connectToDatabase } = require('./config/database_config');
@@ -10,6 +11,10 @@ const {
     createFakerData,
     fixData
 } = require("./helpers/model-helpers");
+
+// Middleware to log request headers
+
+
 const { router: authRoutes } = require('./routes/AuthRoutes');
 const routeEvent = require('./routes/Event');
 const routeFinancial = require('./routes/Financial');
@@ -29,6 +34,8 @@ app.use(cors({
     method: ["GET", "POST"],
     credentials: true
 }));
+app.use(cookieParser());
+
 
 // Database setup
 app.listen(port, async () => {

@@ -1,11 +1,10 @@
 const db = require("../models/models");
 const jwt = require("jsonwebtoken");
-const {create} = require("axios");
 
 const maxAge = 3*24*60*60;
 
-const createToken = (id) => {
-	return jwt.sign({id}, process.env.SECRET, {
+const createToken = (id, isAdmin) => {
+	return jwt.sign({ id, isAdmin }, process.env.SECRET, {
 		expiresIn: maxAge,
 	});
 }
@@ -69,7 +68,7 @@ module.exports.register = async (req, res, next) => {
 		}
 
 		// Generate JWT token for the new user
-		const token = createToken(newUser.user_id);
+		const token = createToken(newUser.user_id, newUser.isAdmin);
 
 		// Set the JWT token in the cookie
 		res.cookie("jwt", token, {
@@ -94,7 +93,7 @@ module.exports.login = async (req, res, next) => {
 		const { email, password } = req.body;
 		const user = await db.User.login(email,password);
 		if (user) {
-			const token = createToken(user.user_id);
+			const token = createToken(user.user_id, user.isAdmin);
 			res.cookie("jwt", token, {
 				withCredentials: true,
 				httpOnly: false,
@@ -111,20 +110,30 @@ module.exports.login = async (req, res, next) => {
 	}
 };
 
-module.exports.account = async (req,res,next) => {
-	try{
-		console.log("is this account method being hit?")
-		const userId = req.user.id;
-		const user = await db.User.findOne({where: {user_id: userId}, include: [db.Instrument, db.Event]});
+module.exports.account = async (req, res, next) => {
+	try {
+		const userToSend = {};
 
-		if (user) {
-			res.status(200).json({ user });
+		if (req.user.user_id) userToSend.user_id = req.user.user_id;
+		if (req.user.email) userToSend.email = req.user.email;
+		if (req.user.f_name) userToSend.f_name = req.user.f_name;
+		if (req.user.l_name) userToSend.l_name = req.user.l_name;
+		if (req.user.zip) userToSend.zip = req.user.zip;
+		if (req.user.bio) userToSend.bio = req.user.bio;
+		if (req.user.isAdmin) userToSend.isAdmin = req.user.isAdmin;
+		if (req.user.Instruments) userToSend.Instruments = req.user.Instruments;
+		if (req.user.Events) userToSend.Events = req.user.Events;
+
+		if (Object.keys(userToSend).length > 0) {
+			res.status(200).json({ user: userToSend });
 		} else {
 			res.status(404).json({ error: "User not found" });
 		}
-	}catch (err){
+	} catch (err) {
 		console.error(err);
 		const errors = handleErrors(err);
-		res.json({errors, created: false});
+		res.json({ errors, created: false });
 	}
-}
+};
+
+
