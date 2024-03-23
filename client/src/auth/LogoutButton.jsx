@@ -1,17 +1,21 @@
 import React from "react";
-import { Button, Form } from 'react-bootstrap';
-import {useNavigate} from 'react-router-dom';
+import { Nav } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import { useCookies } from "react-cookie";
 
 const LogoutButton = () => {
     const navigate = useNavigate();
-    const logout = async () => {
-        navigate("/")
+    const [,, removeCookie] = useCookies([]);
+
+    const logOut = () => {
+        removeCookie("jwt");
+        navigate("/register");
     };
 
     return (
-        <Button className="Logout-button" onClick={ () => logout()}>
-            Log Out
-        </Button>
+        <Nav.Item>
+            <Nav.Link onClick={logOut}>Logout</Nav.Link>
+        </Nav.Item>
     );
 };
 

@@ -17,7 +17,7 @@ function Header() {
                     <Nav.Item><Nav.Link href="/calculator">Calculator</Nav.Link></Nav.Item>
                     <Nav.Item><Nav.Link href="/account">Account</Nav.Link></Nav.Item>
                     <Nav.Item><Nav.Link href="/">Logout</Nav.Link></Nav.Item>
-                    {/*<Nav.Item><LogoutButton />Logout</Nav.Item>*/}
+                    <Nav.Item></Nav.Item>
                     {/*{isAuthenticated ? (*/}
                     {/*    <Nav.Item><Nav.Link href="/account">Account</Nav.Link></Nav.Item>*/}
                     {/*) : (*/}

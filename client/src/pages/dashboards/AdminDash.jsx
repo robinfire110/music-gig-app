@@ -11,9 +11,9 @@ function AdminDash() {
     const [cookies,setCookie,removeCookie] = useCookies([]);
      useEffect(() => {
      const verifyUser = async  () => {
-         if(!cookies.jwt){
+         if(!cookies.jwt){ //if they don't have a cookie with jwt token redirect
              navigate("/login");
-         }else{
+         }else{ //if they do have a cookie lets check if the jwt matches (checkUser middleware)
              const {data} =  await axios.post(
                  "http://localhost:5000", {}, {withCredentials:true}
              );
