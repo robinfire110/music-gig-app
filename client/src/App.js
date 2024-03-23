@@ -5,8 +5,10 @@ import {
   Routes,
   Route
 } from "react-router-dom";
+import "react-toastify/dist/ReactToastify.css"
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import Register from "./pages/Register"
 import Account from "./pages/Account";
 import Events from "./pages/Events";
 import EventForm from "./pages/EventForm";
@@ -21,7 +23,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing/>}/>
-          <Route path="/login" element={<Login/>}/>
+          <Route exact path="/login" element={<Login/>}/>
+          <Route exact path="/register" element={<Register/>}/>
           <Route path="/account/:id" element={<Account/>}/>
           <Route path="/eventsearch" element={<Events/>}/>
           <Route path="/form/:id?" element={<EventForm/>}/>

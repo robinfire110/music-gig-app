@@ -1,15 +1,11 @@
-import React from "react";
-import { useEffect } from "react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import React from 'react';
+import AdminDash from './dashboards/AdminDash'; // Assuming you have an AdminDash component
 
-const Account = () => {
-    
+function Account() {
     return (
-        <div>
-            <p>Account Page</p>
-        </div>
-    )
+        <AdminDash />
+    );
 }
 
-export default Account
+export default Account;
+
