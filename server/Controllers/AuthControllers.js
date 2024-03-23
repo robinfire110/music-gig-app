@@ -12,6 +12,9 @@ const createToken = (id) => {
 
 const handleErrors = (err) => {
 	let errors = { email:"", pass:""};
+	if(err.message)
+
+
 	if(err.message === "Incorrect Email"){
 		errors.email = "That email is not registered";
 	}
@@ -107,3 +110,13 @@ module.exports.login = async (req, res, next) => {
 		res.json({errors, created: false});
 	}
 };
+
+module.exports.account = async (req,res,next) => {
+	try{
+
+	}catch (err){
+		console.error(err);
+		const errors = handleErrors(err);
+		res.json({errors, created: false});
+	}
+}

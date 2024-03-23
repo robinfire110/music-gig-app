@@ -25,7 +25,7 @@ function App() {
           <Route path="/" element={<Landing/>}/>
           <Route exact path="/login" element={<Login/>}/>
           <Route exact path="/register" element={<Register/>}/>
-          <Route path="/account/:id" element={<Account/>}/>
+          <Route path="/account/" element={<Account/>}/>
           <Route path="/eventsearch" element={<Events/>}/>
           <Route path="/form/:id?" element={<EventForm/>}/>
           <Route path="/profile/:id" element={<Profile/>}/>

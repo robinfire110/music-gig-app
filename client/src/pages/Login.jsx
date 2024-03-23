@@ -11,10 +11,6 @@ const Login = () => {
     const [values, setValues] = useState({
         email: '',
         password: '',
-        name: '',
-        location: '',
-        instruments: '',
-        bio: ''
     });
 
     const generateError = (err) => toast.error(err, {
@@ -32,11 +28,12 @@ const Login = () => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
-            const {data} =  await axios.post("http://localhost:5000/register", {
+            const {data} =  await axios.post("http://localhost:5000/login", {
                 ...values,
             }, {
                 withCredentials:true,
             });
+            console.log(data)
             if(data){
                 if(data.errors){
                     const {email,password} = data.errors;
@@ -52,8 +49,6 @@ const Login = () => {
         }catch (err){
             console.log(err);
         }
-
-        console.log('Form submitted with values:', values);
     };
 
 
