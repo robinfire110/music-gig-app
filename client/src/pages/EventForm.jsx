@@ -30,7 +30,9 @@ const EventForm = () => {
     const [selectedInstruments, setSelectedInstruments] = useState([])
     const [selectedToRemove, setSelectedToRemove] = useState([])
     const [startTime, setStartTime] = useState("");
-    const [endTime, setEndTime] = useState("")
+    const [endTime, setEndTime] = useState("");
+    const [startDate, setStartDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(new Date());
 
     const navigate = useNavigate()
     const { id } = useParams();
@@ -53,9 +55,23 @@ const EventForm = () => {
                     state: data.Address.state
                 })
 
-                //autofill selectedInstruments from id
+                //autofill data selectedInstruments from id
                 const selectedInstrumentsData = data.Instruments.map(instrument => instrument.name);
                 setSelectedInstruments(selectedInstrumentsData);
+
+                //autofill data start and end times from id
+                const startTime = moment(data.start_time).local().format("HH:mm");
+                const endTime = moment(data.end_time).local().format("HH:mm");
+
+                setStartTime(startTime);
+                setEndTime(endTime);
+
+                //autofill data of start and end date
+                const startDate = moment(data.start_time).format("YYYY-MM-DD");
+                const endDate = moment(data.end_time).format("YYYY-MM-DD");
+
+                setStartDate(startDate);
+                setEndDate(endDate);
             }
         };
         fetchData();
@@ -65,20 +81,26 @@ const EventForm = () => {
         setEvent(prev => ({ ...prev, [e.target.name]: e.target.value }))
     }
 
-    const handleDateChange = (name, date) => {
-        setEvent((prev) => ({ ...prev, [name]: date }))
+    const handleDateChange = (name, value) => {
+        if (name === 'start_date') {
+            setStartDate(value);
+        } else if (name === 'end_date') {
+            setEndDate(value);
+        }
     }
 
     //need to put together date and time from selections into format transferrable to the database
-    const formatDateTime = (date, time) => {
+    const formatDateTime = (startDate, startTime, endDate, endTime) => {
 
-        //combine date and time into a single string
-        const dateTimeString = `${date} ${time}`;
+        //combine date and time into a single string for each start and end time
+        const startDateTimeString = `${startDate} ${startTime}`;
+        const endDateTimeString = `${endDate} ${endTime}`;
 
         //format the combined string as a DATETIME object
-        const formattedDateTime = moment(dateTimeString, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm:ss');
+        const formattedStartDateTime = moment(startDateTimeString, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm:ss');
+        const formattedEndDateTime = moment(endDateTimeString, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm:ss');
 
-        return formattedDateTime
+        return { start: formattedStartDateTime, end: formattedEndDateTime };
     }
 
     //need a separate handler for instrument changes
@@ -111,8 +133,7 @@ const EventForm = () => {
         e.preventDefault()
         try {
             const isListed = 1
-            const startDateTime = formatDateTime(event.start_time, startTime);
-            const endDateTime = formatDateTime(event.end_time, endTime);
+            const { start: startDateTime, end: endDateTime } = formatDateTime(startDate, startTime, endDate, endTime);
 
             //prepare data to be sent to database with event details
             const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, isListed: isListed };
@@ -195,23 +216,25 @@ const EventForm = () => {
                             </Row>
                             <hr />
                             <Row className="mb-3 align-items-center">
-                                <Col lg="1"><Form.Label>Date:</Form.Label></Col>
-                                <Col lg="2" sm="4">
-                                    <Form.Control type="date" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => handleDateChange(e.target.value)}></Form.Control>
-                                </Col>
                             </Row>
                             <Row className="mb-3">
                                 <Col lg="10">
                                     <Row className="mb-3 align-items-center">
                                         <Col lg="2" sm="4"><Form.Label>Start Time:</Form.Label></Col>
                                         <Col lg="2" sm="4">
-                                            <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => setStartTime(e.target.value)}></Form.Control>
+                                            <Form.Control type="date" value={moment(startDate).format("YYYY-MM-DD")} onChange={(e) => handleDateChange('start_date', e.target.value)}></Form.Control>
+                                        </Col>
+                                        <Col lg="2" sm="4">
+                                            <Form.Control type="time" defaultValue={startTime} onChange={(e) => setStartTime(e.target.value)}></Form.Control>
                                         </Col>
                                     </Row>
                                     <Row className="mb-3 align-items-center">
                                         <Col lg="2" sm="4"><Form.Label>End Time:</Form.Label></Col>
                                         <Col lg="2" sm="4">
-                                            <Form.Control type="time" defaultValue={moment().format("YYYY-MM-DD")} onChange={(e) => setEndTime(e.target.value)}></Form.Control>
+                                            <Form.Control type="date" value={moment(endDate).format("YYYY-MM-DD")} onChange={(e) => handleDateChange('end_date', e.target.value)}></Form.Control>
+                                        </Col>
+                                        <Col lg="2" sm="4">
+                                            <Form.Control type="time" defaultValue={endTime} onChange={(e) => setEndTime(e.target.value)}></Form.Control>
                                         </Col>
                                     </Row>
                                 </Col>

@@ -54,7 +54,6 @@ const IndividualEvent = () => {
         const timeZoneSet = {
             hour: 'numeric',
             minute: '2-digit',
-            timeZone: 'UTC'
         }
         return time.toLocaleTimeString([], timeZoneSet);
     }
@@ -71,8 +70,6 @@ const IndividualEvent = () => {
                     {/* Add logic here to check user's login status and compare id, if matched display update button, if not display send to calculator button */}
                     <Col style={{ display: 'flex', justifyContent: 'right', gap: '20px' }}>
                         <Button className="sendToCalc"><Link to={`/calculator/${event.event_id}?event=true`} style={{ color: "#fff" }}>Send to Calculator</Link></Button>
-                        {/* <Button className="update"><Link to={`/form/${event.event_id}`} style={{ color: "#fff" }}>Update Event</Link></Button>
-                        <Button className="delete" onClick={() => handleDelete(event.event_id)} style={{ color: "#fff", textDecorationLine: 'underline' }}>Delete Event</Button> */}
                     </Col>
                 </Row>
             </Container>
