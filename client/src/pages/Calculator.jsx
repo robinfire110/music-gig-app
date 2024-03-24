@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Container, Form, Col, Row, InputGroup, Button, Modal, Alert } from "react-bootstrap";
+import { Container, Form, Col, Row, InputGroup, Button, Modal, Alert, OverlayTrigger } from "react-bootstrap";
 import moment from "moment";
 import TooltipButton from "../components/TooltipButton";
 import FormNumber from "../components/FormNumber";
@@ -11,12 +11,15 @@ import axios from "axios";
 import {BarLoader, ClipLoader} from 'react-spinners'
 import * as ExcelJS from "exceljs"
 import {saveAs} from "file-saver"
+import {formatCurrency, getCurrentUser, metersToMiles, parseFloatZero, parseIntZero} from "../Utils";
+import { useCookies } from "react-cookie";
+import { toast } from "react-toastify";
 
 const Calculator = () => {
     /* Variables */
     //Account
-    const [userId, setUserId] = useState(1); /* UPDATE WITH PROPER ACCOUNT WHEN IMPLEMENTED */
-    const [userZip, setUserZip] = useState("27413");
+    const [cookies, , removeCookie] = useCookies([]);
+    const [user, setUser] = useState(false);
 
     //Params
     const navigate = useNavigate();
@@ -30,7 +33,6 @@ const Calculator = () => {
     const [currentVehicle, setCurrentVehicle] = useState("average_mpg");
     const [locationModalOpen, setLocationModalOpen] = useState(false);
     const [gasModalOpen, setGasModalOpen] = useState(false);
-    const [saveStatus, setSaveStatus] = useState();
 
     //Search parameters
     const [searchParams] = useSearchParams();
@@ -62,8 +64,9 @@ const Calculator = () => {
     const [gasPrices, setGasPrices] = useState();
     const [zip, setZip] = useState("");
     const [zipCodeError, setZipCodeError] = useState(false);
-    const [modalOriginZip, setModalOriginZip] = useState(userZip);
+    const [modalOriginZip, setModalOriginZip] = useState("");
     const [modalDestinationZip, setModalDestinationZip] = useState("");
+    const [saveStatus, setSaveStatus] = useState(false);
 
     //Enable
     const [gigNumEnabled, setGigNumEnabled] = useState(false);
@@ -82,7 +85,7 @@ const Calculator = () => {
         if (isEvent) setEventId(paramId);
         else setFinId(paramId);
 
-        //Get gas prices
+        //Get Gas Prices
         if (!gasPrices)
         {
             axios.get(`http://localhost:5000/gas`).then(res => {
@@ -93,8 +96,30 @@ const Calculator = () => {
                 }   
                 setGasPrices(map);
                 setAverageGasPrice(map);
+            });
+        }
+
+        //Get user
+        axios.get('http://localhost:5000/account', {withCredentials: true}).then(res => {
+            if (res.data?.user)
+            {
+                const userData = res.data.user;
+                setModalOriginZip(userData.zip);
+                setUser(userData);
 
                 //Load data
+                console.log(user);
+                if (paramId)
+                {
+                    loadFromDatabase(userData).then(() => {
+                        setIsLoading(false);
+                    });
+                } 
+                else setIsLoading(false);
+            }
+            else 
+            {
+                setUser(undefined);
                 if (paramId)
                 {
                     loadFromDatabase().then(() => {
@@ -102,8 +127,9 @@ const Calculator = () => {
                     });
                 } 
                 else setIsLoading(false);
-            });
-        }
+            }
+            console.log("User Data", res.data);
+        });
     }, []);
     
     //Runs when any fields related to calculation updates.
@@ -118,13 +144,6 @@ const Calculator = () => {
     }, [gasPricePerGallon, vehicleMPG])
     
     /* Functions */
-    //Format number to currency
-    function formatCurrency(value) 
-    {
-        if (value && value !== "") return Intl.NumberFormat('en-US', {style: 'currency', currency: "USD"}).format(value);
-        return "$0.00";
-    }
-
     //Load data
     function loadData(data)
     {
@@ -157,13 +176,13 @@ const Calculator = () => {
     }
 
     //Load from database (both fin_id and event_id)
-    async function loadFromDatabase()
+    async function loadFromDatabase(currentUser=user)
     {
         //Check if event
         if (!isEvent)
         {
             //Get data
-            await axios.get(`http://localhost:5000/financial/user_id/fin_id/${userId}/${paramId}`).then(res => {
+            await axios.get(`http://localhost:5000/financial/user_id/fin_id/${currentUser?.user_id}/${paramId}`).then(res => {
                 const data = res.data[0];
                 if (data && data?.fin_id) setFinId(data.fin_id);
 
@@ -172,25 +191,27 @@ const Calculator = () => {
                 else //Financial does not exists, redirect to blank page.
                 {
                     setParamId(0);
-                    navigate(`/calculator`);
+                    navigate(`/calculator`); 
+                    toast("You do not have access to this data.", { theme: 'dark', position: "top-center", type: "error" })
                 }
             });
         }
         else
         {
             //Check for already existing event financial
-            await axios.get(`http://localhost:5000/financial/user_id/event_id/${userId}/${paramId}`).then(async res => {
+            await axios.get(`http://localhost:5000/financial/user_id/event_id/${currentUser?.user_id}/${paramId}`).then(async res => {
                 const data = res.data[0];
                 if (data) //If financial for event exists, load that data.
                 {
                     console.log("Event Financial exists, loading...");
-                    await loadEventData(false); //Get event data for later use
+                    await loadEventData(false, currentUser); //Get event data for later use
                     setFinId(data.fin_id);
                     loadData(data);
+                    toast("Loaded from previously saved data.", { theme: 'dark', position: "top-center", type: "info" });
                 } 
                 else
                 {
-                    await loadEventData(true);
+                    await loadEventData(true, currentUser);
                     setIsNewEvent(true);
                 } 
             });
@@ -198,7 +219,7 @@ const Calculator = () => {
     }
 
     //Load event data
-    async function loadEventData(fillFields)
+    async function loadEventData(fillFields, currentUser=user)
     {
         console.log("Event Data", eventData);
         if (eventData)
@@ -206,7 +227,7 @@ const Calculator = () => {
             if (fillFields)
             {
                 loadData(eventData);
-                if (userZip && eventData.zip) await calculateBasedOnLocation(userZip.slice(0, 5), eventData.zip.slice(0, 5));
+                if (currentUser?.zip && eventData.zip) await calculateBasedOnLocation(currentUser?.zip.slice(0, 5), eventData.zip.slice(0, 5));
             }
         } 
         else
@@ -229,7 +250,7 @@ const Calculator = () => {
                 setModalDestinationZip(eventData?.zip);
                 if (fillFields)
                 {   
-                    if (userZip && eventData?.zip) await calculateBasedOnLocation(userZip?.slice(0, 5), eventData.zip?.slice(0, 5));
+                    if (currentUser?.zip && eventData?.zip) await calculateBasedOnLocation(currentUser?.zip?.slice(0, 5), eventData.zip?.slice(0, 5));
                     loadData(eventData);
                     setAverageGasPrice();
                 } 
@@ -244,10 +265,6 @@ const Calculator = () => {
         }
         
     }
-
-    function metersToMiles(meters) {
-        return meters*0.000621371192;
-   }
 
     async function calculateBasedOnLocation(originZip, destinationZip)
     {
@@ -277,7 +294,7 @@ const Calculator = () => {
                     */
 
                     //Add to event (if event)
-                    if (eventData && eventData.zip == destinationZip && originZip == userZip)
+                    if (eventData && eventData.zip == destinationZip && originZip == user?.zip)
                     {
                         const newData = eventData;
                         newData["total_mileage"] = distanceInMiles;
@@ -401,92 +418,83 @@ const Calculator = () => {
 
     async function saveFinancial(spreadsheet)
     {
-        //Get data
-        const data = {
-            fin_name: calcName,
-            date: moment(calcDate).format("YYYY-MM-DD"),
-            total_wage: gigPay,
-            event_hours: gigHours,
-            event_num: gigNum,
-            hourly_wage: hourlyWage,
-            rehearse_hours: rehearsalHours,
-            practice_hours: practiceHours,
-            travel_hours: travelHours,
-            total_mileage: totalMileage,
-            mileage_pay: mileageCovered,
-            zip: zip,
-            gas_price: gasPricePerGallon,
-            mpg: vehicleMPG,
-            tax: tax,
-            fees: otherFees,
-        }
-        if (isNewEvent && isEvent) data["event_id"] = paramId;
-        
-        //Check validity (will return false if not valid, HTML will take care of the rest).
-        const inputs = document.getElementById("calculatorForm").elements;
-        for (let i = 0; i < inputs.length; i++) {
-            if (!inputs[i].disabled && !inputs[i].checkValidity())
-            {
-                console.log("NOT VALID");
-                return false
-            } 
-        }
-
-        //Save (in correct place)
-        if (!spreadsheet)
+        if (!saveStatus)
         {
-            console.log(isNewEvent);
-            //Save to database
-            if ((!isEvent && paramId) || (isEvent && !isNewEvent)) //If exists, update
-            {
-                console.log(`UPDATE ${finId} ${paramId}`)
-                await axios.put(`http://localhost:5000/financial/${finId}`, data).then(res => {
-                    setSaveStatus({type: "update", status: "OK"});
-                }).catch(error => {
-                    setSaveStatus({type: "update", status: "ERROR"});
-                    console.log(error);
-                });
+            //Get data
+            const data = {
+                fin_name: calcName,
+                date: moment(calcDate).format("YYYY-MM-DD"),
+                total_wage: gigPay,
+                event_hours: gigHours,
+                event_num: gigNum,
+                hourly_wage: hourlyWage,
+                rehearse_hours: rehearsalHours,
+                practice_hours: practiceHours,
+                travel_hours: travelHours,
+                total_mileage: totalMileage,
+                mileage_pay: mileageCovered,
+                zip: zip,
+                gas_price: gasPricePerGallon,
+                mpg: vehicleMPG,
+                tax: tax,
+                fees: otherFees,
             }
-            else //If new, post.
+            if (isNewEvent && isEvent) data["event_id"] = paramId;
+            
+            //Check validity (will return false if not valid, HTML will take care of the rest).
+            const inputs = document.getElementById("calculatorForm").elements;
+            for (let i = 0; i < inputs.length; i++) {
+                if (!inputs[i].disabled && !inputs[i].checkValidity())
+                {
+                    console.log("NOT VALID");
+                    return false
+                } 
+            }
+
+            //Save (in correct place)
+            if (!spreadsheet)
             {
-                console.log("ADD");
-                await axios.post(`http://localhost:5000/financial/${userId}`, data).then(res => {
-                    //SetID
-                    setParamId(res.data.fin_id);
-                    setFinId(res.data.fin_id);
-                    setIsNewEvent(false);
+                //Set save status
+                setSaveStatus(true);
 
-                    //Update URL
-                    if (!isEvent) navigate(`/calculator/${res.data.fin_id}`);
-                    setSaveStatus({type: "save", status: "OK"});
-                }).catch(error => {
-                    setSaveStatus({type: "save", status: "ERROR"});
-                    console.log(error);
-                });
-            };
+                //Save to database
+                if ((!isEvent && paramId) || (isEvent && !isNewEvent)) //If exists, update
+                {
+                    console.log(`UPDATE ${finId} ${paramId}`)
+                    await axios.put(`http://localhost:5000/financial/${finId}`, data).then(res => {
+                        toast("Calculator data updated sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
+                        setSaveStatus(false);
+                    }).catch(error => {
+                        toast("An error occured while updating. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
+                        setSaveStatus(false);
+                        console.log(error);
+                    });
+                }
+                else //If new, post.
+                {
+                    console.log("ADD");
+                    await axios.post(`http://localhost:5000/financial/${user?.user_id}`, data).then(res => {
+                        //SetID
+                        setParamId(res.data.fin_id);
+                        setFinId(res.data.fin_id);
+                        setIsNewEvent(false);
 
-            //Reset save status
-            setTimeout(() => {
-                setSaveStatus(undefined);
-            }, 5000);
+                        //Update URL
+                        if (!isEvent) navigate(`/calculator/${res.data.fin_id}`);
+                        toast("Calculator data saved sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
+                        setSaveStatus(false);
+                    }).catch(error => {
+                        toast("An error occured while saving. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
+                        setSaveStatus(false);
+                        console.log(error);
+                    });
+                };
+            }
+            else
+            {
+                saveSpreadsheet();
+            }
         }
-        else
-        {
-            saveSpreadsheet();
-        }
-    }
-
-    //Parse values
-    function parseFloatZero(value)
-    {
-        if (value && value != NaN) return parseFloat(value);
-        else return 0
-    }
-
-    function parseIntZero(value)
-    {
-        if (value) return parseInt(value);
-        else return 0
     }
 
     //Auto fit column width
@@ -506,7 +514,7 @@ const Calculator = () => {
 
     async function saveSpreadsheetAll()
     {
-        await axios.get(`http://localhost:5000/financial/user_id/${userId}`).then(async res => {
+        await axios.get(`http://localhost:5000/financial/user_id/${user?.user_id}`).then(async res => {
             const data = res.data;
             //Create workbook
             const workbook = new ExcelJS.Workbook();
@@ -580,76 +588,86 @@ const Calculator = () => {
 
     async function saveSpreadsheet()
     {
-        //Create workbook
-        const workbook = new ExcelJS.Workbook();
-        workbook.created = new Date();
-        workbook.modified = new Date();
+        try 
+        {
+            //Create workbook
+            const workbook = new ExcelJS.Workbook();
+            workbook.created = new Date();
+            workbook.modified = new Date();
 
-        //Create worksheet
-        const worksheet = workbook.addWorksheet("Calculator Results");
+            //Create worksheet
+            const worksheet = workbook.addWorksheet("Calculator Results");
 
-        //Set Rows
-        const rows = [];
-        rows.push(worksheet.addRow(["Name", "Date", "Total Wage", "Number of Gigs"]));
-        rows.push(worksheet.addRow([calcName, calcDate, parseFloatZero(gigPay), parseIntZero(gigNum) == 0 ? 1 : parseIntZero(gigNum), "", "Payment", parseFloatZero(gigPay)]));
-        rows[1].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
-        rows.push(worksheet.addRow(["", "", "", "", "", "Tax Cut", parseFloatZero(totalTax)])); //Results row
-        rows.push(worksheet.addRow(["Event Hours", "Individual Practice Hours", "Rehearsal Hours", "", "", "Travel Cost", parseFloatZero(totalGas)]));
-        rows.push(worksheet.addRow([parseFloatZero(gigHours), parseFloatZero(practiceHours), parseFloatZero(rehearsalHours), "", "", "Other Fees", parseFloatZero(otherFees)]));
-        rows.push(worksheet.addRow([""])); //Results row
-        rows.push(worksheet.addRow(["Total Mileage", "Travel Hours", "Mileage Covered", "", "", "Total Hours", parseFloatZero(totalHours)]));
-        rows.push(worksheet.addRow([parseFloatZero(totalMileage), parseFloatZero(travelHours), parseFloatZero(mileageCovered), "", "", "Total Hourly Wage", parseFloatZero(hourlyWage)]));
-        rows[7].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
-        rows.push(worksheet.addRow([""])); //Results row
-        rows.push(worksheet.addRow(["Gas Price per Gallon", "Vehicle MPG", "Gas Price per Mile"]));
-        rows.push(worksheet.addRow([parseFloatZero(gasPricePerGallon), parseFloatZero(vehicleMPG), parseFloatZero(gasPricePerMile)]));
-        rows[10].getCell(1).numFmt = '$#,##0.00'; //Format cell as currency
-        rows[10].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
-        rows.push(worksheet.addRow([""])); //Results row
-        rows.push(worksheet.addRow(["Tax Percentage (%)", "Other Fees"]));
-        rows.push(worksheet.addRow([parseFloatZero(tax), parseFloatZero(otherFees)]));
-        rows[13].getCell(1).numFmt = '0.00##\\%'; //Format cell as currency
-        rows[13].getCell(2).numFmt = '$#,##0.00'; //Format cell as currency
+            //Set Rows
+            const rows = [];
+            rows.push(worksheet.addRow(["Name", "Date", "Total Wage", "Number of Gigs"]));
+            rows.push(worksheet.addRow([calcName, calcDate, parseFloatZero(gigPay), parseIntZero(gigNum) == 0 ? 1 : parseIntZero(gigNum), "", "Payment", parseFloatZero(gigPay)]));
+            rows[1].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
+            rows.push(worksheet.addRow(["", "", "", "", "", "Tax Cut", parseFloatZero(totalTax)])); //Results row
+            rows.push(worksheet.addRow(["Event Hours", "Individual Practice Hours", "Rehearsal Hours", "", "", "Travel Cost", parseFloatZero(totalGas)]));
+            rows.push(worksheet.addRow([parseFloatZero(gigHours), parseFloatZero(practiceHours), parseFloatZero(rehearsalHours), "", "", "Other Fees", parseFloatZero(otherFees)]));
+            rows.push(worksheet.addRow([""])); //Results row
+            rows.push(worksheet.addRow(["Total Mileage", "Travel Hours", "Mileage Covered", "", "", "Total Hours", parseFloatZero(totalHours)]));
+            rows.push(worksheet.addRow([parseFloatZero(totalMileage), parseFloatZero(travelHours), parseFloatZero(mileageCovered), "", "", "Total Hourly Wage", parseFloatZero(hourlyWage)]));
+            rows[7].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
+            rows.push(worksheet.addRow([""])); //Results row
+            rows.push(worksheet.addRow(["Gas Price per Gallon", "Vehicle MPG", "Gas Price per Mile"]));
+            rows.push(worksheet.addRow([parseFloatZero(gasPricePerGallon), parseFloatZero(vehicleMPG), parseFloatZero(gasPricePerMile)]));
+            rows[10].getCell(1).numFmt = '$#,##0.00'; //Format cell as currency
+            rows[10].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
+            rows.push(worksheet.addRow([""])); //Results row
+            rows.push(worksheet.addRow(["Tax Percentage (%)", "Other Fees"]));
+            rows.push(worksheet.addRow([parseFloatZero(tax), parseFloatZero(otherFees)]));
+            rows[13].getCell(1).numFmt = '0.00##\\%'; //Format cell as currency
+            rows[13].getCell(2).numFmt = '$#,##0.00'; //Format cell as currency
 
-        //Bold
-        const boldRows = [1, 4, 7, 10, 13];
-        boldRows.forEach(row => {
-            rows[row-1].font = {bold: true};
-        });
-        worksheet.getColumn("F").font = {bold: true};
-        worksheet.getColumn("G").font = {bold: false};
+            //Bold
+            const boldRows = [1, 4, 7, 10, 13];
+            boldRows.forEach(row => {
+                rows[row-1].font = {bold: true};
+            });
+            worksheet.getColumn("F").font = {bold: true};
+            worksheet.getColumn("G").font = {bold: false};
 
-        //Merge Cells
-        worksheet.mergeCells("F1:G1");
-        worksheet.getCell('F1').value = 'Results';
-        worksheet.getCell('F1').alignment = {horizontal: "center"};
-        worksheet.getCell('F1').font = {bold: true};
+            //Merge Cells
+            worksheet.mergeCells("F1:G1");
+            worksheet.getCell('F1').value = 'Results';
+            worksheet.getCell('F1').alignment = {horizontal: "center"};
+            worksheet.getCell('F1').font = {bold: true};
+            
+            //Format
+            worksheet.getColumn("G").numFmt = '$#,##0.00';
+            worksheet.getCell('G7').numFmt = "0.00";
+
+            //Borders
+            worksheet.getCell("F5").border = {bottom: {style: "thin"}};
+            worksheet.getCell("G5").border = {bottom: {style: "thin"}};
+            worksheet.getCell("F7").border = {bottom: {style: "thin"}};
+            worksheet.getCell("G7").border = {bottom: {style: "thin"}};
+
+            //Set formulas
+            worksheet.getCell("G2").value = {formula: 'C2*D2'}; //Payment
+            worksheet.getCell("G3").value = {formula: '=G2*(0.01*A14)'}; //Tax Cut
+            worksheet.getCell("G4").value = {formula: 'A8*(C11-C8)'}; //Travel Cost
+            worksheet.getCell("G5").value = {formula: 'B14'}; //Other Fees 
+            worksheet.getCell("G6").value = {formula: 'G2-G3-G4-G5'}; //Total Income
+            worksheet.getCell("G7").value = {formula: '(A5*D2)+B5+C5+B8'}; //Total Hours
+            worksheet.getCell("G8").value = {formula: 'IFERROR(G6/G7, 0)'}; //Total Hourly Wage
+            worksheet.getCell("C11").value = {formula: 'IFERROR(A11/B11, 0)'}; //Gas Price per Mile
+
+            //Fit Column Width
+            autoSizeColumn(worksheet);
+
+            const buf = await workbook.xlsx.writeBuffer();
+            saveAs(new Blob([buf]), `${calcName.replace(/ /g,"_")}.xlsx`);
+            toast("Calculator data exported", { theme: 'dark', position: "top-center", type: "success" });
+        }
+        catch(error)
+        {
+            console.log(error);
+            toast("An error occured while exporting. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
+        }
         
-        //Format
-        worksheet.getColumn("G").numFmt = '$#,##0.00';
-        worksheet.getCell('G7').numFmt = "0.00";
-
-        //Borders
-        worksheet.getCell("F5").border = {bottom: {style: "thin"}};
-        worksheet.getCell("G5").border = {bottom: {style: "thin"}};
-        worksheet.getCell("F7").border = {bottom: {style: "thin"}};
-        worksheet.getCell("G7").border = {bottom: {style: "thin"}};
-
-        //Set formulas
-        worksheet.getCell("G2").value = {formula: 'C2*D2'}; //Payment
-        worksheet.getCell("G3").value = {formula: '=G2*(0.01*A14)'}; //Tax Cut
-        worksheet.getCell("G4").value = {formula: 'A8*(C11-C8)'}; //Travel Cost
-        worksheet.getCell("G5").value = {formula: 'B14'}; //Other Fees 
-        worksheet.getCell("G6").value = {formula: 'G2-G3-G4-G5'}; //Total Income
-        worksheet.getCell("G7").value = {formula: '(A5*D2)+B5+C5+B8'}; //Total Hours
-        worksheet.getCell("G8").value = {formula: 'IFERROR(G6/G7, 0)'}; //Total Hourly Wage
-        worksheet.getCell("C11").value = {formula: 'IFERROR(A11/B11, 0)'}; //Gas Price per Mile
-
-        //Fit Column Width
-        autoSizeColumn(worksheet);
-
-        const buf = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buf]), `${calcName.replace(/ /g,"_")}.xlsx`);
     }
 
     if (isLoading)
@@ -943,13 +961,11 @@ const Calculator = () => {
                         <br />
                         <Row>
                             <Row>
-                                <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={userId == -1}>{(!isEvent && paramId) || (isEvent && !isNewEvent) ? "Update" : "Save"}</Button> {/* CHECK FOR ACCOUNT WHEN LOGIN WORKING */}</Col> 
+                                <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={!user}>{saveStatus ? <BarLoader color="#FFFFFF" height={4} width={50} /> : (!isEvent && paramId) || (isEvent && !isNewEvent) ? "Update" : "Save"}</Button></Col> 
                                 <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="secondary" onClick={() => {saveFinancial(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Export</Button></Col>
                                 {isEvent ? <Col lg={5} md={5} sm={5} xs={5}><Button variant="secondary" onClick={() => {loadEventData(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Reload Data</Button></Col> : ""}
                             </Row>
                         </Row>
-                        {saveStatus && saveStatus.status == "OK" ? <Alert variant="success"dismissible show={saveStatus?.status == "OK"} onClose={() => setSaveStatus(undefined)}>Data sucessfully {saveStatus.type == "save" ? "saved" : saveStatus.type == "update" ? "updated" : "exported"}. </Alert> : ""}
-                        {saveStatus && saveStatus.status == "ERROR" ? <Alert variant="danger"dismissible show={saveStatus?.status == "ERROR"} onClose={() => setSaveStatus(undefined)}>An error occured while {saveStatus.type == "save" ? "saving" : saveStatus.type == "updating" ? "updated" : "exporting"}. Please ensure all data is correct and try again.</Alert> : ""}
                         </Container>
                         </div>
                     </Col>
