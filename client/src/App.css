@@ -37,3 +37,29 @@
   }
 }
 
+
+
+
+/*Sidebar/Dashboard styling*/
+.custom-sidebar-container {
+  height: 100vh;
+}
+
+.custom-sidebar {
+  margin-top: 50px;
+  width: 250px;
+  height: 100%;
+}
+
+.custom-link {
+  color: #000000;
+  text-decoration: none;
+}
+
+.custom-link:hover {
+  color: #834248
+}
+
+.custom-link.active {
+  color: #bd4d58;
+}

@@ -9,6 +9,7 @@ import Spinner from 'react-bootstrap/Spinner';
 function Account() {
     const navigate = useNavigate();
     const [cookies, , removeCookie] = useCookies([]);
+    const [userData, setUserData] = useState(null); // State to store user data
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true); // State to track loading status
 
@@ -19,6 +20,7 @@ function Account() {
             } else {
                 try {
                     const { data } = await axios.get('http://localhost:5000/account', { withCredentials: true });
+                    setUserData(data.user);
                     setIsAdmin(data.isAdmin);
                     console.log(data)
                     toast(`hi ${data.user.f_name}`, { theme: 'dark' });
@@ -37,7 +39,7 @@ function Account() {
     if (loading) {
         return <Spinner />;
     }
-    return <UserDash isAdmin={isAdmin} />;
+    return <UserDash isAdmin={isAdmin} userData={userData} />;
 }
 
 export default Account;

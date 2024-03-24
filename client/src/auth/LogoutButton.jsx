@@ -13,6 +13,7 @@ const LogoutButton = () => {
         navigate("/");
         toast.success('You have been successfully logged out!', {
             position: "top",
+            theme: 'dark',
             autoClose: 2000
         });
     };
