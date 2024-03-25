@@ -63,3 +63,14 @@
 .custom-link.active {
   color: #bd4d58;
 }
+
+/*Login*/
+.login-container {
+  margin-top: 100px;
+  display: flex;
+  justify-content: center;
+}
+
+.container-login {
+  width: 300px;
+}
