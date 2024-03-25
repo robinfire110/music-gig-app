@@ -2,17 +2,17 @@ import React from 'react'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faChevronLeft, faChevronRight} from '@fortawesome/free-solid-svg-icons'
 
-function HorizontalScrollButton({dir, onClick}) {
+function HorizontalScrollButton({dir, onClick, visible=true, persistantArrows=false}) {
     //Functions
     function getIcon(dir)
     {
-        if (dir == "left") return faChevronLeft;
-        else return faChevronRight;
+        if (!visible && persistantArrows) return (<FontAwesomeIcon icon={faChevronLeft} size="2x" style={{color: "rgba(0,0,0,0)"}}/>);
+        else if (dir == "left") return (<FontAwesomeIcon icon={faChevronLeft} size="2x"/>);
+        else return (<FontAwesomeIcon icon={faChevronRight} size="2x"/>);
     }
-
     return (
     <>
-        <button onClick={onClick} style={{verticalAlign: "middle", color: "blue", border: "none", textAlign: "center", padding: "16px", cursor: "pointer", backgroundColor: "rgba(0,0,0,0)"}}><FontAwesomeIcon icon={getIcon(dir)} /></button>
+        <button onClick={onClick} style={{verticalAlign: "middle", color: "blue", border: "none", textAlign: "center", padding: "16px", cursor: "pointer", backgroundColor: "rgba(0,0,0,0)"}} hidden={!persistantArrows && !visible}>{getIcon(dir)}</button>
     </>
     )
 }

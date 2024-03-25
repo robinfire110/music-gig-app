@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../models/models');
 const {getEventHours, getInstrumentId} = require('../helpers/model-helpers');
 const {sequelize} = require('../config/database_config');
+const { Op } = require('sequelize');
 
 /* GET */
 //Get all
@@ -23,6 +24,32 @@ router.get("/id/:id", async (req, res) => {
         const id = req.params.id;
         const event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, db.User]});
         res.json(event);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+//Get event by instrument(s)
+//Returns event associated with pass instrument(s) ids. Instrument separated by |.
+//?sort=true (allows to return sorted by date posted)
+//?limit=# (limit the result number)
+router.get("/instrument/:id", async (req, res) => {
+    try {
+        const id = req.params.id.split("|");
+        const isSorted = req.query.sort; //Sort by date posted
+        let limit = 999;
+        console.log(req.query.limit);
+        if (req.query.limit) limit = req.query.limit;
+        if (isSorted)
+        {
+            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, db.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
+            res.json(instrument);
+        }
+        else
+        {
+            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, db.User], limit: sequelize.literal(limit)});
+            res.json(instrument);
+        } 
     } catch (error) {
         res.status(500).send(error.message);
     }

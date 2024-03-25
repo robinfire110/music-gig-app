@@ -21,7 +21,6 @@ function EventCard({eventId}) {
                 if (user.UserStatus.status == "owner")
                 {
                     setOwner(user);
-                    console.log(user);
                 }
             });
         }).catch(error => {
