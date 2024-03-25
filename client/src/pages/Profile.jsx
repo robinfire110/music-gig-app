@@ -8,6 +8,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Card, Col, Container, ListGroup, Row } from "react-bootstrap";
 import EventCard from "../components/EventCard";
 import {ClipLoader} from 'react-spinners'
+import EventHorizontalScroll from "../components/EventHorizontalScroll";
 
 const Profile = () => {
     //URL Params
@@ -42,14 +43,17 @@ const Profile = () => {
         let events;
         if (userData?.Events.length > 0)
         {
+            console.log(userData.Events);
+            return (<EventHorizontalScroll data={userData.Events} />)
+            /*
             const events = userData?.Events.map(event => {
                 if (event.UserStatus.status == "owner")
                 {
                     return <Col xxl={4} xl={6} lg={6} md={12} sm={12} xs={12}><EventCard eventId={event.event_id}/></Col>
                 }
             });
-            console.log("Events", events);
             return events;
+            */
         }
         else
         {
@@ -93,11 +97,7 @@ const Profile = () => {
     {
         return (
             <div>
-                <Header />
-                <br />
                 <ClipLoader />
-                <br />
-                <Footer />
             </div>
         )
     }
@@ -105,7 +105,6 @@ const Profile = () => {
     {
         return (
             <>
-            <Header />
             <br />
                 <Container> 
                     <div style={{textAlign: "left"}}>
@@ -162,7 +161,6 @@ const Profile = () => {
                     </div> 
                 </Container>
             <br />
-            <Footer />
             </>
         )
     }
