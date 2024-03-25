@@ -44,17 +44,25 @@ function EditProfile({ userData }) {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			const response = await axios.post('http://localhost:5000/update_user', formData);
-			console.log(response.data);
+			const response = await axios.post('http://localhost:5000/update_user', formData, {
+				withCredentials: true
+			});
+			if (response.data.success) {
+				toast.success('Profile updated successfully');
+			} else {
+				toast.error('Failed to update profile');
+			}
 		} catch (error) {
+			// Show error toast notification if request fails
 			console.error('Error updating profile:', error);
+			toast.error('Failed to update profile');
 		}
-
 		console.log(formData);
 	};
 
+
 	return (
-		<Container>
+		<Container style={{ maxWidth: '600px' }}>
 			<h2>{formData.f_name}'s Profile</h2>
 			<Form onSubmit={handleSubmit}>
 				<Form.Group className="mb-3" controlId="formBasicEmail">
@@ -65,6 +73,7 @@ function EditProfile({ userData }) {
 						name="email"
 						value={formData.email}
 						onChange={handleChange}
+						disabled
 					/>
 				</Form.Group>
 
@@ -76,6 +85,7 @@ function EditProfile({ userData }) {
 						name="password"
 						value={formData.password}
 						onChange={handleChange}
+						disabled
 					/>
 				</Form.Group>
 				<Form.Group className="mb-3" controlId="formBasicName">

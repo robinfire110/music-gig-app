@@ -137,3 +137,25 @@ module.exports.account = async (req, res, next) => {
 };
 
 
+module.exports.update_user = async (req, res, next) => {
+	try {
+		const { f_name, l_name, zip, instruments, bio } = req.body;
+		const userId = req.user.user_id;
+
+		const newData = {
+			f_name,
+			l_name,
+			zip,
+			instruments,
+			bio
+		};
+
+		await db.User.updateUser(userId, newData);
+
+		res.status(200).json({ success: true });
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+

@@ -56,7 +56,18 @@ module.exports = (sequelize, Sequelize) => {
     throw new Error("Incorrect Email");
   };
 
+  User.updateUser = async function (userId, newData) {
+    try {
+      const user = await this.findByPk(userId);
+      if (user) {
+        await user.update(newData);
+      }
+    } catch (err) {
+      console.error("Error updating user:", err.message);
+      throw err;
+    }
+  };
 
-  return User;
+return User;
 };
 
