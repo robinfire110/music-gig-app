@@ -1,5 +1,6 @@
-// This sequelize model is used to define the user table in the database.
-module.exports = (sequelize,Sequelize,) => {
+const bcrypt = require('bcrypt');
+
+module.exports = (sequelize, Sequelize) => {
   const User = sequelize.define("User", {
     user_id: {
       type: Sequelize.INTEGER,
@@ -35,5 +36,27 @@ module.exports = (sequelize,Sequelize,) => {
       defaultValue: false,
     },
   });
+
+  //User Model functions
+  User.beforeCreate(async (user, options) => {
+    const saltRounds = 10;
+    user.password = await bcrypt.hash(user.password, saltRounds);
+  });
+
+
+  User.login = async function (email, password) {
+    const user = await this.findOne({ where: { email } });
+    if (user) {
+      const auth = await bcrypt.compare(password, user.password);
+      if (auth) {
+        return user;
+      }
+      throw new Error("Incorrect Password");
+    }
+    throw new Error("Incorrect Email");
+  };
+
+
   return User;
 };
+

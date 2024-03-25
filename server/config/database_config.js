@@ -1,11 +1,12 @@
 const {Sequelize} = require('sequelize');
-require('dotenv').config();
+
 
 //Set up Sequelize object and connection to database
 const local_database = new Sequelize(
     'dev_db',
     'root',
     'password', {
+        logging: false,
         host: 'localhost',
         dialect: "mysql",
         define: {
@@ -21,6 +22,7 @@ const remote_database = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
     process.env.DB_PASSWORD, {
+        logging: false,
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
         dialect: process.env.DB_CONNECTION,

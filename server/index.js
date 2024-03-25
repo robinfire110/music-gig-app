@@ -1,18 +1,21 @@
-const express = require('express'); //Creates instance of express framework, which well help route things.
-const cors = require("cors"); //Creates an instance of cors, to allow cross-origin requests to be made between our front-end and the server's API endpoint
-const corsOptions = {
-    origin: "http://localhost:3000", //Note this localhost needs to be updated when hosting on cloud
-};
-const app = express(); //Create the app using express
-app.use(express.json());
-app.use(cors(corsOptions));
-app.use(express.urlencoded({ extended: true }));
-const {sequelize, connectToDatabase} = require('./config/database_config'); //Get object from database function
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const { sequelize, connectToDatabase } = require('./config/database_config');
 const db = require('./models/models');
-const {importInstruments, getGasPrices, createFakerData, fixData} = require("./helpers/model-helpers")
-const port = 5000;
+const {
+    importInstruments,
+    getGasPrices,
+    createFakerData,
+    fixData
+} = require("./helpers/model-helpers");
 
-//Routes (connect the files with the various routes to other parts of the site)
+// Middleware to log request headers
+
+
+const { router: authRoutes } = require('./routes/AuthRoutes');
 const routeEvent = require('./routes/Event');
 const routeFinancial = require('./routes/Financial');
 const routeInstrument = require('./routes/Instrument');
@@ -20,25 +23,34 @@ const routeUser = require('./routes/User');
 const routeGas = require('./routes/GasPrice');
 const routeAPI = require('./routes/API');
 
-//Determines where app is hosted
+const app = express();
+const port = 5000;
+
+// Middleware setup
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+    origin: ["http://localhost:3000", "http://harmonize.rocks"],
+    method: ["GET", "POST"],
+    credentials: true
+}));
+app.use(cookieParser());
+
+
+// Database setup
 app.listen(port, async () => {
-    //Connect to database
     await connectToDatabase();
-
-    //Sync models
-    await sequelize.sync({ alter: false }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
-    importInstruments(); //Adds instrument list if empty
-    //getGasPrices(); //Update+Get Gas Prices (since API doesn't work anymore, only need to run when first adding data.)
-    //createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA    
-    //fixData(); //Function to fix all sorts of things
-
+    await sequelize.sync({ alter: false });
+    importInstruments();
     console.log(`Server is running at http://localhost:${port}`);
 });
 
-/* Routes */
+// Routes setup
 app.use("/event", routeEvent.router);
 app.use("/financial", routeFinancial.router);
 app.use("/instrument", routeInstrument.router);
 app.use("/user", routeUser.router);
 app.use("/gas", routeGas.router);
-app.use("/api", routeAPI.router)
+app.use("/api", routeAPI.router);
+app.use(authRoutes);
+
