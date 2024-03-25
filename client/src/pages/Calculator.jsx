@@ -1,8 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams} from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { Container, Form, Col, Row, InputGroup, Button, Modal, Alert, OverlayTrigger } from "react-bootstrap";
 import moment from "moment";
 import TooltipButton from "../components/TooltipButton";
@@ -674,11 +672,7 @@ const Calculator = () => {
     {
         return (
             <div>
-                <Header />
-                <br />
                 <ClipLoader />
-                <br />
-                <Footer />
             </div>
         )
     }
@@ -686,7 +680,6 @@ const Calculator = () => {
     {
     return (
         <div>
-            <Header />
             <h2>Calculator</h2>
             <hr />
             <Container className="" style={{textAlign: "left"}}>   
@@ -972,7 +965,6 @@ const Calculator = () => {
                 </Row>
                 </Form>
             </Container>
-            <Footer />
         </div>
     )
     }
