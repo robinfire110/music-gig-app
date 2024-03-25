@@ -23,7 +23,6 @@ function Landing() {
 
     return (
         <div>
-            <Header />
             <Container>
             <h1>Harmonize</h1>
             <br />
@@ -50,7 +49,6 @@ function Landing() {
                 <Button variant='primary'>Register now to create events!</Button>
             </Container>
             </Container>
-            <Footer />
         </div>
     )
 }

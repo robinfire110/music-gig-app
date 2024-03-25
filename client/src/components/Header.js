@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navbar, Nav, Container } from 'react-bootstrap';
+import { Navbar, Nav, Container, Col } from 'react-bootstrap';
 import LogoutButton from '../auth/LogoutButton';
 import { useCookies } from 'react-cookie';
 import { useLocation } from 'react-router-dom';
@@ -23,12 +23,14 @@ function Header() {
                             <Nav.Item><Nav.Link href="/form">List Event</Nav.Link></Nav.Item>
                             <Nav.Item><Nav.Link href="/eventsearch">Events</Nav.Link></Nav.Item>
                             <Nav.Item><Nav.Link href="/calculator">Calculator</Nav.Link></Nav.Item>
-                            <Nav.Item><Nav.Link href="/account">Account</Nav.Link></Nav.Item>
+                            {!showLogoutButton && <Nav.Item><Nav.Link href="/login">Login/Register</Nav.Link></Nav.Item>}
+                            {showLogoutButton && <Nav.Item><Nav.Link href="/account">Account</Nav.Link></Nav.Item>}
                             {showLogoutButton && <LogoutButton />}
                         </Nav>
                     </Navbar.Collapse>
                 </Container>
             </Navbar>
+            <br />
         </div>
     );
 }

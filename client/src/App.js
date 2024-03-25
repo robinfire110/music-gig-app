@@ -15,12 +15,15 @@ import EventForm from "./pages/EventForm";
 import Profile from "./pages/Profile";
 import IndividualEvent from "./pages/IndividualEvent";
 import Calculator from "./pages/Calculator";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
 
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
+        <Header />
         <Routes>
           <Route path="/" element={<Landing/>}/>
           <Route exact path="/login" element={<Login/>}/>
@@ -32,6 +35,7 @@ function App() {
           <Route path="/event/:id" element={<IndividualEvent/>}/>
           <Route path="/calculator/:id?" element={<Calculator/>}/>
         </Routes>
+        <Footer />
       </BrowserRouter>
     </div>
   );
