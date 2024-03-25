@@ -94,13 +94,13 @@ const IndividualEvent = () => {
                     <Col style={{ display: 'flex', justifyContent: 'right', gap: '20px' }}>
                         {/* Check if current user is event owner */}
                         {isEventOwner() ? (
-                            <Button className="editEvent">
-                                <Link to={`/form/${id}`} style={{ color: "#fff" }}>Edit Event</Link>
-                            </Button>
+                            <Link to={`/form/${id}`} style={{ color: "#fff" }}>
+                                <Button className="editEvent">Edit Event</Button>
+                            </Link>
                         ) : (
-                            <Button className="sendToCalc">
-                                <Link to={`/calculator/${event.event_id}?event=true`} style={{ color: "#fff" }}>Send to Calculator</Link>
-                            </Button>
+                            <Link to={`/calculator/${event.event_id}?event=true`} style={{ color: "#fff" }}>
+                                <Button className="sendToCalc">Send to Calculator</Button>
+                            </Link>
                         )}
                     </Col>
                 </Row>
