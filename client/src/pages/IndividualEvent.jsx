@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Container, Form, Col, Row, InputGroup, Button } from "react-bootstrap"; // Bootstrap imports
-import Header from "../components/Header";
 import "../styles/IndividualEvent.css";
 
 const IndividualEvent = () => {
@@ -16,24 +15,49 @@ const IndividualEvent = () => {
         description: "",
         pay: null,
         event_hours: "",
+        Users: []
     })
 
+    const [userId, setUserId] = useState(null) //Current user's id set here
+    const [ownerId, setOwnerId] = useState(null) //get the owner's id here
     const { id } = useParams();
     const navigate = useNavigate()
 
     useEffect(() => {
+
+        //get user
+        const fetchUserData = async () => {
+            try {
+                axios.get('http://localhost:5000/account', { withCredentials: true }).then(res => {
+                    if (res.data?.user) {
+                        const userData = res.data.user;
+                        setUserId(userData);
+                    }
+                }) 
+            } catch (err) {
+                console.log(err)
+            }
+        }
+        
+
         const fetchEvent = async () => {
             try {
                 //fetch the id from host running server, this will be changed in hosted version
                 const res = await fetch(`http://localhost:5000/event/id/${id}`)
                 const data = await res.json();
                 setEvent(data)
+                setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
             } catch (err) {
                 console.log(err)
             }
         }
-        fetchEvent()
+        fetchUserData();
+        fetchEvent();
     }, [id])
+
+    const isEventOwner = () => {
+        return ownerId && userId && ownerId === userId.user_id
+    }
 
     const handleDelete = async (id) => {
         try {
@@ -60,7 +84,6 @@ const IndividualEvent = () => {
 
     return (
         <div>
-            <Header />
             <hr />
             <Container className="name-date-summary" key={event.id}>
                 <Row>
@@ -69,7 +92,16 @@ const IndividualEvent = () => {
                     </Col>
                     {/* Add logic here to check user's login status and compare id, if matched display update button, if not display send to calculator button */}
                     <Col style={{ display: 'flex', justifyContent: 'right', gap: '20px' }}>
-                        <Button className="sendToCalc"><Link to={`/calculator/${event.event_id}?event=true`} style={{ color: "#fff" }}>Send to Calculator</Link></Button>
+                        {/* Check if current user is event owner */}
+                        {isEventOwner() ? (
+                            <Button className="editEvent">
+                                <Link to={`/form/${id}`} style={{ color: "#fff" }}>Edit Event</Link>
+                            </Button>
+                        ) : (
+                            <Button className="sendToCalc">
+                                <Link to={`/calculator/${event.event_id}?event=true`} style={{ color: "#fff" }}>Send to Calculator</Link>
+                            </Button>
+                        )}
                     </Col>
                 </Row>
             </Container>
@@ -166,7 +198,12 @@ const IndividualEvent = () => {
                 </Container>
             </Container>
 
-            {/* NEW <Container> to hold applications from musician users if the user's id matches the event owner's id */}
+            {/* NEW <Container> to hold applications from musician users if the user's id matches the event owner's id 
+                OR just make it a big apply button if they're not the owner (they're a musician looking to apply)
+            */}
+            <Container className="application-container">
+
+            </Container>
         </div>
     )
 }

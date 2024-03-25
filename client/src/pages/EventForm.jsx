@@ -24,7 +24,7 @@ const EventForm = () => {
         state: ""
     })
 
-    const [userId, setUserId] = useState(1); //NOTE: REPLACE WITH PROPER ACCOUNT ID WHEN IMPLEMENTED
+    const [userId, setUserId] = useState(null); //NOTE: REPLACE WITH PROPER ACCOUNT ID WHEN IMPLEMENTED
     const [instruments, setInstruments] = useState([])
     const [selectedInstrument, setSelectedInstrument] = useState("")
     const [selectedInstruments, setSelectedInstruments] = useState([])
@@ -43,6 +43,14 @@ const EventForm = () => {
             const res = await fetch(`http://localhost:5000/instrument/`);
             const data = await res.json();
             setInstruments(data);
+
+            //get user
+            axios.get('http://localhost:5000/account', { withCredentials: true }).then(res => {
+                if (res.data?.user) {
+                    const userData = res.data.user;
+                    setUserId(userData);
+                }
+            })
 
             if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
                 const res = await fetch(`http://localhost:5000/event/id/${id}`);
@@ -144,14 +152,9 @@ const EventForm = () => {
                 navigate(`../event/${id}`)
             } else {
                 //event does not exist, so make a post
-                /*
-                NOTE THIS IS A PLACEHOLDER UNTIL WE GET USER ID STATUS FROM THE BROWSER
-                MANUALLY SETTING THE EVENT TO BE OWNED BY USER_ID 1 UNTIL ID LOGGING AVAILABLE
-                THIS NEEDS TO BE REMOVED WHEN SUCH FUNCTIONALITY IS IN PLACE
-                */
-                const eventData = { ...event, user_id: userId, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, isListed: isListed };
+                const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, isListed: isListed };
                 const response = await axios.post(`http://localhost:5000/event/`, eventData)
-                const newEventId = response.data.event_id;
+                const newEventId = response.data.newEvent.event_id;
                 navigate(`../event/${newEventId}`);
             }
         } catch (error) {
@@ -161,7 +164,6 @@ const EventForm = () => {
 
     return (
         <div>
-            <Header />
             <div className='form'>
                 {/* Add if check here based on the passed ID, if present say Edit, if not say Create */}
                 <h1>{id ? "Edit Event" : "Create Event"}</h1>

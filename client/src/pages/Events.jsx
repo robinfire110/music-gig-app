@@ -3,9 +3,10 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Col, Row, Button } from "react-bootstrap";
-import Header from "../components/Header";
 import EventRow from "../components/EventRow";
 import "../styles/Events.css";
+import { useCookies } from "react-cookie";
+import { toast } from "react-toastify";
 
 const Events = () => {
 
@@ -61,7 +62,6 @@ const Events = () => {
 
     return (
         <div>
-            <Header />
             <hr />
             <Container style={{ textAlign: "left" }}>
                 <Form onSubmit={handleSearch}>
