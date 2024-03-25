@@ -35,5 +35,20 @@ module.exports = (sequelize, Sequelize, User, Event) => {
     sourceKey: "event_id",
   });
 
+  UserStatus.findByUserId = async function(userId) {
+    try {
+      const userStatuses = await UserStatus.findAll({
+        attributes: ['event_id'],
+        where: {
+          user_id: userId
+        },
+        raw: true
+      });
+      return userStatuses.map(status => status.event_id);
+    } catch (error) {
+      throw new Error('Error retrieving events by user_id: ' + error.message);
+    }
+  };
+
   return UserStatus;
 };

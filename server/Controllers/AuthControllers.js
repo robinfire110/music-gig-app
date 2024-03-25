@@ -159,3 +159,19 @@ module.exports.update_user = async (req, res, next) => {
 	}
 };
 
+
+module.exports.getUserEvents = async (req, res, next) => {
+	try {
+		const userId = req.user.user_id;
+		const eventIds = await db.UserStatus.findByUserId(userId);
+		console.log("ids for events")
+		console.log(eventIds);
+		const events = await db.Event.findByEventIds(eventIds);
+		console.log("the event objects")
+		console.log(events)
+	} catch (error) {
+		console.error('Error fetching user events:', error);
+		throw new Error('Failed to fetch user events');
+	}
+}
+

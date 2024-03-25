@@ -46,6 +46,18 @@ module.exports = (sequelize,Sequelize) => {
       defaultValue: false
     }
   });
+
+  Event.findByEventIds = async function(eventIds) {
+    try {
+      return await Event.findAll({
+        where: {
+          event_id: eventIds
+        }
+      });
+    } catch (error) {
+      throw new Error('Error retrieving events by event_ids: ' + error.message);
+    }
+  };
   
   return Event;
 };

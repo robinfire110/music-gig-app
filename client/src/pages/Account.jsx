@@ -8,10 +8,11 @@ import Spinner from 'react-bootstrap/Spinner';
 
 function Account() {
     const navigate = useNavigate();
-    const [cookies, , removeCookie] = useCookies([]);
-    const [userData, setUserData] = useState(null); // State to store user data
+    const [cookies, removeCookie] = useCookies([]);
+    const [userData, setUserData] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
-    const [loading, setLoading] = useState(true); // State to track loading status
+    const [gigs, setGigs] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const verifyUser = async () => {
@@ -35,6 +36,21 @@ function Account() {
 
         verifyUser();
     }, [cookies, navigate, removeCookie]);
+
+    useEffect(() => {
+        const fetchUserGigs = async () => {
+            try {
+                const { data } = await axios.get('http://localhost:5000/user-gigs', { withCredentials: true });
+                setGigs(data.gigs);
+            } catch (error) {
+                console.error('Error fetching user gigs:', error);
+            }
+        };
+
+        if (userData) {
+            fetchUserGigs();
+        }
+    }, [userData]);
 
     if (loading) {
         return <Spinner />;
