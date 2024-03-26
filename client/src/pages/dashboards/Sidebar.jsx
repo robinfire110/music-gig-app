@@ -7,18 +7,11 @@ function Sidebar({ handleLinkClick }) {
         <div className="custom-sidebar-container">
             <Nav className="custom-sidebar flex-column">
                 <Nav.Link
-                    onClick={() => handleLinkClick('editProfile')}
-                    href="#"
-                    className="custom-link"
-                >
-                    Profile
-                </Nav.Link>
-                <Nav.Link
                     onClick={() => handleLinkClick('gigs')}
                     href="#"
                     className="custom-link"
                 >
-                    Gigs
+                    Listings
                 </Nav.Link>
                 <Nav.Link
                     onClick={() => handleLinkClick('financials')}
@@ -26,6 +19,13 @@ function Sidebar({ handleLinkClick }) {
                     className="custom-link"
                 >
                     Financials
+                </Nav.Link>
+                <Nav.Link
+                    onClick={() => handleLinkClick('editProfile')}
+                    href="#"
+                    className="custom-link"
+                >
+                    Profile
                 </Nav.Link>
             </Nav>
         </div>

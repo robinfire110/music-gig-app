@@ -57,12 +57,18 @@ function EditProfile({ userData }) {
 			console.error('Error updating profile:', error);
 			toast.error('Failed to update profile');
 		}
-		console.log(formData);
+	};
+	const handleGoBackToDashboard = () => {
+		window.location.reload();
 	};
 
 
 	return (
-		<Container style={{ maxWidth: '600px' }}>
+
+		<Container style={{ maxWidth: '600px', position: 'relative' }}>
+			<div style={{ position: 'absolute', left: '0', top: '0' }}>
+				<Button variant="link" onClick={handleGoBackToDashboard} style={{ textDecoration: 'underline' }}>Go back to Dashboard</Button>
+			</div>
 			<h2>{formData.f_name}'s Profile</h2>
 			<Form onSubmit={handleSubmit}>
 				<Form.Group className="mb-3" controlId="formBasicEmail">

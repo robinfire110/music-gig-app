@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import UserDash from './dashboards/UserDash';
 import Sidebar from './dashboards/Sidebar';
 import Spinner from 'react-bootstrap/Spinner';
 import {Card, Col, Container, Row} from "react-bootstrap";
@@ -20,6 +19,7 @@ function Account() {
     const [gigs, setGigs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedContent, setSelectedContent] = useState('');
+
 
     useEffect(() => {
         const verifyUser = async () => {
@@ -69,7 +69,7 @@ function Account() {
             case 'editProfile':
                 return <EditProfile userData={userData} />;
             case 'gigs':
-                return <Gigs userData={userData} />;
+                return <Gigs userData={userData} gigs={gigs} />;
             case 'financials':
                 return <Financials userData={userData} />;
             default:
@@ -80,6 +80,7 @@ function Account() {
     if (loading) {
         return <Spinner />;
     }
+
     return (
         <Container fluid>
             <Row>
@@ -87,20 +88,26 @@ function Account() {
                     <Sidebar handleLinkClick={handleLinkClick} />
                 </Col>
                 <Col sm={10} style={{ padding: '20px', flexGrow: 1 }}>
-                    {/* Conditionally render cards only if no item is clicked */}
                     {selectedContent === '' && (
-                        <Row xs={1} md={2} className="g-4">
-                            {gigs.map((gig) => (
-                                <Col key={gig.event_id}>
-                                    <Card>
+                        <div>
+                            <h2 style={{ marginBottom: '20px', display: 'block' }}>User Dashboard</h2>
+                            <button
+                                style={{ marginTop: '20px', marginBottom: '20px', display: 'block', background: 'none', border: 'none', cursor: 'pointer' }}
+
+                            >
+                                <h4>Gigs</h4>
+                            </button>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+                                {gigs.slice(0, 3).map((gig) => (
+                                    <Card key={gig.event_id} style={{ width: 'calc(33.33% - 20px)' }}>
                                         <Card.Body>
                                             <Card.Title>{gig.event_name}</Card.Title>
                                             <Card.Text>{gig.description}</Card.Text>
                                         </Card.Body>
                                     </Card>
-                                </Col>
-                            ))}
-                        </Row>
+                                ))}
+                            </div>
+                        </div>
                     )}
                     {selectedContent && renderContent()}
                 </Col>
