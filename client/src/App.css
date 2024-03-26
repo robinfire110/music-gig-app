@@ -42,14 +42,27 @@
 
 /*Sidebar/Dashboard styling*/
 .custom-sidebar-container {
-  height: 100vh;
+  height: auto;
+  margin: 0;
+  position: relative; /* Ensure the container is positioned */
 }
 
 .custom-sidebar {
   margin-top: 50px;
-  width: 250px;
+  width: 200px;
   height: 100%;
 }
+
+.custom-sidebar-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0; /* Position the line break to the right */
+  width: 1px; /* Adjust the width of the line break */
+  height: 100%; /* Height extends to the full height of the container */
+  background-color: #000; /* Change the background color of the line break */
+}
+
 
 .custom-link {
   color: #000000;

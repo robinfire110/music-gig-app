@@ -1,7 +1,6 @@
 import React, {useState} from "react";
 import {Link, useNavigate} from 'react-router-dom';
 import {toast, ToastContainer} from 'react-toastify';
-import Header from "../components/Header";
 import { Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import '../App.css';
@@ -55,7 +54,6 @@ const Login = () => {
 
     return (
         <div>
-            <Header/>
             <div className="login-container">
                 <div className="container-login" style={{ maxWidth: '600px' }}>
                     <h2>Login</h2>
