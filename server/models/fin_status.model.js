@@ -29,5 +29,23 @@ module.exports = (sequelize, Sequelize, User, Financial) => {
     foreignKeyConstraint: true,
     sourceKey: "fin_id",
   });
+
+  FinStatus.getFinIdsByUserId = async function(userId) {
+    try {
+      const userFinIds = await FinStatus.findAll({
+        attributes: ['fin_id'],
+        where: {
+          user_id: userId
+        },
+        raw: true
+      });
+      return userFinIds.map(financial => financial.fin_id);
+    } catch (error) {
+      console.error('Error retrieving fin_ids:', error);
+      throw error;
+    }
+  };
+
+
   return FinStatus;
 };

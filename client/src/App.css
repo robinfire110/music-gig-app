@@ -37,8 +37,55 @@
   }
 }
 
-/*.container-login {*/
-/*  background-color: white;*/
-/*  padding: 1rem 3rem 2rem;*/
-/*  border-radius: 0.5rem;*/
-/*}*/
+
+
+
+/*Sidebar/Dashboard styling*/
+.custom-sidebar-container {
+  height: auto;
+  margin: 0;
+  position: relative;
+}
+
+.custom-sidebar {
+  margin-top: 50px;
+  width: 200px;
+  height: 100%;
+  position: relative; /* Add this to make the line break absolute positioning relative to this container */
+}
+
+.custom-sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50px; /* Adjust this value to position the line break closer to the nav items */
+  width: 1px;
+  height: 100%;
+  background-color: #000;
+}
+
+
+
+.custom-link {
+  color: #000000;
+  text-decoration: none;
+}
+
+.custom-link:hover {
+  color: #834248
+}
+
+.custom-link.active {
+  color: #bd4d58;
+}
+
+/*Login*/
+.login-container {
+  margin-top: 100px;
+  display: flex;
+  justify-content: center;
+}
+
+.container-login {
+  width: 300px;
+}

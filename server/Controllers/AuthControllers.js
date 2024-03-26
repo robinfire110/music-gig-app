@@ -137,3 +137,56 @@ module.exports.account = async (req, res, next) => {
 };
 
 
+module.exports.update_user = async (req, res, next) => {
+	try {
+		const { f_name, l_name, zip, instruments, bio } = req.body;
+		const userId = req.user.user_id;
+
+		const newData = {
+			f_name,
+			l_name,
+			zip,
+			instruments,
+			bio
+		};
+
+		await db.User.updateUser(userId, newData);
+
+		res.status(200).json({ success: true });
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
+
+module.exports.getUserEvents = async (req, res, next) => {
+	try {
+		const userId = req.user.user_id;
+		const eventIds = await db.UserStatus.findByUserId(userId);
+		const events = await db.Event.findByEventIds(eventIds);
+		const cleanedEvents = events.map(event => event.dataValues);
+
+		res.status(200).json({ userGigs: cleanedEvents });
+	} catch (error) {
+		console.error('Error fetching user events:', error);
+		throw new Error('Failed to fetch user events');
+	}
+}
+
+
+module.exports.getUserFinancials = async (req,res, next) => {
+	try {
+		const userId = req.user.user_id;
+		const finIds = await  db.FinStatus.getFinIdsByUserId(userId);
+		const financials = await db.Financial.getFinancialsByFinIds(finIds);
+		const cleanedFinancials = financials.map(financial => financial.dataValues);
+
+		res.status(200).json({ userFinancials: cleanedFinancials });
+	}catch (error){
+		console.error('Error fetching user events:', error);
+		throw new Error('Failed to fetch user financails');
+	}
+}
+
+
