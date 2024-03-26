@@ -49,11 +49,11 @@ function EditProfile({ userData }) {
 			});
 			if (response.data.success) {
 				toast.success('Profile updated successfully');
+				window.location.reload()
 			} else {
 				toast.error('Failed to update profile');
 			}
 		} catch (error) {
-			// Show error toast notification if request fails
 			console.error('Error updating profile:', error);
 			toast.error('Failed to update profile');
 		}

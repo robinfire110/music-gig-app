@@ -44,7 +44,7 @@
 .custom-sidebar-container {
   height: auto;
   margin: 0;
-  position: relative; /* Ensure the container is positioned */
+  position: relative;
 }
 
 .custom-sidebar {
@@ -57,10 +57,10 @@
   content: '';
   position: absolute;
   top: 0;
-  right: 0; /* Position the line break to the right */
-  width: 1px; /* Adjust the width of the line break */
-  height: 100%; /* Height extends to the full height of the container */
-  background-color: #000; /* Change the background color of the line break */
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background-color: #000;
 }
 
 
