@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { saveSpreadsheetAll } from '../../Utils';
 
 function Financials({ financials }) {
 	const navigate = useNavigate();
@@ -22,6 +23,15 @@ function Financials({ financials }) {
 		}
 	};
 
+	const handleExportToPDF = () => {
+		const dataArray = [];
+		for (let i = 0; i < selectedRows.length; i++)
+		{
+			dataArray.push(financials[selectedRows[i]]);
+		}
+		saveSpreadsheetAll(dataArray);
+	}
+
 	if (!Array.isArray(financials) || financials.length === 0) {
 		return <p>No financial data available.</p>;
 	}
@@ -36,7 +46,7 @@ function Financials({ financials }) {
 
 				<div>
 					<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewCalc}>Calculate New Wage </Button>
-					<Button variant="success"  disabled={selectedRows.length === 0}>Export to PDF</Button>
+					<Button variant="success" disabled={selectedRows.length === 0} onClick={handleExportToPDF}>Export to PDF</Button>
 				</div>
 			</div>
 			<Table striped bordered hover>
