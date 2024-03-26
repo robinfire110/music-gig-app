@@ -43,9 +43,7 @@ function EventCard({eventId}) {
             </Card.Header>
             <Card.Body>
                 <Card.Text style={{overflow: "clip", maxHeight: "100px"}}>
-                    <p>
                         {eventData && (eventData.description.length > descriptionCharacterLimit ?`${eventData.description.substring(0, descriptionCharacterLimit)}...` : eventData.description)}
-                    </p>
                 </Card.Text>                
             </Card.Body>
             <Card.Footer>
