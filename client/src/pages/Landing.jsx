@@ -32,7 +32,16 @@ function Landing() {
                 axios.get(`http://localhost:5000/user/id/${res.data.user.user_id}`).then(async res => {
                     const userData = res.data;
                     setUser(userData);
-                    setUserEvents(userData.Events)
+
+                    //Set user events
+                    const userEventList = [];
+                    userData.Events.forEach(event => {
+                        if (event.UserStatus.status == "owner")
+                        {
+                            userEventList.push(event);
+                        }
+                    });
+                    if (userEventList.length > 0) setUserEvents(userEventList);
 
                     //Get list of instrument ids
                     const instruments = userData.Instruments;
@@ -42,40 +51,56 @@ function Landing() {
                     })
 
                     //Get event data
-                    axios.get(`http://localhost:5000/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${25}`).then(res => {
-                        //Get list of locations
-                        const instrumentEventSearch = res.data;
-                        const zipList = [];
-                        res.data.forEach(event => {
-                            zipList.push(event.Address.zip);
-                        });
+                    if (instrumentSearch.length > 0)
+                    {
+                        axios.get(`http://localhost:5000/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${25}`).then(res => {
+                            //Get list of locations
+                            const instrumentEventSearch = res.data;
+                            const zipList = [];
+                            res.data.forEach(event => {
+                                zipList.push(event.Address.zip);
+                            });
 
-                        //Sort by location
-                        axios.get(`http://localhost:5000/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
-                            const distanceMatrixData = res.data.rows[0].elements;
-                            //Add to data
-                            for (let i = 0; i < instrumentEventSearch.length; i++)
-                            {
-                                if (distanceMatrixData[i].status == "OK" && distanceMatrixData[i].distance)
+                            //Sort by location
+                            axios.get(`http://localhost:5000/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
+                                const distanceMatrixData = res.data.rows[0].elements;
+                                //Add to data
+                                for (let i = 0; i < instrumentEventSearch.length; i++)
                                 {
-                                    instrumentEventSearch[i]["distance"] = distanceMatrixData[i].distance.value;
+                                    if (distanceMatrixData[i].status == "OK" && distanceMatrixData[i].distance)
+                                    {
+                                        instrumentEventSearch[i]["distance"] = distanceMatrixData[i].distance.value;
+                                    }
+                                    else 
+                                    {
+                                        instrumentEventSearch[i]["distance"] = 9999;
+                                    }
                                 }
-                                else 
-                                {
-                                    instrumentEventSearch[i]["distance"] = 9999;
-                                }
-                            }
 
-                            //Sort
-                            instrumentEventSearch.sort((a, b) => a.distance - b.distance);
-                            console.log(instrumentEventSearch);
-                            setRelevantEvents(instrumentEventSearch);
-                            setIsLoading(false);
+                                //Sort
+                                instrumentEventSearch.sort((a, b) => a.distance - b.distance);
+                                console.log(instrumentEventSearch);
+                                setRelevantEvents(instrumentEventSearch);
+                                setIsLoading(false);
+                            }).catch(error => {
+                                console.log(error);
+                                setIsLoading(false);
+                            });
                         }).catch(error => {
                             console.log(error);
                             setIsLoading(false);
                         });
-                    });
+                    }
+                    else
+                    {
+                        //Get recent
+                        axios.get(`http://localhost:5000/event/recent/10`).then(res => {
+                            setRecentEvents(res.data);
+                            setIsLoading(false);
+                        }).catch(error => {
+                            console.log(error);
+                        });
+                    }
                 }).catch(error => {
                     console.log(error);
                     setIsLoading(false);
@@ -108,17 +133,17 @@ function Landing() {
                 <h2>Events For You</h2>
                 <br />
                 <br />
-                {isLoading ? <ClipLoader /> : <EventHorizontalScroll data={relevantEvents} persistantArrows={true}/>}
+                {isLoading ? <ClipLoader /> : <EventHorizontalScroll data={relevantEvents ? relevantEvents : recentEvents} persistantArrows={true}/>}
                 <br />
                 <Button variant='secondary' href="/eventsearch">View all events</Button>
                 <hr />
                 <h2>Your Listed Events</h2>
                 <br />
                 <br />
-                {isLoading ? <ClipLoader /> : <EventHorizontalScroll data={userEvents} persistantArrows={true}/>}
+                {isLoading ? <ClipLoader /> : userEvents ? <EventHorizontalScroll data={userEvents} persistantArrows={true}/> : <Button variant='primary' href="/form">Create an event!</Button>}
                 <br />
                 <br />
-                <Button variant='secondary' href="/login">Manage Events</Button>
+                {isLoading ? null : userEvents && <Button variant='secondary' href="/login">Manage Events</Button>}
                 </>
             )
         }
@@ -135,7 +160,7 @@ function Landing() {
                 <h2>Your Listed Events</h2>
                 <br />
                 <br />
-                <Button variant='primary' href="/account">Login/Register now to create events!</Button>
+                {!isLoading && <Button variant='primary' href="/account">Login/Register now to create events!</Button>}
                 </>
             )
         }
