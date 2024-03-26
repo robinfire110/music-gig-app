@@ -17,6 +17,7 @@ function Account() {
     const [userData, setUserData] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [gigs, setGigs] = useState([]);
+    const [financials, setFinancials] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedContent, setSelectedContent] = useState('');
 
@@ -60,6 +61,26 @@ function Account() {
         }
     }, [userData]);
 
+    useEffect(() => {
+        const fetchUserFinancials = async () => {
+            try {
+                if (!userData || !userData.user_id) {
+                    console.error('User data or user_id is not available');
+                    return;
+                }
+                const { data } = await axios.get(`http://localhost:5000/user-financials`, { withCredentials: true });
+                setFinancials(data.userFinancials);
+                console.log(data.userFinancials);
+            } catch (error) {
+                console.error('Error fetching user financials:', error);
+            }
+        };
+
+        if (userData) {
+            fetchUserFinancials();
+        }
+    }, [userData]);
+
     const handleLinkClick = (content) => {
         setSelectedContent(content);
     };
@@ -71,7 +92,7 @@ function Account() {
             case 'gigs':
                 return <Gigs userData={userData} gigs={gigs} />;
             case 'financials':
-                return <Financials userData={userData} />;
+                return <Financials userData={userData} financials={financials} />;
             default:
                 return null;
         }

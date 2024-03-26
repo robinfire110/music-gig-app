@@ -84,5 +84,18 @@ module.exports = (sequelize, Sequelize, Event) => {
     onDelete: 'CASCADE'
   });
 
+  Financial.getFinancialsByFinIds = async (finIds) => {
+    try {
+      return await Financial.findAll({
+        where: {
+          fin_id: finIds
+        }
+      });
+    } catch (error) {
+      console.error('Error retrieving financials:', error);
+      throw error;
+    }
+  };
+
   return Financial;
 };

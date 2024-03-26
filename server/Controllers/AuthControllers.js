@@ -175,3 +175,18 @@ module.exports.getUserEvents = async (req, res, next) => {
 }
 
 
+module.exports.getUserFinancials = async (req,res, next) => {
+	try {
+		const userId = req.user.user_id;
+		const finIds = await  db.FinStatus.getFinIdsByUserId(userId);
+		const financials = await db.Financial.getFinancialsByFinIds(finIds);
+		const cleanedFinancials = financials.map(financial => financial.dataValues);
+
+		res.status(200).json({ userFinancials: cleanedFinancials });
+	}catch (error){
+		console.error('Error fetching user events:', error);
+		throw new Error('Failed to fetch user financails');
+	}
+}
+
+
