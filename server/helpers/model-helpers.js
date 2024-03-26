@@ -51,7 +51,6 @@ async function getGasPrices() {
             const gasPrice = $(row).find('td.regular').text().replace(/[^0-9.]/g, '')
             if (stateName != "")
             {
-                console.log(stateName);
                 await db.GasPrice.upsert({location: stateCodes[`${stateName}`], average_price: gasPrice});  
             } 
         });
