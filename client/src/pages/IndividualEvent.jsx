@@ -22,6 +22,7 @@ const IndividualEvent = () => {
     const [cookies, removeCookie] = useCookies([]);
     const [userId, setUserId] = useState(null) //Current user's id set here
     const [ownerId, setOwnerId] = useState(null) //get the owner's id here
+    const [applications, setApplications] = useState([]);
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -43,18 +44,23 @@ const IndividualEvent = () => {
             }
         }
 
-
         const fetchEvent = async () => {
             try {
                 //fetch the id from host running server, this will be changed in hosted version
                 const res = await fetch(`http://localhost:5000/event/id/${id}`)
                 const data = await res.json();
+
                 setEvent(data)
                 setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
+
+                const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
+                setApplications(appliedUsers);
+
             } catch (err) {
                 console.log(err)
             }
         }
+
         fetchUserData();
         fetchEvent();
     }, [id])
@@ -86,6 +92,16 @@ const IndividualEvent = () => {
         return time.toLocaleTimeString([], timeZoneSet);
     }
 
+    const handleAddApplication = async e => {
+        //grab the user's id from the page, add a user to the event with status "applied"
+        const applicationData = { status: 'applied' }
+        try {
+            await axios.post(`http://localhost:5000/event/users/${id}/${userId}`, applicationData)
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
     return (
         <div>
             <hr />
@@ -94,9 +110,7 @@ const IndividualEvent = () => {
                     <Col style={{ display: 'flex', justifyContent: 'left' }}>
                         <div className="key-item" style={{ fontSize: "30px" }}> {event.event_name} - {formatDate(event.start_time)}</div>
                     </Col>
-                    {/* Add logic here to check user's login status and compare id, if matched display update button, if not display send to calculator button */}
                     <Col style={{ display: 'flex', justifyContent: 'right', gap: '20px' }}>
-                        {/* Check if current user is event owner */}
                         {isEventOwner() ? (
                             <Link to={`/form/${id}`} style={{ color: "#fff" }}>
                                 <Button className="editEvent">Edit Event</Button>
@@ -202,11 +216,26 @@ const IndividualEvent = () => {
                 </Container>
             </Container>
 
-            {/* NEW <Container> to hold applications from musician users if the user's id matches the event owner's id 
-                OR just make it a big apply button if they're not the owner (they're a musician looking to apply)
-            */}
-            <Container className="application-container">
-
+            <Container className="application-container" style={{ marginTop: '2rem' }}>
+                {/* Also add check for if the user is logged in in the first place, if not don't show either of these things */}
+                {isEventOwner() ? (
+                    <Container className="applications">
+                        <Row className="mb-3" xs={1} lg={2}>
+                            <Col lg="2">
+                                {applications.map((user) => {
+                                    <Row>
+                                        <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }}>{user.f_name} {user.l_name}</Link>
+                                    </Row>
+                                })}
+                            </Col>
+                        </Row>
+                    </Container>
+                ) : (
+                    /* also add check for if the user has already applied (is present in the UserStatus table for this event && is status applied) 
+                        if already applied, change button to withdraw and add handleWithdrawApplication to make a put over application
+                    */
+                    <Button className="applyButton" onClick={handleAddApplication}>Apply to Event</Button>
+                )}
             </Container>
         </div>
     )
