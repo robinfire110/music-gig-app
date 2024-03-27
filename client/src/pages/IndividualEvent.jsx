@@ -3,7 +3,8 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Container, Form, Col, Row, InputGroup, Button } from "react-bootstrap"; // Bootstrap imports
+import { Container, Col, Row, Button } from "react-bootstrap"; // Bootstrap imports
+import { useCookies } from "react-cookie";
 import "../styles/IndividualEvent.css";
 
 const IndividualEvent = () => {
@@ -18,27 +19,30 @@ const IndividualEvent = () => {
         Users: []
     })
 
+    const [cookies, removeCookie] = useCookies([]);
     const [userId, setUserId] = useState(null) //Current user's id set here
     const [ownerId, setOwnerId] = useState(null) //get the owner's id here
     const { id } = useParams();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     useEffect(() => {
 
         //get user
         const fetchUserData = async () => {
-            try {
-                axios.get('http://localhost:5000/account', { withCredentials: true }).then(res => {
-                    if (res.data?.user) {
-                        const userData = res.data.user;
-                        setUserId(userData);
-                    }
-                }) 
-            } catch (err) {
-                console.log(err)
+            if (cookies.jwt) {
+                try {
+                    axios.get('http://localhost:5000/account', { withCredentials: true }).then(res => {
+                        if (res.data?.user) {
+                            const userData = res.data.user;
+                            setUserId(userData);
+                        }
+                    })
+                } catch (err) {
+                    console.log(err)
+                }
             }
         }
-        
+
 
         const fetchEvent = async () => {
             try {

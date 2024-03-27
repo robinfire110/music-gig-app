@@ -5,8 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { Container, Form, Col, Row, Button } from "react-bootstrap";
 import EventRow from "../components/EventRow";
 import "../styles/Events.css";
-import { useCookies } from "react-cookie";
-import { toast } from "react-toastify";
 
 const Events = () => {
 
