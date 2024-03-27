@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Header from "../components/Header";
 import { Container, Form, Col, Row, Button } from "react-bootstrap";
 import moment from "moment";
+import { useCookies } from "react-cookie";
 
 const EventForm = () => {
     const [event, setEvent] = useState({
@@ -24,6 +24,7 @@ const EventForm = () => {
         state: ""
     })
 
+    const [cookies, removeCookie] = useCookies([]);
     const [userId, setUserId] = useState(null); //NOTE: REPLACE WITH PROPER ACCOUNT ID WHEN IMPLEMENTED
     const [instruments, setInstruments] = useState([])
     const [selectedInstrument, setSelectedInstrument] = useState("")
@@ -45,12 +46,14 @@ const EventForm = () => {
             setInstruments(data);
 
             //get user
-            axios.get('http://localhost:5000/account', { withCredentials: true }).then(res => {
-                if (res.data?.user) {
-                    const userData = res.data.user;
-                    setUserId(userData);
-                }
-            })
+            if (cookies.jwt) {
+                axios.get('http://localhost:5000/account', { withCredentials: true }).then(res => {
+                    if (res.data?.user) {
+                        const userData = res.data.user;
+                        setUserId(userData);
+                    }
+                })
+            }
 
             if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
                 const res = await fetch(`http://localhost:5000/event/id/${id}`);
