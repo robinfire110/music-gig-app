@@ -96,7 +96,16 @@ const IndividualEvent = () => {
         //grab the user's id from the page, add a user to the event with status "applied"
         const applicationData = { status: 'applied' }
         try {
-            await axios.post(`http://localhost:5000/event/users/${id}/${userId}`, applicationData)
+            await axios.post(`http://localhost:5000/event/users/${id}/${userId.user_id}`, applicationData)
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const handleWithdrawApplication = async e => {
+        const applicationData = { status: 'withdraw' }
+        try {
+            await axios.put(`http://localhost:5000/event/users/${id}/${userId.user_id}`, applicationData)
         } catch (err) {
             console.log(err)
         }
@@ -218,23 +227,30 @@ const IndividualEvent = () => {
 
             <Container className="application-container" style={{ marginTop: '2rem' }}>
                 {/* Also add check for if the user is logged in in the first place, if not don't show either of these things */}
-                {isEventOwner() ? (
-                    <Container className="applications">
-                        <Row className="mb-3" xs={1} lg={2}>
-                            <Col lg="2">
-                                {applications.map((user) => {
-                                    <Row>
-                                        <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }}>{user.f_name} {user.l_name}</Link>
-                                    </Row>
-                                })}
-                            </Col>
-                        </Row>
-                    </Container>
+                {userId ? (
+                    <>
+                        {isEventOwner() ? (
+                            <Container className="applications">
+                                <Row className="mb-3" xs={1} lg={2}>
+                                    <Col lg="2">
+                                        {applications.map((user, index) => (
+                                            <Row key={index}>
+                                                <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }}>{user.f_name} {user.l_name}</Link>
+                                            </Row>
+                                        ))}
+                                    </Col>
+                                </Row>
+                            </Container>
+                        ) : (
+                            applications.some(user => user.user_id === userId.user_id && user.UserStatus.status === 'applied') ? (
+                                <Button className="withdrawButton" onClick={handleWithdrawApplication}>Withdraw from Event</Button>
+                            ) : (
+                                <Button className="applyButton" onClick={handleAddApplication}>Apply to Event</Button>
+                            )
+                        )}
+                    </>
                 ) : (
-                    /* also add check for if the user has already applied (is present in the UserStatus table for this event && is status applied) 
-                        if already applied, change button to withdraw and add handleWithdrawApplication to make a put over application
-                    */
-                    <Button className="applyButton" onClick={handleAddApplication}>Apply to Event</Button>
+                    <Button variant='primary' href="/account">Please log in to apply for this event!</Button>
                 )}
             </Container>
         </div>
