@@ -230,16 +230,20 @@ const IndividualEvent = () => {
                 {userId ? (
                     <>
                         {isEventOwner() ? (
-                            <Container className="applications">
-                                <Row className="mb-3" xs={1} lg={2}>
-                                    <Col lg="2">
-                                        {applications.map((user, index) => (
-                                            <Row key={index}>
-                                                <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }}>{user.f_name} {user.l_name}</Link>
-                                            </Row>
-                                        ))}
-                                    </Col>
-                                </Row>
+                            <Container className="applications" style={{ textAlign: "left" }}>
+                                <h3>Pending Applications</h3>
+                                <hr />
+                                {applications.map((user, index) => (
+                                    <Row key={index} style={{ marginBottom: '1rem', alignItems: "center", textAlign: "left"}}>
+                                        <Col>
+                                            <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }} className="user-profile-link">
+                                                {user.f_name} {user.l_name}
+                                            </Link>
+                                        </Col>
+                                        <Col xs="auto"><Button variant="success">Accept</Button></Col>
+                                        <Col xs="auto"><Button variant="danger">Reject</Button></Col>
+                                    </Row>
+                                ))}
                             </Container>
                         ) : (
                             applications.some(user => user.user_id === userId.user_id && user.UserStatus.status === 'applied') ? (
