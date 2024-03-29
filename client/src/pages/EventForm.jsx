@@ -174,6 +174,16 @@ const EventForm = () => {
         }
     }
 
+    const handleDeleteEvent = async e => {
+        e.preventDefault()
+        try {
+            const response = await axios.delete(`http://localhost:5000/event/${id}`)
+            navigate("/")
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
     const isEventOwner = () => {
         return ownerId && userId && ownerId === userId.user_id
     }
@@ -327,17 +337,29 @@ const EventForm = () => {
                         </Form>
                     </Container>
                     {/* Add if else logic: If event=true (Event is being updated), update event, else (this is a new event) list event */}
-                    <Button className="formButton" onClick={handleEvent} style={{ marginBottom: "2em", marginTop: "2em" }}>
-                        {id ? "Update Event" : "List Event"}
-                    </Button>
+                    <div style={{ marginBottom: "2em", marginTop: "2em" }}>
+                        {id ? (
+                            <div className="update-delete">
+                                <Button className="formButton" variant="success" onClick={handleEvent} style={{ marginRight: '10px'}}>Update Event</Button>
+                                <Button className="formButton" variant="danger" onClick={handleDeleteEvent} style={{ marginLeft: '10px'}}>Delete Event</Button>
+                            </div>
+                        ) : (
+                            <Button>
+                                <div className="create-event">
+                                    <Button className="formButton" onClick={handleEvent}>List Event</Button>
+                                </div>
+                            </Button>
+                        )}
+                    </div>
+
                 </div>
             </div>
         )
     } else {
-        if(loading) {
+        if (loading) {
             return <ClipLoader />
         }
-        if(userId) {
+        if (userId) {
             return (
                 <div>
                     <div className="id-mismatch">
