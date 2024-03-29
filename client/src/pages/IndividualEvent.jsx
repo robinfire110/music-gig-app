@@ -5,6 +5,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Container, Col, Row, Button } from "react-bootstrap"; // Bootstrap imports
 import { useCookies } from "react-cookie";
+import { ClipLoader } from "react-spinners";
 import "../styles/IndividualEvent.css";
 
 const IndividualEvent = () => {
@@ -22,6 +23,7 @@ const IndividualEvent = () => {
     const [cookies, removeCookie] = useCookies([]);
     const [userId, setUserId] = useState(null) //Current user's id set here
     const [ownerId, setOwnerId] = useState(null) //get the owner's id here
+    const [loading, setLoading] = useState(true);
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -46,11 +48,11 @@ const IndividualEvent = () => {
 
         const fetchEvent = async () => {
             try {
-                //fetch the id from host running server, this will be changed in hosted version
                 const res = await fetch(`http://localhost:5000/event/id/${id}`)
                 const data = await res.json();
                 setEvent(data)
                 setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
+                setLoading(false);
             } catch (err) {
                 console.log(err)
             }
@@ -84,6 +86,10 @@ const IndividualEvent = () => {
             minute: '2-digit',
         }
         return time.toLocaleTimeString([], timeZoneSet);
+    }
+
+    if(loading) {
+        return <ClipLoader />;
     }
 
     return (
