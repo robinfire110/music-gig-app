@@ -5,6 +5,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Container, Col, Row, Button } from "react-bootstrap"; // Bootstrap imports
 import { useCookies } from "react-cookie";
+import { ClipLoader } from "react-spinners";
 import "../styles/IndividualEvent.css";
 
 const IndividualEvent = () => {
@@ -25,6 +26,7 @@ const IndividualEvent = () => {
     const [applications, setApplications] = useState([]);
     const [accepted, setAccepted] = useState([]);
     const [rejected, setRejected] = useState([]);
+    const [loading, setLoading] = useState(true);
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -48,7 +50,6 @@ const IndividualEvent = () => {
 
         const fetchEvent = async () => {
             try {
-                //fetch the id from host running server, this will be changed in hosted version
                 const res = await fetch(`http://localhost:5000/event/id/${id}`)
                 const data = await res.json();
 
@@ -62,6 +63,7 @@ const IndividualEvent = () => {
                 setAccepted(acceptedUsers);
                 setRejected(rejectedUsers);
 
+                setLoading(false);
             } catch (err) {
                 console.log(err)
             }
@@ -146,6 +148,10 @@ const IndividualEvent = () => {
         } catch (err) {
             console.log(err)
         }
+    }
+
+    if(loading) {
+        return <ClipLoader />;
     }
 
     return (
