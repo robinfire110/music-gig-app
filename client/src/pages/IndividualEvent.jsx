@@ -23,6 +23,8 @@ const IndividualEvent = () => {
     const [userId, setUserId] = useState(null) //Current user's id set here
     const [ownerId, setOwnerId] = useState(null) //get the owner's id here
     const [applications, setApplications] = useState([]);
+    const [accepted, setAccepted] = useState([]);
+    const [rejected, setRejected] = useState([]);
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -54,7 +56,11 @@ const IndividualEvent = () => {
                 setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
 
                 const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
+                const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
+                const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
                 setApplications(appliedUsers);
+                setAccepted(acceptedUsers);
+                setRejected(rejectedUsers);
 
             } catch (err) {
                 console.log(err)
@@ -92,13 +98,23 @@ const IndividualEvent = () => {
         return time.toLocaleTimeString([], timeZoneSet);
     }
 
-    const handleAddApplication = async e => {
-        //grab the user's id from the page, add a user to the event with status "applied"
-        const applicationData = { status: 'applied' }
-        try {
-            await axios.post(`http://localhost:5000/event/users/${id}/${userId.user_id}`, applicationData)
-        } catch (err) {
-            console.log(err)
+    const handleAddApplication = async (user) => {
+        if (user) { //user getting moved back to pending
+            const applicationData = { status: 'applied' }
+            try {
+                await axios.put(`http://localhost:5000/event/users/${id}/${user.user_id}`, applicationData)
+                window.location.reload();
+            } catch (err) {
+                console.log(err)
+            }
+        } else { //grab the user's id from the page, add a user to the event with status "applied"
+            const applicationData = { status: 'applied' }
+            try {
+                await axios.post(`http://localhost:5000/event/users/${id}/${userId.user_id}`, applicationData)
+                window.location.reload();
+            } catch (err) {
+                console.log(err)
+            }
         }
     }
 
@@ -106,6 +122,27 @@ const IndividualEvent = () => {
         const applicationData = { status: 'withdraw' }
         try {
             await axios.put(`http://localhost:5000/event/users/${id}/${userId.user_id}`, applicationData)
+            window.location.reload();
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const handleAcceptApplication = async (user) => {
+        const applicationData = { status: 'accept' }
+        try {
+            await axios.put(`http://localhost:5000/event/users/${id}/${user.user_id}`, applicationData)
+            window.location.reload();
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const handleRejectApplication = async (user) => {
+        const applicationData = { status: 'reject' }
+        try {
+            await axios.put(`http://localhost:5000/event/users/${id}/${user.user_id}`, applicationData)
+            window.location.reload();
         } catch (err) {
             console.log(err)
         }
@@ -227,6 +264,7 @@ const IndividualEvent = () => {
 
             <Container className="application-container" style={{ marginTop: '2rem' }}>
                 {/* Also add check for if the user is logged in in the first place, if not don't show either of these things */}
+                {/* Need 4 checks, apply to event if not applied, withdraw from event if applied, show you've been accepted if accepted, show you've been rejected if rejected. */}
                 {userId ? (
                     <>
                         {isEventOwner() ? (
@@ -234,14 +272,47 @@ const IndividualEvent = () => {
                                 <h3>Pending Applications</h3>
                                 <hr />
                                 {applications.map((user, index) => (
-                                    <Row key={index} style={{ marginBottom: '1rem', alignItems: "center", textAlign: "left"}}>
-                                        <Col>
+                                    <Row key={index} style={{ marginBottom: '1rem', alignItems: "center", textAlign: "left" }}>
+                                        <Col sm="1">
                                             <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }} className="user-profile-link">
                                                 {user.f_name} {user.l_name}
                                             </Link>
                                         </Col>
-                                        <Col xs="auto"><Button variant="success">Accept</Button></Col>
-                                        <Col xs="auto"><Button variant="danger">Reject</Button></Col>
+                                        <Col sm="1"><Button variant="success" onClick={() => handleAcceptApplication(user)}>Accept</Button></Col>
+                                        <Col sm="1"><Button variant="danger" onClick={() => handleRejectApplication(user)}>Reject</Button></Col>
+                                    </Row>
+                                ))}
+                                <hr />
+                                <h3>Accepted Applications</h3>
+                                <hr />
+                                {accepted.map((user, index) => (
+                                    <Row key={index} style={{ marginBottom: '1rem', alignItems: "center", textAlign: "left" }}>
+                                        <Col sm="1">
+                                            <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }} className="user-profile-link">
+                                                {user.f_name} {user.l_name}
+                                            </Link>
+                                        </Col>
+                                        <Col sm="2">
+                                            <Button onClick={() => handleAddApplication(user)}>Move to Pending</Button>
+                                        </Col>
+                                        <Col sm="2">
+                                            <Button variant="danger" onClick={() => handleRejectApplication(user)}>Reject</Button>
+                                        </Col>
+                                    </Row>
+                                ))}
+                                <hr />
+                                <h3>Rejected Applications</h3>
+                                <hr />
+                                {rejected.map((user, index) => (
+                                    <Row key={index} style={{ marginBottom: '1rem', alignItems: "center", textAlign: "left" }}>
+                                        <Col sm="1">
+                                            <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }} className="user-profile-link">
+                                                {user.f_name} {user.l_name}
+                                            </Link>
+                                        </Col>
+                                        <Col sm="2">
+                                            <Button onClick={() => handleAddApplication(user)}>Move to Pending</Button>
+                                        </Col>
                                     </Row>
                                 ))}
                             </Container>
@@ -249,7 +320,16 @@ const IndividualEvent = () => {
                             applications.some(user => user.user_id === userId.user_id && user.UserStatus.status === 'applied') ? (
                                 <Button className="withdrawButton" onClick={handleWithdrawApplication}>Withdraw from Event</Button>
                             ) : (
-                                <Button className="applyButton" onClick={handleAddApplication}>Apply to Event</Button>
+                                accepted.some(user => user.user_id === userId.user_id && user.UserStatus.status === 'accept') ? (
+                                    <h4>You've been accepted for this event, get in touch with <Link to={`/profile/${event.Users[0].user_id}`} style={{ color: "#000" }}>{event.Users[0].f_name} {event.Users[0].l_name}</Link> for more details!
+                                    </h4>
+                                ) : (
+                                    rejected.some(user => user.user_id === userId.user_id && user.UserStatus.status === 'reject') ? (
+                                        <h4>You've not been chosen to participate in this event.</h4>
+                                    ) : (
+                                        <Button className="applyButton" onClick={handleAddApplication}>Apply to Event</Button>
+                                    )
+                                )
                             )
                         )}
                     </>
