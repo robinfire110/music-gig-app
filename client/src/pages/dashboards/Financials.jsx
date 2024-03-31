@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Button, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { saveSpreadsheetAll } from '../../Utils';
+
 
 function Financials({ financials }) {
 	const navigate = useNavigate();
@@ -22,6 +24,23 @@ function Financials({ financials }) {
 		}
 	};
 
+	const handleExportAllToSpreadsheet = () => {
+		const selectedData = financials.filter((financial, index) => selectedRows.includes(index));
+		if(selectedData.length > 0) {
+			saveSpreadsheetAll(selectedData);
+		} else {
+			alert("No rows selected for export.");
+		}
+	};
+
+	const handleExportToSpreadsheet = () => {
+		selectedRows.forEach(index => {
+			const selectedData = [financials[index]];
+			saveSpreadsheetAll(selectedData, selectedData[0].fin_name );
+		});
+	};
+
+
 	if (!Array.isArray(financials) || financials.length === 0) {
 		return <p>No financial data available.</p>;
 	}
@@ -36,7 +55,8 @@ function Financials({ financials }) {
 
 				<div>
 					<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewCalc}>Calculate New Wage </Button>
-					<Button variant="success"  disabled={selectedRows.length === 0}>Export to PDF</Button>
+					<Button variant="success"  onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export All to Spread Sheet</Button>
+					<Button variant="success"  onClick={handleExportToSpreadsheet} disabled={selectedRows.length === 0}>Export Individual Spread Sheet</Button>
 				</div>
 			</div>
 			<Table striped bordered hover>
