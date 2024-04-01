@@ -4,6 +4,7 @@ import {toast, ToastContainer} from 'react-toastify';
 import { Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import '../App.css';
+const { REACT_APP_BACKEND_URL } = process.env;
 
 
 const Login = () => {
@@ -28,7 +29,7 @@ const Login = () => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
-            const {data} =  await axios.post("http://localhost:5000/login", {
+            const {data} =  await axios.post(`http://${REACT_APP_BACKEND_URL}/login`, {
                 ...values,
             }, {
                 withCredentials:true,

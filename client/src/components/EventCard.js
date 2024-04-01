@@ -3,6 +3,7 @@ import { Card, Button } from 'react-bootstrap';
 import axios from 'axios';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
+const { REACT_APP_BACKEND_URL } = process.env
 
 function EventCard({eventId}) {
     //Get Data
@@ -12,7 +13,7 @@ function EventCard({eventId}) {
     
     //Call API
     useEffect(() => {
-        axios.get(`http://localhost:5000/event/id/${eventId}`).then(res => {
+        axios.get(`http://${REACT_APP_BACKEND_URL}/event/id/${eventId}`).then(res => {
             //Set data
             setEventData(res.data);
 
