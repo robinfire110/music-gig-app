@@ -83,8 +83,10 @@ function Account() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const { data } = await axios.get('http://localhost:5000/all-users', { withCredentials: true });
-                setUsers(data.users);
+                if(isAdmin){
+                    const { data } = await axios.get('http://localhost:5000/all-users', { withCredentials: true });
+                    setUsers(data.users);
+                }
             } catch (error) {
                 console.error('Error fetching users:', error);
             }

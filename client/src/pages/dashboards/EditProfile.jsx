@@ -4,7 +4,6 @@ import {toast, ToastContainer} from 'react-toastify';
 import axios from 'axios';
 
 function EditProfile({ userData }) {
-	console.log(userData);
 	const [formData, setFormData] = useState({
 		email: '',
 		password: '',

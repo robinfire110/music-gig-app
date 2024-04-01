@@ -1,9 +1,9 @@
 import React, {useState} from "react";
 import {Link, useNavigate} from 'react-router-dom';
 import {toast, ToastContainer} from 'react-toastify';
-import Header from "../components/Header";
 import { Button, Form } from 'react-bootstrap';
 import axios from 'axios';
+import '../App.css'
 
 const Register = () => {
 	const navigate = useNavigate();
@@ -51,16 +51,13 @@ const Register = () => {
 		}catch (err){
 			console.log(err);
 		}
-
-		console.log('Form submitted with values:', values);
 	};
 
 	return (
 		<div>
-			<Header />
-			<div className="container-login">
+			<div className="register-container">
 				<h2>Register Account</h2>
-				<Form onSubmit={handleSubmit}>
+				<Form  className="register-form" onSubmit={handleSubmit}>
 					<Form.Group className="mb-3" controlId="formBasicEmail">
 						<Form.Label>Email address</Form.Label>
 						<Form.Control
@@ -100,7 +97,7 @@ const Register = () => {
 						/>
 					</Form.Group>
 					<Form.Group className="mb-3" controlId="formBasicLastName">
-						<Form.Label>Profile Name</Form.Label>
+						<Form.Label>Last Name</Form.Label>
 						<Form.Control
 							type="text"
 							placeholder="Enter your last name"
