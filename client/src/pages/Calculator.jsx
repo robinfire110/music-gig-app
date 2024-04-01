@@ -12,6 +12,7 @@ import {saveAs} from "file-saver"
 import {autoSizeColumn, formatCurrency, getCurrentUser, metersToMiles, parseFloatZero, parseIntZero} from "../Utils";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
+const { REACT_APP_BACKEND_URL } = process.env;
 
 const Calculator = () => {
     /* Variables */
@@ -86,7 +87,7 @@ const Calculator = () => {
         //Get Gas Prices
         if (!gasPrices)
         {
-            axios.get(`http://localhost:5000/gas`).then(res => {
+            axios.get(`http://${REACT_APP_BACKEND_URL}/gas`).then(res => {
                 let map = {};
                 for (let i = 0; i < res.data.length; i++)
                 {
@@ -100,7 +101,7 @@ const Calculator = () => {
         //Get user
         if (cookies.jwt)
         {
-            axios.get('http://localhost:5000/account', {withCredentials: true}).then(res => {
+            axios.get(`http://${REACT_APP_BACKEND_URL}/account`, {withCredentials: true}).then(res => {
                 if (res.data?.user)
                 {
                     const userData = res.data.user;
@@ -179,7 +180,7 @@ const Calculator = () => {
         if (!isEvent)
         {
             //Get data
-            await axios.get(`http://localhost:5000/financial/user_id/fin_id/${currentUser?.user_id}/${paramId}`).then(res => {
+            await axios.get(`http://${REACT_APP_BACKEND_URL}/financial/user_id/fin_id/${currentUser?.user_id}/${paramId}`).then(res => {
                 const data = res.data[0];
                 if (data && data?.fin_id) setFinId(data.fin_id);
 
@@ -196,7 +197,7 @@ const Calculator = () => {
         else
         {
             //Check for already existing event financial
-            await axios.get(`http://localhost:5000/financial/user_id/event_id/${currentUser?.user_id}/${paramId}`).then(async res => {
+            await axios.get(`http://${REACT_APP_BACKEND_URL}/financial/user_id/event_id/${currentUser?.user_id}/${paramId}`).then(async res => {
                 const data = res.data[0];
                 if (data) //If financial for event exists, load that data.
                 {
@@ -229,7 +230,7 @@ const Calculator = () => {
         } 
         else
         {
-            await axios.get(`http://localhost:5000/event/id/${paramId}`).then(async res => {
+            await axios.get(`http://${REACT_APP_BACKEND_URL}/event/id/${paramId}`).then(async res => {
             if (res.data)
             {
                 const data = res.data;
@@ -266,7 +267,7 @@ const Calculator = () => {
     async function calculateBasedOnLocation(originZip, destinationZip)
     {
         setIsGettingLocation(true);
-        axios.get(`http://localhost:5000/api/distance_matrix/${originZip}/${destinationZip}/`).then(res => {
+        axios.get(`http://${REACT_APP_BACKEND_URL}/api/distance_matrix/${originZip}/${destinationZip}/`).then(res => {
             console.log("Event Location Data", res.data);
             if (res.data)
             {
@@ -458,7 +459,7 @@ const Calculator = () => {
                 if ((!isEvent && paramId) || (isEvent && !isNewEvent)) //If exists, update
                 {
                     console.log(`UPDATE ${finId} ${paramId}`)
-                    await axios.put(`http://localhost:5000/financial/${finId}`, data).then(res => {
+                    await axios.put(`http://${REACT_APP_BACKEND_URL}/financial/${finId}`, data).then(res => {
                         toast("Calculator data updated sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
                         setSaveStatus(false);
                     }).catch(error => {
@@ -470,7 +471,7 @@ const Calculator = () => {
                 else //If new, post.
                 {
                     console.log("ADD");
-                    await axios.post(`http://localhost:5000/financial/${user?.user_id}`, data).then(res => {
+                    await axios.post(`http://${REACT_APP_BACKEND_URL}/financial/${user?.user_id}`, data).then(res => {
                         //SetID
                         setParamId(res.data.fin_id);
                         setFinId(res.data.fin_id);

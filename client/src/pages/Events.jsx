@@ -6,6 +6,7 @@ import { Container, Form, Col, Row, Button } from "react-bootstrap";
 import { ClipLoader } from "react-spinners";
 import EventRow from "../components/EventRow";
 import "../styles/Events.css";
+const { REACT_APP_BACKEND_URL } = process.env;
 
 const Events = () => {
 
@@ -22,7 +23,7 @@ const Events = () => {
         const fetchEvents = async () => {
             try {
                 //fetch all events from server
-                const res = await fetch('http://localhost:5000/event')
+                const res = await fetch(`http://${REACT_APP_BACKEND_URL}/event`)
                 const data = await res.json();
                 setEvents(data)
                 //setting this for managing what data is currently being filtered

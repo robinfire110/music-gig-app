@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {Form, Button, Container} from 'react-bootstrap';
 import {toast, ToastContainer} from 'react-toastify';
 import axios from 'axios';
+const { REACT_APP_BACKEND_URL } = process.env;
 
 function EditProfile({ userData }) {
 	console.log(userData);
@@ -44,7 +45,7 @@ function EditProfile({ userData }) {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			const response = await axios.post('http://localhost:5000/update_user', formData, {
+			const response = await axios.post(`http://${REACT_APP_BACKEND_URL}/update_user`, formData, {
 				withCredentials: true
 			});
 			if (response.data.success) {
