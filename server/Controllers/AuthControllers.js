@@ -1,10 +1,12 @@
 const db = require("../models/models");
 const jwt = require("jsonwebtoken");
+const {updateUserToAdmin, getAllUsers} = require("../Service/AdminService");
+
 
 const maxAge = 3*24*60*60;
 
-const createToken = (id, isAdmin) => {
-	return jwt.sign({ id, isAdmin }, process.env.SECRET, {
+const createToken = (id) => {
+	return jwt.sign({ id }, process.env.SECRET, {
 		expiresIn: maxAge,
 	});
 }
@@ -68,7 +70,7 @@ module.exports.register = async (req, res, next) => {
 		}
 
 		// Generate JWT token for the new user
-		const token = createToken(newUser.user_id, newUser.isAdmin);
+		const token = createToken(newUser.user_id);
 
 		// Set the JWT token in the cookie
 		res.cookie("jwt", token, {
@@ -80,7 +82,6 @@ module.exports.register = async (req, res, next) => {
 		// Respond with the user ID and a success message
 		res.status(201).json({user: newUser.user_id, created: true});
 	} catch (err) {
-		// Handle errors
 		console.error(err);
 		const errors = handleErrors(err);
 		res.json({errors, created: false});
@@ -93,7 +94,7 @@ module.exports.login = async (req, res, next) => {
 		const { email, password } = req.body;
 		const user = await db.User.login(email,password);
 		if (user) {
-			const token = createToken(user.user_id, user.isAdmin);
+			const token = createToken(user.user_id);
 			res.cookie("jwt", token, {
 				withCredentials: true,
 				httpOnly: false,
@@ -120,7 +121,7 @@ module.exports.account = async (req, res, next) => {
 		if (req.user.l_name) userToSend.l_name = req.user.l_name;
 		if (req.user.zip) userToSend.zip = req.user.zip;
 		if (req.user.bio) userToSend.bio = req.user.bio;
-		if (req.user.isAdmin) userToSend.isAdmin = req.user.isAdmin;
+		if (req.user.isAdmin !== undefined) userToSend.isAdmin = req.user.isAdmin;
 		if (req.user.Instruments) userToSend.Instruments = req.user.Instruments;
 		if (req.user.Events) userToSend.Events = req.user.Events;
 
@@ -188,5 +189,32 @@ module.exports.getUserFinancials = async (req,res, next) => {
 		throw new Error('Failed to fetch user financails');
 	}
 }
+
+module.exports.getUsers = async (req,res,next) => {
+	try{
+		if (req.user.isAdmin) {
+			const users = await getAllUsers();
+			console.log(users)
+			res.status(200).json({users : users});
+		} else {
+			res.status(403).json({ error: "Access denied. You are not authorized to perform this action." });
+		}
+	}catch (error){
+		console.error('Error fetching Users:', error);
+		throw new Error('Failed to fetch users');
+	}
+}
+
+module.exports.giveUserAdmin = async (req,res,next) => {
+	try{
+		const userId = req.user.user_id;
+		await updateUserToAdmin(userId);
+		res.status(200).json({ success: true, message: "User now has admin privileges" });
+	}catch (error){
+		console.error('Error Giving user admin privliges:', error);
+		throw new Error('Failed to update User');
+	}
+}
+
 
 

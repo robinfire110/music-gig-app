@@ -2,7 +2,7 @@ import React from 'react';
 import { Nav } from 'react-bootstrap';
 import '../../App.css';
 
-function Sidebar({ handleLinkClick }) {
+function Sidebar({ handleLinkClick, isAdmin }) {
     return (
         <div className="custom-sidebar-container">
             <Nav className="custom-sidebar flex-column">
@@ -27,6 +27,15 @@ function Sidebar({ handleLinkClick }) {
                 >
                     Profile
                 </Nav.Link>
+                {isAdmin && (
+                    <Nav.Link
+                        onClick={() => handleLinkClick('adminActions')}
+                        href="#"
+                        className="custom-link"
+                    >
+                        Admin
+                    </Nav.Link>
+                )}
             </Nav>
         </div>
     );

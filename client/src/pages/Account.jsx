@@ -10,6 +10,7 @@ import "../App.css";
 import EditProfile from "./dashboards/EditProfile";
 import Gigs from "./dashboards/Gigs";
 import Financials from "./dashboards/Financials";
+import AdminActions from "./dashboards/AdminActions";
 
 function Account() {
     const navigate = useNavigate();
@@ -17,6 +18,7 @@ function Account() {
     const [userData, setUserData] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [gigs, setGigs] = useState([]);
+    const [users, setUsers] = useState([]);
     const [financials, setFinancials] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedContent, setSelectedContent] = useState('');
@@ -30,8 +32,7 @@ function Account() {
                 try {
                     const { data } = await axios.get('http://localhost:5000/account', { withCredentials: true });
                     setUserData(data.user);
-                    setIsAdmin(data.isAdmin);
-                    console.log(data)
+                    setIsAdmin(data.user.isAdmin);
                     toast(`hi ${data.user.f_name}`, { theme: 'dark' });
                 } catch (error) {
                     removeCookie('jwt');
@@ -50,7 +51,6 @@ function Account() {
             try {
                 const { data } = await axios.get('http://localhost:5000/user-gigs', { withCredentials: true });
                 setGigs(data.userGigs);
-                console.log(data.userGigs);
             } catch (error) {
                 console.error('Error fetching user gigs:', error);
             }
@@ -70,7 +70,6 @@ function Account() {
                 }
                 const { data } = await axios.get(`http://localhost:5000/user-financials`, { withCredentials: true });
                 setFinancials(data.userFinancials);
-                console.log(data.userFinancials);
             } catch (error) {
                 console.error('Error fetching user financials:', error);
             }
@@ -80,6 +79,18 @@ function Account() {
             fetchUserFinancials();
         }
     }, [userData]);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const { data } = await axios.get('http://localhost:5000/all-users', { withCredentials: true });
+                setUsers(data.users);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
+        fetchUsers();
+    }, []);
 
     const handleLinkClick = (content) => {
         setSelectedContent(content);
@@ -93,6 +104,8 @@ function Account() {
                 return <Gigs userData={userData} gigs={gigs} />;
             case 'financials':
                 return <Financials userData={userData} financials={financials} />;
+            case 'adminActions':
+                return <AdminActions userData={ users } />;
             default:
                 return null;
         }
@@ -102,16 +115,18 @@ function Account() {
         return <Spinner />;
     }
 
+    const dashboardTitle = isAdmin ? 'Admin Dashboard' : 'User Dashboard';
+
     return (
         <Container fluid>
             <Row>
                 <Col sm={2}>
-                    <Sidebar handleLinkClick={handleLinkClick} />
+                    <Sidebar handleLinkClick={handleLinkClick} isAdmin={isAdmin} />
                 </Col>
                 <Col sm={10} style={{ padding: '20px', flexGrow: 1 }}>
                     {selectedContent === '' && (
                         <div>
-                            <h2 style={{ marginBottom: '20px', display: 'block' }}>User Dashboard</h2>
+                            <h2 style={{ marginBottom: '20px', display: 'block' }}>{dashboardTitle}</h2>
                             <button
                                 style={{ marginTop: '20px', marginBottom: '20px', display: 'block', background: 'none', border: 'none', cursor: 'pointer' }}
 
