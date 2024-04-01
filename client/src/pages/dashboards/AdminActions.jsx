@@ -2,10 +2,15 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import {useNavigate} from "react-router-dom";
+import {Button} from "react-bootstrap";
 
 function AdminActions({ userData }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [usersPerPage] = useState(20);
+    const navigate = useNavigate();
 
     useEffect(() => {
         setFilteredUsers(userData);
@@ -23,10 +28,14 @@ function AdminActions({ userData }) {
     };
 
     const handleUserClick = (userId) => {
-        console.log('User clicked:', userId);
+        navigate(`../profile/${userId}`);
     };
 
     const handleEditUser = (userId) => {
+        console.log('Edit user:', userId);
+    };
+
+    const handlePromoteUser = (userId) => {
         console.log('Edit user:', userId);
     };
 
@@ -34,8 +43,21 @@ function AdminActions({ userData }) {
         console.log('Delete user:', userId);
     };
 
+    const handleGoBackToDashboard = () => {
+        window.location.reload();
+    };
+
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
     return (
         <>
+            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column' }}>
+                    <Button variant="link" onClick={handleGoBackToDashboard} style={{ textDecoration: 'underline' }}>Go back to Dashboard</Button>
+                </div>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div>
                     <h2>Search Users</h2>
@@ -49,15 +71,26 @@ function AdminActions({ userData }) {
                 </div>
                 <div>
                     <ul style={{ listStyleType: 'none', padding: 0 }}>
-                        {filteredUsers.map(user => (
-                            <li key={user.user_id} style={{ cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center' }} onClick={() => handleUserClick(user.user_id)}>
+                        {currentUsers.map(user => (
+                            <li key={user.user_id} style={{ cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => handleUserClick(user.user_id)}>
                                 <span>{user.f_name} {user.l_name}</span>
-                                <FontAwesomeIcon icon={faEdit} style={{ marginLeft: '10px', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); handleEditUser(user.user_id); }} />
-                                <FontAwesomeIcon icon={faTrash} style={{ marginLeft: '10px', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); handleDeleteUser(user.user_id); }} />
+                                <div>
+                                    <FontAwesomeIcon icon={faUser} style={{ marginLeft: '10px', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); handlePromoteUser(user.user_id); }} />
+                                    <FontAwesomeIcon icon={faEdit} style={{ marginLeft: '10px', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); handleEditUser(user.user_id); }} />
+                                    <FontAwesomeIcon icon={faTrash} style={{ marginLeft: '10px', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); handleDeleteUser(user.user_id); }} />
+                                </div>
                             </li>
                         ))}
                     </ul>
                 </div>
+                {/* Pagination */}
+                <ul style={{ display: 'flex', justifyContent: 'center', listStyleType: 'none', padding: 0 }}>
+                    {[...Array(Math.ceil(filteredUsers.length / usersPerPage)).keys()].map(number => (
+                        <li key={number} style={{ cursor: 'pointer', margin: '0 5px' }} onClick={() => paginate(number + 1)}>
+                            {number + 1}
+                        </li>
+                    ))}
+                </ul>
             </div>
         </>
     );
