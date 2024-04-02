@@ -11,6 +11,7 @@ function EventHorizontalScroll({data, persistantArrows=false}) {
     //Use effect
     useEffect(() => {
         updateOverflow();
+
         //Set update style
         window.addEventListener("resize", updateOverflow); 
     }, [])
@@ -40,7 +41,7 @@ function EventHorizontalScroll({data, persistantArrows=false}) {
     function updateOverflow()
     {
         updateStyle();
-        if (navRef)
+        if (navRef && navRef.current?.scrollWidth != null)
         {
             setIsOverflow(navRef.current.scrollWidth > navRef.current.clientWidth);
         }
