@@ -7,6 +7,7 @@ import { Container, Col, Row, Button } from "react-bootstrap"; // Bootstrap impo
 import { useCookies } from "react-cookie";
 import { ClipLoader } from "react-spinners";
 import "../styles/IndividualEvent.css";
+const { REACT_APP_BACKEND_URL } = process.env;
 
 const IndividualEvent = () => {
     const [event, setEvent] = useState({
@@ -36,7 +37,7 @@ const IndividualEvent = () => {
         const fetchUserData = async () => {
             if (cookies.jwt) {
                 try {
-                    axios.get('http://localhost:5000/account', { withCredentials: true }).then(res => {
+                    axios.get(`http://${REACT_APP_BACKEND_URL}/account`, { withCredentials: true }).then(res => {
                         if (res.data?.user) {
                             const userData = res.data.user;
                             setUserId(userData);
@@ -50,7 +51,7 @@ const IndividualEvent = () => {
 
         const fetchEvent = async () => {
             try {
-                const res = await fetch(`http://localhost:5000/event/id/${id}`)
+                const res = await fetch(`http://${REACT_APP_BACKEND_URL}/event/id/${id}`)
                 const data = await res.json();
 
                 setEvent(data)
@@ -79,7 +80,7 @@ const IndividualEvent = () => {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:5000/event/${id}`);
+            await axios.delete(`http://${REACT_APP_BACKEND_URL}/event/${id}`);
             navigate("/");
         } catch (err) {
             console.log(err);
@@ -104,7 +105,7 @@ const IndividualEvent = () => {
         if (user) { //user getting moved back to pending
             const applicationData = { status: 'applied' }
             try {
-                await axios.put(`http://localhost:5000/event/users/${id}/${user.user_id}`, applicationData)
+                await axios.put(`http://${REACT_APP_BACKEND_URL}/event/users/${id}/${user.user_id}`, applicationData)
                 window.location.reload();
             } catch (err) {
                 console.log(err)
@@ -112,7 +113,7 @@ const IndividualEvent = () => {
         } else { //grab the user's id from the page, add a user to the event with status "applied"
             const applicationData = { status: 'applied' }
             try {
-                await axios.post(`http://localhost:5000/event/users/${id}/${userId.user_id}`, applicationData)
+                await axios.post(`http://${REACT_APP_BACKEND_URL}/event/users/${id}/${userId.user_id}`, applicationData)
                 window.location.reload();
             } catch (err) {
                 console.log(err)
@@ -123,7 +124,7 @@ const IndividualEvent = () => {
     const handleWithdrawApplication = async e => {
         const applicationData = { status: 'withdraw' }
         try {
-            await axios.put(`http://localhost:5000/event/users/${id}/${userId.user_id}`, applicationData)
+            await axios.put(`http://${REACT_APP_BACKEND_URL}/event/users/${id}/${userId.user_id}`, applicationData)
             window.location.reload();
         } catch (err) {
             console.log(err)
@@ -133,7 +134,7 @@ const IndividualEvent = () => {
     const handleAcceptApplication = async (user) => {
         const applicationData = { status: 'accept' }
         try {
-            await axios.put(`http://localhost:5000/event/users/${id}/${user.user_id}`, applicationData)
+            await axios.put(`http://${REACT_APP_BACKEND_URL}/event/users/${id}/${user.user_id}`, applicationData)
             window.location.reload();
         } catch (err) {
             console.log(err)
@@ -143,7 +144,7 @@ const IndividualEvent = () => {
     const handleRejectApplication = async (user) => {
         const applicationData = { status: 'reject' }
         try {
-            await axios.put(`http://localhost:5000/event/users/${id}/${user.user_id}`, applicationData)
+            await axios.put(`http://${REACT_APP_BACKEND_URL}/event/users/${id}/${user.user_id}`, applicationData)
             window.location.reload();
         } catch (err) {
             console.log(err)

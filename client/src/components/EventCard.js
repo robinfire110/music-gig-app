@@ -3,6 +3,7 @@ import { Card, Button } from 'react-bootstrap';
 import axios from 'axios';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
+const { REACT_APP_BACKEND_URL } = process.env
 
 function EventCard({eventId}) {
     //Get Data
@@ -12,7 +13,7 @@ function EventCard({eventId}) {
     
     //Call API
     useEffect(() => {
-        axios.get(`http://localhost:5000/event/id/${eventId}`).then(res => {
+        axios.get(`http://${REACT_APP_BACKEND_URL}/event/id/${eventId}`).then(res => {
             //Set data
             setEventData(res.data);
 
@@ -30,7 +31,7 @@ function EventCard({eventId}) {
 
     return (
         <div>
-        <Card className="m-2" style={{backgroundColor: "#e3e3e3", width: "20rem", height: "25rem", marginLeft: "auto", marginRight: "auto", textAlign: "left"}}>
+        <Card className="m-2 shadow-sm" style={{backgroundColor: "#e3e3e3", width: "20rem", height: "25rem", marginLeft: "auto", marginRight: "auto", textAlign: "left"}}>
             <Card.Header>
                 <Card.Title><Link to={`/event/${eventId}`} style={{color: "#000"}}><h4>{eventData && eventData.event_name}</h4></Link></Card.Title>
                 <h6>Posted by:</h6> {owner && <Link to={`/profile/${owner.user_id}`} style={{color: "#000"}}>{owner.f_name} {owner.l_name}</Link>}

@@ -111,3 +111,11 @@ async function saveSpreadsheetAll(data, filename = 'Harmonize_Export')
 }
 
 module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, autoSizeColumn, saveSpreadsheetAll};
+//Returns undefined if string is empty
+function parseStringUndefined(value)
+{
+    if (!value || value == "") return undefined;
+    else return value;
+}
+
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined};

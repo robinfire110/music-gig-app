@@ -9,6 +9,7 @@ import { Card, Col, Container, ListGroup, Row } from "react-bootstrap";
 import EventCard from "../components/EventCard";
 import {ClipLoader} from 'react-spinners'
 import EventHorizontalScroll from "../components/EventHorizontalScroll";
+const { REACT_APP_BACKEND_URL } = process.env;
 
 const Profile = () => {
     //URL Params
@@ -65,13 +66,13 @@ const Profile = () => {
     //Run on first start
     useEffect(() => {
         //Get user data
-        axios.get(`http://localhost:5000/user/id/${paramId}`).then(res => {
+        axios.get(`http://${REACT_APP_BACKEND_URL}/user/id/${paramId}`).then(res => {
             if (res.data)
             {
                 setUserData(res.data);
 
                 //Get location
-                axios.get(`http://localhost:5000/api/geocoding/zip/${res.data.zip}`).then((res) => {
+                axios.get(`http://${REACT_APP_BACKEND_URL}/api/geocoding/zip/${res.data.zip}`).then((res) => {
                     setUserLocation(res.data);
                     setIsLoading(false);
                     console.log("Location", res.data);
@@ -113,7 +114,7 @@ const Profile = () => {
                         <br />
                         <Row>
                             <Col className="mb-3" lg={7} md={7}>
-                                <Card id="infoCard" style={{height: "100%"}} >
+                                <Card className="shadow" id="infoCard" style={{height: "100%"}} >
                                     <Card.Header>
                                         <h3>Information</h3>
                                     </Card.Header>
@@ -144,7 +145,7 @@ const Profile = () => {
                                 </Card>
                             </Col>
                             <Col className="mb-3">
-                                <Card id="bioCard" style={{height: "100%"}}>
+                                <Card className="shadow" id="bioCard" style={{height: "100%"}}>
                                     <Card.Header>
                                         <h3>Bio</h3>
                                     </Card.Header>
