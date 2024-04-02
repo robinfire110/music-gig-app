@@ -25,6 +25,7 @@ const IndividualEvent = () => {
     const [userId, setUserId] = useState(null) //Current user's id set here
     const [ownerId, setOwnerId] = useState(null) //get the owner's id here
     const [applications, setApplications] = useState([]);
+    const [withdrawn, setWithdrawn] = useState([])
     const [accepted, setAccepted] = useState([]);
     const [rejected, setRejected] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -58,9 +59,11 @@ const IndividualEvent = () => {
                 setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
 
                 const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
+                const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
                 const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
                 const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
                 setApplications(appliedUsers);
+                setWithdrawn(withdrawnUsers);
                 setAccepted(acceptedUsers);
                 setRejected(rejectedUsers);
 
@@ -102,7 +105,9 @@ const IndividualEvent = () => {
     }
 
     const handleAddApplication = async (user) => {
-        if (user) { //user getting moved back to pending
+        if (user && applications.some(appliedUser => appliedUser.user_id === user.user_id && appliedUser.UserStatus.status === 'applied')
+            || withdrawn.some(withdrawnUser => withdrawnUser.user_id === user.user_id && withdrawnUser.UserStatus.status === 'withdraw')) {
+            //user is getting moved from accepted or rejected back to applied, or is reapplying after withdrawing
             const applicationData = { status: 'applied' }
             try {
                 await axios.put(`http://${REACT_APP_BACKEND_URL}/event/users/${id}/${user.user_id}`, applicationData)
@@ -110,7 +115,8 @@ const IndividualEvent = () => {
             } catch (err) {
                 console.log(err)
             }
-        } else { //grab the user's id from the page, add a user to the event with status "applied"
+        } else {
+            //User has not applied yet, add them to the event with applied status
             const applicationData = { status: 'applied' }
             try {
                 await axios.post(`http://${REACT_APP_BACKEND_URL}/event/users/${id}/${userId.user_id}`, applicationData)
@@ -151,7 +157,7 @@ const IndividualEvent = () => {
         }
     }
 
-    if(loading) {
+    if (loading) {
         return <ClipLoader />;
     }
 
@@ -280,7 +286,7 @@ const IndividualEvent = () => {
                                 <hr />
                                 {applications.map((user, index) => (
                                     <Row key={index} style={{ marginBottom: '1rem', alignItems: "center", textAlign: "left" }}>
-                                        <Col sm="1">
+                                        <Col sm="2">
                                             <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }} className="user-profile-link">
                                                 {user.f_name} {user.l_name}
                                             </Link>
@@ -294,7 +300,7 @@ const IndividualEvent = () => {
                                 <hr />
                                 {accepted.map((user, index) => (
                                     <Row key={index} style={{ marginBottom: '1rem', alignItems: "center", textAlign: "left" }}>
-                                        <Col sm="1">
+                                        <Col sm="2">
                                             <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }} className="user-profile-link">
                                                 {user.f_name} {user.l_name}
                                             </Link>
@@ -312,7 +318,7 @@ const IndividualEvent = () => {
                                 <hr />
                                 {rejected.map((user, index) => (
                                     <Row key={index} style={{ marginBottom: '1rem', alignItems: "center", textAlign: "left" }}>
-                                        <Col sm="1">
+                                        <Col sm="2">
                                             <Link to={`/profile/${user.user_id}`} style={{ color: "#000" }} className="user-profile-link">
                                                 {user.f_name} {user.l_name}
                                             </Link>
