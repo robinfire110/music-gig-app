@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Container, Col, Row, Button } from "react-bootstrap"; // Bootstrap imports
+import { Container, Col, Row, Button, Card } from "react-bootstrap"; // Bootstrap imports
 import { useCookies } from "react-cookie";
 import { ClipLoader } from "react-spinners";
 import "../styles/IndividualEvent.css";
@@ -29,6 +29,7 @@ const IndividualEvent = () => {
     const [accepted, setAccepted] = useState([]);
     const [rejected, setRejected] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [colSize, setColSize] = useState({xs: 4, sm: 4, md: 4, lg: 2, xl: 2})
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -164,6 +165,85 @@ const IndividualEvent = () => {
     return (
         <div>
             <hr />
+            <Container> 
+                    <div style={{textAlign: "left"}}>
+                        <h1>{event.event_name}</h1>
+                        <br />
+                        <br />
+                        <Row>
+                            <Col className="mb-3" lg={8} md={8}>
+                                <Card className="shadow" id="infoCard" style={{height: "100%"}} >
+                                    <Card.Header>
+                                        <h3>Event Information</h3>
+                                    </Card.Header>
+                                    <Card.Body>
+                                        <Col>
+                                            
+                                            <Row>
+                                                <Col xs={colSize.xs} sm={colSize.sm} md={colSize.md} lg={colSize.lg} xl={colSize.xl}><h5>Date</h5></Col>
+                                                <Col><p>{formatDate(event.start_time)}</p></Col>
+                                                
+                                            </Row>
+                                            <hr style={{width: "75%", textAlign: "center"}}/>
+                                            <Row>
+                                                <Col xs={colSize.xs} sm={colSize.sm} md={colSize.md} lg={colSize.lg} xl={colSize.xl}><h5>Time</h5></Col>
+                                                <Col><p></p></Col>
+                                            </Row>
+                                            <Row>
+                                                <Col xs={colSize.xs} sm={colSize.sm} md={colSize.md} lg={colSize.lg} xl={colSize.xl}><h5>Location</h5></Col>
+                                                <Col><p></p></Col>
+                                            </Row>
+                                            <Row>
+                                                <Col xs={colSize.xs} sm={colSize.sm} md={colSize.md} lg={colSize.lg} xl={colSize.xl}><h5>Pay</h5></Col>
+                                                <Col><p></p></Col>
+                                            </Row>
+                                            <Row>
+                                                <Col xs={colSize.xs} sm={colSize.sm} md={colSize.md} lg={colSize.lg} xl={colSize.xl}><h5>Hours</h5></Col>
+                                                <Col><p></p></Col>
+                                            </Row>
+                                        </Col>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                            <Col className="mb-3">
+                                <Card className="shadow text-center mb-3">
+                                    <Card.Header>
+                                        <h3>Owner Information</h3>
+                                    </Card.Header>
+                                    <Card.Body>
+                                        <Row>
+                                            <Col><h5>Posted by - {event.Users && event.Users.length > 0 && (event.Users && <Link to={`/profile/${event.Users[0].user_id}`} style={{ color: "#000" }}>{event.Users[0].f_name} {event.Users[0].l_name}</Link>)}</h5></Col>
+                                        </Row>
+                                        <Row>
+                                            <Col><h5>Contact - {event.Users[0].email} </h5></Col>
+                                        </Row>
+                                    </Card.Body>
+                                </Card>
+                            
+                                <Card className="shadow text-center">
+                                    <Card.Header>
+                                        <h3>Instruments Needed</h3>
+                                    </Card.Header>
+                                    <Card.Body>
+                                        <Container>
+                                        {event.Instruments && event.Instruments.map((instrument, index) => (
+                                            <Row><h5>{instrument.name}</h5></Row>
+                                        ))}
+                                        </Container>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <h3>Listed Events</h3>
+                        </Row>
+                    </div> 
+                </Container>
+
+
+
+
+
             <Container className="name-date-summary" key={event.id}>
                 <Row>
                     <Col style={{ display: 'flex', justifyContent: 'left' }}>
@@ -182,6 +262,7 @@ const IndividualEvent = () => {
                     </Col>
                 </Row>
             </Container>
+            
             <Container className="event-holder">
                 <Container className="individual-event-left" key={event.id} style={{ textAlign: "left" }}>
                     <Row className="mb-3" xs={1} lg={2}>
@@ -340,7 +421,7 @@ const IndividualEvent = () => {
                                     rejected.some(user => user.user_id === userId.user_id && user.UserStatus.status === 'reject') ? (
                                         <h4>You've not been chosen to participate in this event.</h4>
                                     ) : (
-                                        <Button className="applyButton" onClick={handleAddApplication}>Apply to Event</Button>
+                                        <Button className="applyButton" onClick={() => handleAddApplication(userId)}>Apply to Event</Button>
                                     )
                                 )
                             )
