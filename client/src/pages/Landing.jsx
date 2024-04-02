@@ -138,7 +138,7 @@ function Landing() {
     function getLayout()
     {
         //If logged in
-        if (user)
+        if (cookies.jwt || user)
         {
             return (
                 <>
