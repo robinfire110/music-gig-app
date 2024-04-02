@@ -9,7 +9,7 @@ import axios from "axios";
 import {BarLoader, ClipLoader} from 'react-spinners'
 import * as ExcelJS from "exceljs"
 import {saveAs} from "file-saver"
-import {autoSizeColumn, formatCurrency, getCurrentUser, metersToMiles, parseFloatZero, parseIntZero} from "../Utils";
+import {autoSizeColumn, formatCurrency, getCurrentUser, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined} from "../Utils";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
 const { REACT_APP_BACKEND_URL } = process.env;
@@ -18,7 +18,8 @@ const Calculator = () => {
     /* Variables */
     //Account
     const [cookies, , removeCookie] = useCookies([]);
-    const [user, setUser] = useState(false);
+    const [user, setUser] = useState();
+    const [userFinancials, setUserFinancials] = useState();
 
     //Params
     const navigate = useNavigate();
@@ -104,15 +105,17 @@ const Calculator = () => {
             axios.get(`http://${REACT_APP_BACKEND_URL}/account`, {withCredentials: true}).then(res => {
                 if (res.data?.user)
                 {
-                    const userData = res.data.user;
-                    setModalOriginZip(userData.zip);
-                    setUser(userData);
+                    axios.get(`http://${REACT_APP_BACKEND_URL}/user/id/${res.data.user.user_id}`).then(res => {
+                        const userData = res.data;
+                        setModalOriginZip(userData.zip);
+                        setUser(userData);
+                    });  
                 }
                 else 
                 {
                     setUser(undefined);
                 }
-                console.log("User Data", res.data);
+                //console.log("User Data", res.data);
             });
         }
         
@@ -120,14 +123,17 @@ const Calculator = () => {
 
     //Load from database
     useEffect(() => {
-        console.log("Loaded", user);
-        if (paramId)
+        if (user)
         {
-            loadFromDatabase().then(() => {
-                setIsLoading(false);
-            });
-        } 
-        else setIsLoading(false);
+            getSavedFinancials();
+            if (paramId)
+            {
+                loadFromDatabase(user).then(() => {
+                    setIsLoading(false);
+                });
+            } 
+            else setIsLoading(false);
+        }
     }, [user])
     
     //Runs when any fields related to calculation updates.
@@ -174,13 +180,14 @@ const Calculator = () => {
     }
 
     //Load from database (both fin_id and event_id)
-    async function loadFromDatabase(currentUser=user)
+    async function loadFromDatabase(currentUser=user, finId=paramId)
     {
+        console.log(finId);
         //Check if event
         if (!isEvent)
         {
             //Get data
-            await axios.get(`http://${REACT_APP_BACKEND_URL}/financial/user_id/fin_id/${currentUser?.user_id}/${paramId}`).then(res => {
+            await axios.get(`http://${REACT_APP_BACKEND_URL}/financial/user_id/fin_id/${currentUser?.user_id}/${finId}`).then(res => {
                 const data = res.data[0];
                 if (data && data?.fin_id) setFinId(data.fin_id);
 
@@ -197,7 +204,7 @@ const Calculator = () => {
         else
         {
             //Check for already existing event financial
-            await axios.get(`http://${REACT_APP_BACKEND_URL}/financial/user_id/event_id/${currentUser?.user_id}/${paramId}`).then(async res => {
+            await axios.get(`http://${REACT_APP_BACKEND_URL}/financial/user_id/event_id/${currentUser?.user_id}/${finId}`).then(async res => {
                 const data = res.data[0];
                 if (data) //If financial for event exists, load that data.
                 {
@@ -205,7 +212,7 @@ const Calculator = () => {
                     await loadEventData(false, currentUser); //Get event data for later use
                     setFinId(data.fin_id);
                     loadData(data);
-                    toast("Loaded from previously saved data.", { theme: 'dark', position: "top-center", type: "info" });
+                    toast("Loaded from previously saved event data.", { theme: 'dark', position: "top-center", type: "info" });
                 } 
                 else
                 {
@@ -401,7 +408,6 @@ const Calculator = () => {
     function setAverageGasPrice(dataOverride=undefined, state=currentState, vehicle=currentVehicle)
     {
         let data = gasPrices;
-        console.log(`State: ${state} | Vehicle: ${vehicle}`);
         if (dataOverride) data = dataOverride;
 
         //Set data
@@ -420,22 +426,22 @@ const Calculator = () => {
         {
             //Get data
             const data = {
-                fin_name: calcName,
+                fin_name: parseStringUndefined(calcName),
                 date: moment(calcDate).format("YYYY-MM-DD"),
-                total_wage: gigPay,
-                event_hours: gigHours,
-                event_num: gigNum,
-                hourly_wage: hourlyWage,
-                rehearse_hours: rehearsalHours,
-                practice_hours: practiceHours,
-                travel_hours: travelHours,
-                total_mileage: totalMileage,
-                mileage_pay: mileageCovered,
-                zip: zip,
-                gas_price: gasPricePerGallon,
-                mpg: vehicleMPG,
-                tax: tax,
-                fees: otherFees,
+                total_wage: parseFloatZero(gigPay),
+                event_hours: parseFloatZero(gigHours),
+                event_num: parseIntZero(gigNum),
+                hourly_wage: parseFloatZero(hourlyWage),
+                rehearse_hours: parseFloatZero(rehearsalHours),
+                practice_hours: parseFloatZero(practiceHours),
+                travel_hours: parseFloatZero(travelHours),
+                total_mileage: parseFloatZero(totalMileage),
+                mileage_pay: parseFloatZero(mileageCovered),
+                zip: parseStringUndefined(zip),
+                gas_price: parseFloatZero(gasPricePerGallon),
+                mpg: parseFloatZero(vehicleMPG),
+                tax: parseFloatZero(tax),
+                fees: parseFloatZero(otherFees),
             }
             if (isNewEvent && isEvent) data["event_id"] = paramId;
             
@@ -458,10 +464,31 @@ const Calculator = () => {
                 //Save to database
                 if ((!isEvent && paramId) || (isEvent && !isNewEvent)) //If exists, update
                 {
-                    console.log(`UPDATE ${finId} ${paramId}`)
+                    console.log(`UPDATE ${finId} ${paramId}`, data)
                     await axios.put(`http://${REACT_APP_BACKEND_URL}/financial/${finId}`, data).then(res => {
                         toast("Calculator data updated sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
                         setSaveStatus(false);
+
+                        //Update user
+                        const updatedFin = res.data
+                        let currentUser = user;
+                        let updateIndex = -1;
+                        for (let i = 0; i < currentUser.Financials.length; i++)
+                        {
+                            if (updatedFin.fin_id == currentUser.Financials[i].fin_id)
+                            {
+                                updateIndex = i;
+                                break;  
+                            }
+                        }
+                        if (updateIndex != -1)
+                        {
+                            currentUser.Financials[updateIndex] = updatedFin;
+                            setUser(currentUser);
+                            getSavedFinancials(currentUser);
+                        }
+                        
+                        
                     }).catch(error => {
                         toast("An error occured while updating. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
                         setSaveStatus(false);
@@ -481,6 +508,12 @@ const Calculator = () => {
                         if (!isEvent) navigate(`/calculator/${res.data.fin_id}`);
                         toast("Calculator data saved sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
                         setSaveStatus(false);
+
+                        //Update user
+                        let newUser = user;
+                        newUser.Financials.push(res.data);
+                        setUser(newUser);
+                        getSavedFinancials(newUser); 
                     }).catch(error => {
                         toast("An error occured while saving. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
                         setSaveStatus(false);
@@ -577,7 +610,25 @@ const Calculator = () => {
             console.log(error);
             toast("An error occured while exporting. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
         }
-        
+    }
+
+    //Get saved financials
+    function getSavedFinancials(userData=user, finId=paramId)
+    {
+        if (userData)
+        {
+            const financials = userData.Financials.map((fin, index) =>
+                <Row className="my-1 py-1 align-middle" style={{backgroundColor: `rgba(100,100,100,${.15+(index % 2 * .15)}`, borderRadius: "3px", verticalAlign: "middle"}} key={fin.fin_id}>
+                    <Col><h6>{fin.fin_name}</h6></Col>
+                    <Col lg={3} md={3} sm={3} xs={3}><Button variant="secondary" size="sm" disabled={isEvent ? fin.event_id==finId : fin.fin_id==finId} href={fin.event_id ? `/calculator/${fin.event_id}?event=true` : `/calculator/${fin.fin_id}`}>Load</Button></Col>
+                </Row>
+            );
+            setUserFinancials(financials);
+        }
+        else
+        {
+            setUserFinancials(<Row>No Financials</Row>);
+        }
     }
 
     if (isLoading)
@@ -617,14 +668,14 @@ const Calculator = () => {
                                             <Form.Label>Pay per gig<span style={{color: "red"}}>*</span></Form.Label>
                                             <InputGroup>
                                                 <InputGroup.Text id="basic-addon1">$</InputGroup.Text>
-                                                <FormNumber id="gigPay" value={gigPay} placeholder="Ex. 75.00" required={true} integer={false} onChange={e => setGigPay(e.target.value)}/>
+                                                <FormNumber id="gigPay" maxValue={9999.99} value={gigPay} placeholder="Ex. 75.00" required={true} integer={false} onChange={e => setGigPay(e.target.value)}/>
                                                 <TooltipButton text="Payment for gig in dollars."/>
                                             </InputGroup>
                                         </Col>
                                         <Col>
                                             <Form.Label>Hours per gig<span style={{color: "red"}}>*</span></Form.Label>
                                             <InputGroup>
-                                                <FormNumber id="gigHours" value={gigHours} placeholder="Ex. 3" required={true} integer={false} onChange={e => setGigHours(e.target.value)}/>
+                                                <FormNumber id="gigHours" maxValue={100} value={gigHours} placeholder="Ex. 3" required={true} integer={false} onChange={e => setGigHours(e.target.value)}/>
                                                 <TooltipButton text="Number of hours for event. Does not include rehearsal or practice hours."/>
                                             </InputGroup>
                                         </Col>
@@ -632,7 +683,7 @@ const Calculator = () => {
                                             <Form.Label>Number of gigs</Form.Label>
                                             <InputGroup>
                                                 <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setGigNumEnabled(!gigNumEnabled)}} checked={gigNumEnabled}></Form.Check>
-                                                <FormNumber id="gigNum" value={gigNum || ""} placeholder="Ex. 1" disabled={!gigNumEnabled} onChange={e => setGigNum(e.target.value)} />
+                                                <FormNumber id="gigNum" max={2} value={gigNum || ""} placeholder="Ex. 1" disabled={!gigNumEnabled} onChange={e => setGigNum(e.target.value)} />
                                                 <TooltipButton text='Number of gigs. Used if you have multiple of the same gig at the same time (i.e. back-to-back performances). Will only add travel, additional hours and other expenses once.'/>
                                             </InputGroup>
                                         </Col>
@@ -647,7 +698,7 @@ const Calculator = () => {
                                             <Form.Label>Total Mileage</Form.Label>
                                             <InputGroup>
                                                 <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setTotalMileageEnabled(!totalMileageEnabled);}} checked={totalMileageEnabled}></Form.Check>
-                                                <FormNumber id="totalMileage" value={totalMileage} placeholder="Ex. 20" integer={false} disabled={!totalMileageEnabled} onChange={e => setTotalMileage(e.target.value)} />
+                                                <FormNumber id="totalMileage" maxValue={9999.99} value={totalMileage} placeholder="Ex. 20" integer={false} disabled={!totalMileageEnabled} onChange={e => setTotalMileage(e.target.value)} />
                                                 <Button variant='light' onClick={() => {setLocationModalOpen(!locationModalOpen)}}>Use Location</Button>
                                                 <TooltipButton text='Total number of miles driven to get to event. Will multiply by "Gas Price per Mile" for final result. Click "Use Location" to calculate based off Zip Code.'/>
                                                 <Modal show={locationModalOpen} onHide={() => {setLocationModalOpen(false); setZipCodeError(false)}} centered={true}>
@@ -682,7 +733,7 @@ const Calculator = () => {
                                             <Form.Label>Travel Hours</Form.Label>
                                             <InputGroup>
                                                 <Form.Check id="travelHoursSwitch" checked={travelHoursEnabled} type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setTravelHoursEnabled(!travelHoursEnabled)}}></Form.Check>
-                                                <FormNumber id="travelHours" value={travelHours} placeholder="Ex. 2.5" integer={false} disabled={!travelHoursEnabled} onChange={e => setTravelHours(e.target.value)} />
+                                                <FormNumber id="travelHours" maxValue={99.9} value={travelHours} placeholder="Ex. 2.5" integer={false} disabled={!travelHoursEnabled} onChange={e => setTravelHours(e.target.value)} />
                                                 <TooltipButton text="Number of hours spent traveling. Will be added to total hours."/>
                                             </InputGroup>
                                         </Row>
@@ -690,7 +741,7 @@ const Calculator = () => {
                                             <Form.Label>Mileage Covered (in $ per mile)</Form.Label>
                                             <InputGroup>
                                                 <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setMileageCoveredEnabled(!mileageCoveredEnabled)}} checked={mileageCoveredEnabled}></Form.Check>
-                                                <FormNumber id="mileageCovered" value={mileageCovered} placeholder="Ex. 0.21" integer={false} disabled={!mileageCoveredEnabled} onChange={e => setMileageCovered(e.target.value)} />
+                                                <FormNumber id="mileageCovered" maxValue={9.99} value={mileageCovered} placeholder="Ex. 0.21" integer={false} disabled={!mileageCoveredEnabled} onChange={e => setMileageCovered(e.target.value)} />
                                                 <TooltipButton text="Number of miles that will be covered by organizers. Will subtract from total mileage for final result."/>
                                             </InputGroup>
                                         </Row>
@@ -699,7 +750,7 @@ const Calculator = () => {
                                         <Form.Label>Gas Price per Mile</Form.Label>
                                         <InputGroup>    
                                             <InputGroup.Text>$</InputGroup.Text>
-                                            <FormNumber id='gasPricePerMile' value={gasPricePerMile == "" ? gasPricePerMile : gasPricePerMile.toFixed(2)} placeholder="Ex. 0.14" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerMile(e.target.value)} />
+                                            <FormNumber id='gasPricePerMile' maxValue={9.99} value={gasPricePerMile == "" ? gasPricePerMile : gasPricePerMile.toFixed(2)} placeholder="Ex. 0.14" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerMile(e.target.value)} />
                                             <Button variant='light' disabled={!totalMileageEnabled} onClick={() => {setGasModalOpen(true)}}>Use Average</Button>
                                             <TooltipButton text='Price of gas per mile. Calculated using "Gas $/Gallon" and "Vehicle MPG". Click "Calculate Average" to use average values.'/>
                                             <Modal show={gasModalOpen} onHide={() => setGasModalOpen(false)} centered={true}>
@@ -744,14 +795,14 @@ const Calculator = () => {
                                             <Row >
                                                 <InputGroup>    
                                                     <InputGroup.Text>Gas $/Gallon</InputGroup.Text>
-                                                    <FormNumber id="gasPricePerGallon" value={gasPricePerGallon} placeholder="Ex. 2.80" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerGallon(e.target.value)} />
+                                                    <FormNumber id="gasPricePerGallon" maxValue={9.99} value={gasPricePerGallon} placeholder="Ex. 2.80" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerGallon(e.target.value)} />
                                                     <TooltipButton text='Amount of money in dollars per gallon of gas. Divided by "Vehicle MPG" to calculate "Gas Price per Mile". Average value calculated based on state.'/>
                                                 </InputGroup>
                                             </Row>
                                             <Row >
                                                 <InputGroup>    
                                                     <InputGroup.Text>Vehicle MPG</InputGroup.Text>
-                                                    <FormNumber id="vehicleMPG" value={vehicleMPG} placeholder="Ex. 20" integer={false} disabled={!totalMileageEnabled} onChange={e => setVehicleMPG(e.target.value)} />
+                                                    <FormNumber id="vehicleMPG" max={99.9} value={vehicleMPG} placeholder="Ex. 20" integer={false} disabled={!totalMileageEnabled} onChange={e => setVehicleMPG(e.target.value)} />
                                                     <TooltipButton text='Miles-Per-Gallon of your vehicle. Divisor of "Gas $/Gallon" to calculate "Gas Price per Mile". Average value is 25.'/>
                                                 </InputGroup>
                                             </Row>
@@ -768,7 +819,7 @@ const Calculator = () => {
                                         <Form.Label>Individual Practice Hours</Form.Label>
                                         <InputGroup>
                                         <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setPracticeHoursEnabled(!practiceHoursEnabled)}} checked={practiceHoursEnabled}></Form.Check>
-                                        <FormNumber id="practiceHours" value={practiceHours} placeholder="Ex. 3" integer={false} disabled={!practiceHoursEnabled} onChange={e => setPracticeHours(e.target.value)} />
+                                        <FormNumber id="practiceHours" max={999.9} value={practiceHours} placeholder="Ex. 3" integer={false} disabled={!practiceHoursEnabled} onChange={e => setPracticeHours(e.target.value)} />
                                         <TooltipButton text="The total hours spent practicing for event (individually, not including group rehearsal)."/>
                                         </InputGroup>
                                     </Col>
@@ -776,7 +827,7 @@ const Calculator = () => {
                                         <Form.Label>Rehearsal Hours</Form.Label>
                                         <InputGroup>
                                         <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setRehearsalHoursEnabled(!rehearsalHoursEnabled)}} checked={rehearsalHoursEnabled}></Form.Check>
-                                        <FormNumber id="rehearsalHours" value={rehearsalHours} placeholder="Ex. 2" integer={false} disabled={!rehearsalHoursEnabled} onChange={e => setRehearsalHours(e.target.value)} />
+                                        <FormNumber id="rehearsalHours" max={999.9} value={rehearsalHours} placeholder="Ex. 2" integer={false} disabled={!rehearsalHoursEnabled} onChange={e => setRehearsalHours(e.target.value)} />
                                         <TooltipButton text="The total hours spent in rehearsal for event (not including individual practice)."/>
                                         </InputGroup>
                                     </Col>
@@ -791,7 +842,7 @@ const Calculator = () => {
                                         <InputGroup>
                                             <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setTaxEnabled(!taxEnabled)}} checked={taxEnabled}></Form.Check>
                                             <InputGroup.Text>%</InputGroup.Text>
-                                            <FormNumber id="tax" value={tax} placeholder="Ex. 17.5" integer={false} disabled={!taxEnabled} onChange={e => setTax(e.target.value)} />
+                                            <FormNumber id="tax" value={tax} maxValue={100} placeholder="Ex. 17.5" integer={false} disabled={!taxEnabled} onChange={e => setTax(e.target.value)} />
                                         <TooltipButton text='Percentage of income tax. Taken from initial "Pay per gig" before any other expenses.'/>
                                         </InputGroup>
                                     </Col>
@@ -818,7 +869,7 @@ const Calculator = () => {
                             <Col>
                                 
                                     <Row>
-                                    <Col lg={2} md={2} sm={2} xs={2}>
+                                        <Col lg={2} md={2} sm={2} xs={2}>
                                             <h5 style={{display: "block"}}>Payment: </h5>
                                         </Col>
                                         <Col>
@@ -826,7 +877,7 @@ const Calculator = () => {
                                         </Col>
                                     </Row>
                                     <Row>
-                                        <Col lg={7} md={9} sm={8} xs={7}>
+                                        <Col lg={6} md={6} sm={7} xs={5}>
                                             {taxEnabled ? <h5 style={{display: "block"}}>Tax Cut ({tax ? tax : "0"}%):</h5> : ""}
                                             {totalMileageEnabled ? <h5 style={{display: "block"}}>Total Travel Cost:</h5> : ""}
                                             {otherFeesEnabled ? <h5 style={{display: "block"}}>Other Fees:</h5> : ""}
@@ -852,15 +903,13 @@ const Calculator = () => {
                                                 <h5 style={{display: "block"}}>{formatCurrency(totalPay)}</h5>
                                                 <h5 style={{display: "block"}}>{totalHours}</h5>
                                             </div>
-                                            
                                         </Col>
                                     </Row>
                                     <hr />
                                     <Row>
-                                        <Col lg={8} xs={7}><h4>Total Hourly Wage:</h4></Col>
-                                        <Col style={{textAlign: "right"}}><h4>{formatCurrency(hourlyWage)}</h4></Col>
-                                    </Row>           
-                                
+                                        <Col><h4>Total Hourly Wage:</h4></Col>
+                                        <Col style={{textAlign: "right"}} lg="auto" md="auto" sm="auto" xs="auto"><h4>{formatCurrency(hourlyWage)}</h4></Col>
+                                    </Row>        
                             </Col>
                         </Row>
                         <br />
@@ -871,6 +920,18 @@ const Calculator = () => {
                                 {isEvent ? <Col lg={5} md={5} sm={5} xs={5}><Button variant="secondary" onClick={() => {loadEventData(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Reload Data</Button></Col> : ""}
                             </Row>
                         </Row>
+                            {user && <Row className="mt-4">
+                                <Col><h4>Saved Financials</h4></Col>
+                                </Row>}
+                        <Row>
+                            
+                                <Col style={{maxHeight: "300px", overflowY: "auto", overflowX: "hidden"}}>
+                                <Container>
+                                        {userFinancials}
+                                </Container>
+                                </Col>
+                            
+                        </Row>   
                         </Container>
                         </div>
                     </Col>

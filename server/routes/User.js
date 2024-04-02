@@ -8,7 +8,7 @@ const db = require('../models/models');
 //Returns JSON of all users
 router.get("/", async (req, res) => {
     try {
-        const users = await db.User.findAll({include: [db.Instrument, db.Event]});
+        const users = await db.User.findAll({include: [db.Instrument, db.Event, db.Financial]});
         res.json(users);
     } catch (error) {
         res.status(500).send(error.message);
@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
 router.get("/id/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const user = await db.User.findOne({where: {user_id: id}, include: [db.Instrument, db.Event]});
+        const user = await db.User.findOne({where: {user_id: id}, include: [db.Instrument, db.Event, db.Financial]});
         res.json(user);
     } catch (error) {
         res.status(500).send(error.message);

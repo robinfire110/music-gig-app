@@ -38,7 +38,6 @@ router.get("/instrument/:id", async (req, res) => {
         const id = req.params.id.split("|");
         const isSorted = req.query.sort; //Sort by date posted
         let limit = 999;
-        console.log(req.query.limit);
         if (req.query.limit) limit = req.query.limit;
         if (isSorted)
         {
@@ -233,7 +232,6 @@ router.put("/:id", async (req, res) => {
             //Set Address (if exists)
             if (data.address)
             {
-                console.log(event);
                 const address = await db.Address.findOne({where: {address_id: event.Address.address_id}});
                 address.set(data.address);
                 await address.save();

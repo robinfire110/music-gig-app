@@ -114,7 +114,7 @@ const Profile = () => {
                         <br />
                         <Row>
                             <Col className="mb-3" lg={7} md={7}>
-                                <Card id="infoCard" style={{height: "100%"}} >
+                                <Card className="shadow" id="infoCard" style={{height: "100%"}} >
                                     <Card.Header>
                                         <h3>Information</h3>
                                     </Card.Header>
@@ -145,7 +145,7 @@ const Profile = () => {
                                 </Card>
                             </Col>
                             <Col className="mb-3">
-                                <Card id="bioCard" style={{height: "100%"}}>
+                                <Card className="shadow" id="bioCard" style={{height: "100%"}}>
                                     <Card.Header>
                                         <h3>Bio</h3>
                                     </Card.Header>
