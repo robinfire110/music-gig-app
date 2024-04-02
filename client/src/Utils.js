@@ -26,4 +26,11 @@ function parseIntZero(value)
     else return 0
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero};
+//Returns undefined if string is empty
+function parseStringUndefined(value)
+{
+    if (!value || value == "") return undefined;
+    else return value;
+}
+
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined};

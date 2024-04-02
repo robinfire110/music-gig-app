@@ -31,7 +31,7 @@ function EventCard({eventId}) {
 
     return (
         <div>
-        <Card className="m-2" style={{backgroundColor: "#e3e3e3", width: "20rem", height: "25rem", marginLeft: "auto", marginRight: "auto", textAlign: "left"}}>
+        <Card className="m-2 shadow-sm" style={{backgroundColor: "#e3e3e3", width: "20rem", height: "25rem", marginLeft: "auto", marginRight: "auto", textAlign: "left"}}>
             <Card.Header>
                 <Card.Title><Link to={`/event/${eventId}`} style={{color: "#000"}}><h4>{eventData && eventData.event_name}</h4></Link></Card.Title>
                 <h6>Posted by:</h6> {owner && <Link to={`/profile/${owner.user_id}`} style={{color: "#000"}}>{owner.f_name} {owner.l_name}</Link>}
