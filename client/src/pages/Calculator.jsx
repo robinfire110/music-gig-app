@@ -123,17 +123,21 @@ const Calculator = () => {
 
     //Load from database
     useEffect(() => {
-        if (user)
+        if (cookies.jwt)
         {
-            getSavedFinancials();
-            if (paramId)
+            if (user)
             {
-                loadFromDatabase(user).then(() => {
-                    setIsLoading(false);
-                });
-            } 
-            else setIsLoading(false);
+                getSavedFinancials();
+                if (paramId)
+                {
+                    loadFromDatabase(user).then(() => {
+                        setIsLoading(false);
+                    });
+                }
+                else setIsLoading(false);
+            }
         }
+        else setIsLoading(false);
     }, [user])
     
     //Runs when any fields related to calculation updates.
@@ -631,6 +635,28 @@ const Calculator = () => {
         }
     }
 
+    //Add text for event
+    function getEventText(visible=true)
+    {
+        let textColor = "rgba(0,0,0,1)";
+        if (!visible) textColor="rgba(0,0,0,0)";
+        if (isEvent && eventData)
+        {
+            if (isNewEvent)
+            {
+                let text = `Data loaded from ${eventData.fin_name} event.`;
+                if (visible) return (<h6 style={{color: textColor}}><br />Data loaded from <Link to={`/event/${eventData.event_id}`} style={{color: textColor}}>{eventData.fin_name} event.</Link></h6>)
+                else return (<h6 style={{color: textColor}}><br />{text.slice(0, parseInt(text.length*.65))}</h6>)
+            }
+            else
+            {
+                let text = `Data loaded from previously saved data for ${eventData.fin_name} event.`;
+                if (visible) return (<h6 style={{color: textColor}}><br />Data loaded from previously saved data for <Link to={`/event/${eventData.event_id}`} style={{color: textColor}}>{eventData.fin_name} event.</Link></h6>)
+                else return (<h6 style={{color: textColor}}><br />{text.slice(0, parseInt(text.length*.65))}</h6>)
+            }
+        }
+    }
+
     if (isLoading)
     {
         return (
@@ -650,8 +676,13 @@ const Calculator = () => {
                 <Row>
                     {/* Column 1: Calculator */}
                     <Col xl={8} lg={7}>
-                        <h3>Basic Information</h3>
-                        <hr />
+                        <Row>
+                            <Container id="basicInfoBox">
+                                <h3>Basic Information</h3>
+                                {getEventText()}
+                                <hr />
+                            </Container>
+                        </Row>
                             <Form.Group>
                                     <Row className="mb-3" xs={1} lg={2}>
                                         <Col lg="8">
@@ -861,9 +892,13 @@ const Calculator = () => {
                     </Col>
                     {/* Column 2: Results */}
                     <Col>
-                        <h3>Results</h3>
-                        <hr />
-                        <div>
+                        <Row>
+                            <Container>
+                                <h3>Results</h3>
+                                {getEventText(false)}
+                                <hr />
+                            </Container>
+                        </Row>
                         <Container>
                         <Row>
                             <Col>
@@ -933,7 +968,6 @@ const Calculator = () => {
                             
                         </Row>   
                         </Container>
-                        </div>
                     </Col>
                 </Row>
                 </Form>
