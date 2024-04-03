@@ -1,5 +1,10 @@
 const { Axios } = require("axios");
 
+//Constant Variables
+const maxDescriptionLength = 750; //Max length for event descriptions
+const maxBioLength = 500; //Max length for user bios
+const maxEventNameLength = 50;
+const statesList = [ 'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY' ];
 
 //Format number to currency
 function formatCurrency(value) 
@@ -33,4 +38,4 @@ function parseStringUndefined(value)
     else return value;
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined};
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList};

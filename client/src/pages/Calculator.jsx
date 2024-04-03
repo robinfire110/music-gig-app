@@ -454,6 +454,7 @@ const Calculator = () => {
             for (let i = 0; i < inputs.length; i++) {
                 if (!inputs[i].disabled && !inputs[i].checkValidity())
                 {
+                    inputs[i].reportValidity();
                     console.log("NOT VALID");
                     return false
                 } 
@@ -882,7 +883,7 @@ const Calculator = () => {
                                         <InputGroup>
                                             <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setOtherFeesEnabled(!otherFeesEnabled)}} checked={otherFeesEnabled}></Form.Check>
                                             <InputGroup.Text>$</InputGroup.Text>
-                                            <FormNumber id="otherFees" value={otherFees} placeholder="Ex. 15.00" integer={false} disabled={!otherFeesEnabled} onChange={e => setOtherFees(e.target.value)} />
+                                            <FormNumber id="otherFees" maxValue={9999.99} value={otherFees} placeholder="Ex. 15.00" integer={false} disabled={!otherFeesEnabled} onChange={e => setOtherFees(e.target.value)} />
                                             <TooltipButton text="Any other additional fees (i.e. food, parking, instrument wear etc.) Will be subtracted at the end of the calculation."/>
                                         </InputGroup>
                                     </Col>
