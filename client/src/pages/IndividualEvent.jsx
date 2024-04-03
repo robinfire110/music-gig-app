@@ -7,7 +7,7 @@ import { Container, Col, Row, Button, Card } from "react-bootstrap"; // Bootstra
 import { useCookies } from "react-cookie";
 import { ClipLoader } from "react-spinners";
 import "../styles/IndividualEvent.css";
-import { formatCurrency } from "../Utils";
+import {formatCurrency } from "../Utils";
 const { REACT_APP_BACKEND_URL } = process.env;
 
 const IndividualEvent = () => {
@@ -56,7 +56,6 @@ const IndividualEvent = () => {
             try {
                 const res = await fetch(`http://${REACT_APP_BACKEND_URL}/event/id/${id}`)
                 const data = await res.json();
-
                 setEvent(data)
                 setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
 
@@ -161,6 +160,16 @@ const IndividualEvent = () => {
         }
     }
 
+    const addLineBreak = (str) =>
+    str.split('\n').map((subStr) => {
+        return (
+        <>
+            {subStr}
+            <br />
+        </>
+        );
+    });
+
     if (loading) {
         return <ClipLoader />;
     }
@@ -231,7 +240,9 @@ const IndividualEvent = () => {
                                                     <Col size="auto"><h5>Rehearsal Hours</h5></Col>
                                                     <Col><p>{event.rehearse_hours}</p></Col>
                                                 </Row>
+                                                <Row><hr style={{width: "75%"}}/></Row>
                                                 <Row>
+                                                    
                                                     <Col size="auto"><h5>Total Hours</h5></Col>
                                                     <Col><p>{event.rehearse_hours + event.event_hours}</p></Col>
                                                 </Row>
@@ -242,7 +253,7 @@ const IndividualEvent = () => {
                                         <Row>
                                             <Container>
                                             <Col xs={colSize.xs} sm={colSize.sm} md={colSize.md} lg={colSize.lg} xl={colSize.xl}><h5>Description</h5></Col>
-                                            <Col><p>{event.description}</p></Col>
+                                            <Col><p>{event.description != "" ? addLineBreak(event.description) : <Card.Text className="text-muted">No description provided</Card.Text>}</p></Col>
                                             </Container>
                                         </Row>
                                     </Col>
@@ -270,9 +281,9 @@ const IndividualEvent = () => {
                                 </Card.Header>
                                 <Card.Body>
                                     <Container>
-                                    {event.Instruments && event.Instruments.map((instrument, index) => (
+                                    {event.Instruments && event.Instruments.length > 0 ? event.Instruments.map((instrument, index) => (
                                         <Row key={index}><h5>{instrument.name}</h5></Row>
-                                    ))}
+                                    )) : <Card.Text className="text-muted">No instruments provided</Card.Text>}
                                     </Container>
                                 </Card.Body>
                             </Card>
@@ -329,7 +340,7 @@ const IndividualEvent = () => {
                                                 <Col sm="auto"><Button variant="success" size="sm" onClick={() => handleAcceptApplication(user)}>Accept</Button></Col>
                                                 <Col sm="auto"><Button variant="danger" size="sm" onClick={() => handleRejectApplication(user)}>Reject</Button></Col>
                                             </Row>
-                                        )) : "No pending applications"}
+                                        )) : <Card.Text className="text-muted">No pending applications</Card.Text>}
                                         <hr />
                                         <Row><h5>Accepted Applications</h5></Row>
                                         {accepted.length > 0 ? accepted.map((user, index) => (
@@ -342,7 +353,7 @@ const IndividualEvent = () => {
                                                 <Col lg="auto"><Button size="sm" onClick={() => handleAddApplication(user)}>Move to Pending</Button></Col>
                                                 <Col lg="auto"><Button variant="danger" size="sm" onClick={() => handleRejectApplication(user)}>Reject</Button></Col>
                                             </Row>
-                                        )) : "No accepted applications"}
+                                        )) : <Card.Text className="text-muted">No accepted applications</Card.Text>}
                                         <hr />
                                         <Row><h5>Rejected Applications</h5></Row>
                                         {rejected.length > 0 ? rejected.map((user, index) => (
@@ -354,7 +365,7 @@ const IndividualEvent = () => {
                                                 </Col>
                                                 <Col sm="auto"><Button size="sm" onClick={() => handleAddApplication(user)}>Move to Pending</Button></Col>
                                             </Row>
-                                        )): "No accepted applications"}
+                                        )): <Card.Text className="text-muted">No rejected applications</Card.Text>}
                                         <hr />
                                     </Col>
                                 </Card.Body>
