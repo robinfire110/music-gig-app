@@ -16,6 +16,7 @@ function EventCard({eventId}) {
         axios.get(`http://${REACT_APP_BACKEND_URL}/event/id/${eventId}`).then(res => {
             //Set data
             setEventData(res.data);
+            console.log(res.data);
 
             //Get owner
             res.data.Users.forEach(user => {
@@ -31,20 +32,24 @@ function EventCard({eventId}) {
 
     return (
         <div>
-        <Card className="m-2 shadow-sm" style={{backgroundColor: "#e3e3e3", width: "20rem", height: "25rem", marginLeft: "auto", marginRight: "auto", textAlign: "left"}}>
+        <Card className="m-2 shadow-sm" style={{backgroundColor: "#e3e3e3", width: "22rem", height: "28rem", marginLeft: "auto", marginRight: "auto", textAlign: "left"}}>
             <Card.Header>
                 <Card.Title><Link to={`/event/${eventId}`} style={{color: "#000"}}><h4>{eventData && eventData.event_name}</h4></Link></Card.Title>
                 <h6>Posted by:</h6> {owner && <Link to={`/profile/${owner.user_id}`} style={{color: "#000"}}>{owner.f_name} {owner.l_name}</Link>}
                 <br />
                 <h6>Date Posted:</h6> {eventData && moment.utc(eventData.date_posted).format("M/DD/YYYY")}
                 <br />
-                <h6>Event Time:</h6> {eventData && moment.utc(eventData.start_time).format("M/DD/YYYY |  H:mm")} - {eventData && moment.utc(eventData.end_time).format("H:mm")}
+                <h6>Event Date:</h6> {eventData && moment.utc(eventData.start_time).format("M/DD/YYYY")}
+                <br />
+                <h6>Event Time:</h6> {eventData && moment.utc(eventData.start_time).format("h:mm A")} - {eventData && moment.utc(eventData.end_time).format("h:mm A")}
+                <br />
+                <h6>Location:</h6> {eventData && eventData.Address.city}, {eventData && eventData.Address.state}
                 <br />
                 <h6>Instruments:</h6> {eventData && eventData.Instruments[0] ? eventData.Instruments.map(instrument => instrument.name).join(', ') : "None"}
             </Card.Header>
             <Card.Body>
                 <Card.Text style={{overflow: "clip", maxHeight: "100px"}}>
-                        {eventData && (eventData.description.length > descriptionCharacterLimit ?`${eventData.description.substring(0, descriptionCharacterLimit)}...` : eventData.description)}
+                        {eventData && eventData.description.length > 0 ? (eventData.description.length > descriptionCharacterLimit ?`${eventData.description.substring(0, descriptionCharacterLimit)}...` : eventData.description) : <div className='text-muted'>No description provided</div>}
                 </Card.Text>                
             </Card.Body>
             <Card.Footer>
