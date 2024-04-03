@@ -3,42 +3,47 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { Container, Form, Col, Row, Button } from "react-bootstrap";
+import { Container, Form, Col, Row, Button, InputGroup } from "react-bootstrap";
 import moment from "moment";
 import { useCookies } from "react-cookie";
 import { ClipLoader } from "react-spinners";
+import { maxDescriptionLength, maxEventNameLength, parseFloatZero, statesList } from "../Utils";
+import FormNumber from "../components/FormNumber";
+import Select from 'react-select';
+import { toast } from "react-toastify";
+
 const { REACT_APP_BACKEND_URL } = process.env;
 
 const EventForm = () => {
     const [event, setEvent] = useState({
         event_name: "",
-        start_time: new Date(),
-        end_time: new Date(),
+        start_time: new moment().format("YYYY-MM-DD"),
+        end_time: new moment().format("YYYY-MM-DD"),
         description: "",
         pay: null,
-        event_hours: "",
+        event_hours: ""
     })
 
     const [address, setAddress] = useState({
         street: "",
         city: "",
         zip: "",
-        state: ""
+        state: "AL"
     })
 
     const [cookies, removeCookie] = useCookies([]);
     const [userId, setUserId] = useState(null);
     const [ownerId, setOwnerId] = useState(null);
     const [instruments, setInstruments] = useState([])
-    const [selectedInstrument, setSelectedInstrument] = useState("")
     const [selectedInstruments, setSelectedInstruments] = useState([])
-    const [selectedToRemove, setSelectedToRemove] = useState([])
-    const [startTime, setStartTime] = useState("");
-    const [endTime, setEndTime] = useState("");
-    const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
+    const [startTime, setStartTime] = useState("12:00");
+    const [endTime, setEndTime] = useState("14:00");
+    const [totalEventHours, setTotalEventHours] = useState(0);
+    const [startDate, setStartDate] = useState(new moment().format("YYYY-MM-DD"));
+    const [endDate, setEndDate] = useState(new moment().format("YYYY-MM-DD"));
     const [loading, setLoading] = useState(true);
     const [userLoggedIn, setUserLoggedIn] = useState(false);
+    const [descriptionLength, setDescriptionLength] = useState(maxDescriptionLength);
 
     const navigate = useNavigate()
     const { id } = useParams();
@@ -48,7 +53,9 @@ const EventForm = () => {
             //fetch instruments needed for tags
             const res = await fetch(`http://${REACT_APP_BACKEND_URL}/instrument/`);
             const data = await res.json();
-            setInstruments(data);
+
+            //Create instruments
+            setInstruments(configureInstrumentList(data));
 
             if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
                 const res = await fetch(`http://${REACT_APP_BACKEND_URL}/event/id/${id}`);
@@ -63,8 +70,7 @@ const EventForm = () => {
                 setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
 
                 //autofill data selectedInstruments from id
-                const selectedInstrumentsData = data.Instruments.map(instrument => instrument.name);
-                setSelectedInstruments(selectedInstrumentsData);
+                setSelectedInstruments(configureInstrumentList(data.Instruments));
 
                 //autofill data start and end times from id
                 const startTime = moment(data.start_time).local().format("HH:mm");
@@ -98,10 +104,26 @@ const EventForm = () => {
         fetchData();
     }, [cookies.jwt]);
 
+    //Update total event hours
+    useEffect(() => {
+        const eventHours = moment(`${endDate} ${endTime}`).diff(moment(`${startDate} ${startTime}`), "hours");
+        const rehearsalHours = parseFloatZero(event.rehearse_hours);
+        setTotalEventHours(eventHours+rehearsalHours);
+    }, [startDate, startTime, endDate, endTime, event.rehearse_hours])
+
+    //Update description length
+    useEffect(() => {
+        const descriptionBox = document.getElementById("eventDescription");
+        setDescriptionLength(maxDescriptionLength-descriptionBox.value.length);
+    }, [event.description]);
+    
+    //Handle most changes
     const handleChange = (e) => {
+        console.log(e.target.name);
         setEvent(prev => ({ ...prev, [e.target.name]: e.target.value }))
     }
 
+    //Hand date change
     const handleDateChange = (name, value) => {
         if (name === 'start_date') {
             setStartDate(value);
@@ -124,25 +146,13 @@ const EventForm = () => {
         return { start: formattedStartDateTime, end: formattedEndDateTime };
     }
 
-    //need a separate handler for instrument changes
-    const handleAddInstrument = () => {
-        if (selectedInstrument) {
-            setSelectedInstruments((prev) => [...prev, selectedInstrument]);
-        }
-    }
-
-    const handleToggleCheckbox = (isChecked, instrument) => {
-        if (isChecked) { //if the box is checked by the user, add that item
-            setSelectedToRemove(prev => [...prev, instrument]);
-        } else { //if the user UNCHECKS a checked box, remove that item
-            setSelectedToRemove(prev => prev.filter(item => item !== instrument));
-        }
-    }
-
-    const handleRemoveInstrument = () => {
-        setSelectedInstruments(prev => prev.filter(instrument => !selectedToRemove.includes(instrument)));
-        //clear the selectedToRemove array
-        setSelectedToRemove([]);
+    //Configure instrument list (to work with special select)
+    const configureInstrumentList = (data) => {
+        const instrumentOptionList = []
+        data.forEach(instrument => {
+            instrumentOptionList.push({value: instrument.name, label: instrument.name});
+        });
+        return instrumentOptionList
     }
 
     //seperate handler for address changes
@@ -153,22 +163,42 @@ const EventForm = () => {
     const handleEvent = async e => {
         e.preventDefault()
         try {
+            //Check validity (will return false if not valid, HTML will take care of the rest).
+            const inputs = document.getElementById("eventForm").elements;
+            for (let i = 0; i < inputs.length; i++) {
+                if (!inputs[i].disabled && !inputs[i].checkValidity())
+                {
+                    inputs[i].reportValidity();
+                    console.log("NOT VALID");
+                    return false
+                } 
+            }
+
             const isListed = 1
             const { start: startDateTime, end: endDateTime } = formatDateTime(startDate, startTime, endDate, endTime);
 
+            //Prepare instrument data
+            const instrumentsList = [];
+            selectedInstruments.forEach(instrument => {
+                instrumentsList.push(instrument.value);
+            });
+
             //prepare data to be sent to database with event details
-            const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, isListed: isListed };
+            const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, isListed: isListed };
+            console.log(eventData);
 
             //if an id is present, that means the event already exists and we need to put
             if (id) {
                 const response = await axios.put(`http://${REACT_APP_BACKEND_URL}/event/${id}`, eventData);
                 navigate(`../event/${id}`)
+                toast("Event Updated", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
             } else {
                 //event does not exist, so make a post
                 const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, isListed: isListed };
                 const response = await axios.post(`http://${REACT_APP_BACKEND_URL}/event/`, eventData)
                 const newEventId = response.data.newEvent.event_id;
                 navigate(`../event/${newEventId}`);
+                toast("Event Created", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
             }
         } catch (error) {
             console.log(error);
@@ -180,6 +210,7 @@ const EventForm = () => {
         try {
             const response = await axios.delete(`http://${REACT_APP_BACKEND_URL}/event/${id}`)
             navigate("/")
+            toast("Event Deleted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
         } catch (err) {
             console.log(err)
         }
@@ -193,165 +224,144 @@ const EventForm = () => {
         return (
             <div>
                 <div className='form'>
-                    <h1>{id ? "Edit Event" : "Create Event"}</h1>
+                    <h1>{id ? "Edit Event" : "List Event"}</h1>
                     <hr />
                     <Container style={{ textAlign: "left" }}>
                         <h3>Event Information</h3>
                         <hr />
-                        <Form>
+                        <Form id="eventForm">
                             <Form.Group>
-                                <Row className="mb-3">
-                                    <Col lg="2"><Form.Label>Event name:</Form.Label></Col>
-                                    <Col lg="9"><Form.Control type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name"></Form.Control></Col>
-                                </Row>
-                                <Row className="mb-3">
-                                    <Col lg="2"><Form.Label>Description:</Form.Label></Col>
-                                    <Col lg="9">
-                                        <Form.Control type="text" placeholder='Event Description' value={event.description} onChange={handleChange} name="description"></Form.Control>
-                                    </Col>
-                                </Row>
-                                <hr />
-                                <Row className="mb-3">
-                                    <Col lg="2">
-                                        <Form.Label>
-                                            Address:
-                                        </Form.Label>
-                                    </Col>
-                                    {/* Address Fields */}
-                                    <Col lg="6">
-                                        <Row className="mb-3 align-items-center">
-                                            <Col lg="2"><Form.Label>Street: </Form.Label></Col>
-                                            <Col lg="5"><Form.Control type="text" placeholder='Street' value={address.street} onChange={(e) => handleAddressChange("street", e.target.value)} /></Col>
-                                        </Row>
-                                        <Row className="mb-3 align-items-center">
-                                            <Col lg="2"><Form.Label>City: </Form.Label></Col>
-                                            <Col lg="5"><Form.Control type="text" placeholder='City' value={address.city} onChange={(e) => handleAddressChange("city", e.target.value)} /></Col>
-                                        </Row>
-                                        <Row className="mb-3 align-items-center">
-                                            <Col lg="2"><Form.Label>State: </Form.Label></Col>
-                                            <Col lg="5"><Form.Control type="text" placeholder='State' value={address.state} onChange={(e) => handleAddressChange("state", e.target.value)} /></Col>
-                                        </Row>
-                                        <Row className="mb-3 align-items-center">
-                                            <Col lg="2"><Form.Label>Zip Code: </Form.Label></Col>
-                                            <Col lg="5"><Form.Control type="text" placeholder='Zip Code' value={address.zip} onChange={(e) => handleAddressChange("zip", e.target.value)} /></Col>
-                                        </Row>
-                                    </Col>
-                                </Row>
-                                <hr />
-                                <Row className="mb-3">
-                                    <Col lg="12">
-                                        <h3>Event Schedule</h3>
-                                    </Col>
-                                </Row>
-                                <hr />
-                                <Row className="mb-3 align-items-center">
-                                </Row>
-                                <Row className="mb-3">
-                                    <Col lg="10">
-                                        <Row className="mb-3 align-items-center">
-                                            <Col lg="2" sm="4"><Form.Label>Start Time:</Form.Label></Col>
-                                            <Col lg="2" sm="4">
-                                                <Form.Control type="date" value={moment(startDate).format("YYYY-MM-DD")} onChange={(e) => handleDateChange('start_date', e.target.value)}></Form.Control>
-                                            </Col>
-                                            <Col lg="2" sm="4">
-                                                <Form.Control type="time" defaultValue={startTime} onChange={(e) => setStartTime(e.target.value)}></Form.Control>
-                                            </Col>
-                                        </Row>
-                                        <Row className="mb-3 align-items-center">
-                                            <Col lg="2" sm="4"><Form.Label>End Time:</Form.Label></Col>
-                                            <Col lg="2" sm="4">
-                                                <Form.Control type="date" value={moment(endDate).format("YYYY-MM-DD")} onChange={(e) => handleDateChange('end_date', e.target.value)}></Form.Control>
-                                            </Col>
-                                            <Col lg="2" sm="4">
-                                                <Form.Control type="time" defaultValue={endTime} onChange={(e) => setEndTime(e.target.value)}></Form.Control>
-                                            </Col>
-                                        </Row>
-                                    </Col>
-                                </Row>
-                                <hr />
-                                <Row className="mb-3">
-                                    <Col lg="12">
-                                        <h3>Event Finance</h3>
-                                    </Col>
-                                </Row>
-                                <hr />
-                                <Row className="mb-3 align-items-center">
-                                    <Col lg="1" sm="2"><Form.Label>Pay:</Form.Label></Col>
-                                    <Col lg="2" sm="4">
-                                        <Form.Control type="number" placeholder='Event Pay' value={event.pay} onChange={handleChange} name="pay"></Form.Control>
-                                    </Col>
-                                    <Col lg="1" sm="2"><Form.Label>Rehearse Hours:</Form.Label></Col>
-                                    <Col lg="2" sm="4">
-                                        <Form.Control type="number" placeholder='Rehearsal Hours' value={event.rehearse_hours} onChange={handleChange} name="rehearse_hours"></Form.Control>
-                                    </Col>
-                                    <Col lg="1" sm="2"><Form.Label>Mileage Pay:</Form.Label></Col>
-                                    <Col lg="2" sm="4">
-                                        <Form.Control type="number" placeholder='Pay Per Mile' value={event.mileage_pay} onChange={handleChange} name="mileage_pay"></Form.Control>
-                                    </Col>
-                                </Row>
-                                <Row className="mb-3">
-                                </Row>
-                                <hr />
-                                <Row className="mb-3">
-                                    <Col lg="12">
-                                        <h3>Instrument Select</h3>
-                                    </Col>
-                                </Row>
-                                <hr />
-                                <Row className="mb-3">
-                                    <Col lg="1" sm="2"><Form.Label>Instruments:</Form.Label></Col>
-                                    <Col lg="3" sm="4">
-                                        <Form.Select onChange={(e) => setSelectedInstrument(e.target.value)} name="instrument">
-                                            <option value="" disabled selected>Select</option>
-                                            {instruments.map((instrument) => (
-                                                <option key={instrument.instrument_id} value={instrument.name}>
-                                                    {instrument.name}
-                                                </option>
-                                            ))}
-                                        </Form.Select>
-                                    </Col>
-                                    <Col lg="2" sm="3">
-                                        <Button onClick={handleAddInstrument}>Add Instrument</Button>
-                                    </Col>
-                                </Row>
                                 <Row>
-                                    <Col sm="2">
-                                        <div>
-                                            Selected Instruments:
-                                        </div>
+                                <Col lg={8}>
+                                    <Row className="mb-3">
+                                        <Col>
+                                            <Form.Label>Event name<span style={{color: "red"}}>*</span></Form.Label>
+                                            <Form.Control maxLength={maxEventNameLength} type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name" required={true}></Form.Control>
+                                        </Col>
+                                    </Row>
+                                    <Row className="mb-3">
+                                        <Form.Label>Instruments</Form.Label>
+                                        <Select options={instruments} isMulti required={true} onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} required={false}></Select>
+                                    </Row>
+                                    <Row className="mb-3">
+                                        <Col>
+                                            <Form.Label style={{width: '100%'}}>
+                                                <Row>
+                                                    <Col lg={10}>Description</Col>
+                                                    <Col className="text-end">{descriptionLength}/{maxDescriptionLength}</Col>
+                                                </Row>
+                                                
+                                            </Form.Label>
+                                            <Form.Control as="textarea" id="eventDescription" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
+                                        </Col>
+                                    </Row>
+                                </Col>
+                                <Col>
+                                    <Row className="mb-3">
+                                        <Form.Label>Start Time<span style={{color: "red"}}>*</span></Form.Label>
+                                        <Col>
+                                            <Form.Control type="date" value={moment(startDate).format("YYYY-MM-DD")} onChange={(e) => handleDateChange('start_date', e.target.value)} required={true}></Form.Control>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control type="time" defaultValue={startTime} onChange={(e) => setStartTime(e.target.value)} required={true}></Form.Control>
+                                        </Col>
+                                    </Row>
+                                    <Row className="mb-3 align-items-center">
+                                        <Form.Label>End Time<span style={{color: "red"}}>*</span></Form.Label>
+                                        <Col>
+                                            <Form.Control type="date" value={moment(endDate).format("YYYY-MM-DD")} onChange={(e) => handleDateChange('end_date', e.target.value)} required={true}></Form.Control>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control type="time" min={startTime} defaultValue={endTime} onChange={(e) => setEndTime(e.target.value)} required={true}></Form.Control>
+                                        </Col>
+                                    </Row>
+                                    <Row>
+                                        <Col>
+                                            <Form.Label>Rehearsal Hours</Form.Label>
+                                            <FormNumber maxValue={100} integer={false} placeholder='Ex. 3' value={event.rehearse_hours} onChange={(e) => {handleChange(e)}} name="rehearse_hours" />
+                                        </Col>
+                                        <Col>
+                                            <Form.Label>Total Event Hours</Form.Label>
+                                            <Form.Control type="number" placeholder='0' value={totalEventHours} name="event_hours" disabled={true}></Form.Control>
+                                        </Col>
+                                    </Row>
+                                </Col>
+                                </Row>
+
+                                <hr />
+                                <Row className="mb-3">
+                                    {/* Address Fields */}
+                                    <Col lg={8}>
+                                        <h3>Location</h3>
+                                        <Row className="my-3">
+                                            <Row className="mb-3">
+                                                <Col lg={9}>
+                                                    <Form.Label>Street<span style={{color: "red"}}>*</span></Form.Label>
+                                                    <Form.Control type="text" placeholder='Ex. 1234 Road St.' value={address.street} onChange={(e) => handleAddressChange("street", e.target.value)} required={true}/>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Label>State<span style={{color: "red"}}>*</span></Form.Label>
+                                                    <Form.Select required={true} value={address.state} onChange={(e) => handleAddressChange("state", e.target.value)}>
+                                                        {statesList.map((state) => {return(<option value={state} key={state}>{state}</option>)})}
+                                                    </Form.Select>
+                                                </Col>
+                                            </Row>
+                                            <Row className="mb-3">
+                                                <Col lg={9}>
+                                                    <Form.Label>City<span style={{color: "red"}}>*</span></Form.Label>
+                                                    <Form.Control type="text" placeholder='Ex. Boston' value={address.city} onChange={(e) => handleAddressChange("city", e.target.value)} required={true}/>
+                                                </Col>
+                                                
+                                                <Col>
+                                                    <Form.Label>Zip Code<span style={{color: "red"}}>*</span></Form.Label>
+                                                    <FormNumber placeholder='Ex. 27413' value={address.zip} onChange={(e) => {handleAddressChange("zip", e.target.value); e.target.setCustomValidity("")}} max={5} min={5} required={true} customValidity={"Zip codes must be 5 characters (#####)."}/>
+                                                </Col>
+                                            </Row>
+                                        </Row>
                                     </Col>
-                                    <Col lg="2" sm="2">
-                                        <div>
-                                            {selectedInstruments.map((instrument, index) => (
-                                                <div key={index}>
-                                                    <input type="checkbox" style={{ marginRight: "1em" }} checked={selectedToRemove.includes(instrument)} onChange={(e) => handleToggleCheckbox(e.target.checked, instrument)} />
-                                                    <span key={index}>{instrument}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </Col>
-                                    <Col lg="2" sm="6">
-                                        <Button onClick={handleRemoveInstrument}>Remove Instruments</Button>
+                                    <Col>
+                                        <h3>Event Finance</h3>
+                                        <Row className="my-3">
+                                            <Form.Label>Pay<span style={{color: "red"}}>*</span></Form.Label>
+                                            <Col>
+                                                <InputGroup>
+                                                    <InputGroup.Text>$</InputGroup.Text>
+                                                    <FormNumber maxValue={9999.99} value={event.pay} placeholder="Ex. $150.00" required={true} integer={false} onChange={handleChange} name="pay"/>
+                                                </InputGroup>
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-3">
+                                            <Form.Label>Mileage Pay</Form.Label>
+                                            <Col>
+                                                <InputGroup>
+                                                    <InputGroup.Text>$</InputGroup.Text>
+                                                    <FormNumber maxValue={1.00} placeholder='Ex. $0.17' value={event.mileage_pay} integer={false} onChange={handleChange} name="mileage_pay" />
+                                                </InputGroup>
+                                            </Col>
+                                        </Row>
                                     </Col>
                                 </Row>
+                                <hr />
+
                             </Form.Group>
+                            {/* Add if else logic: If event=true (Event is being updated), update event, else (this is a new event) list event */}
+                            <div style={{ marginBottom: "2em", marginTop: "2em" , textAlign: "center"}}>
+                                {id ? (
+                                    <div className="update-delete">
+                                        <Button type="submit" className="formButton" variant="success" onClick={handleEvent} style={{ marginRight: '10px'}}>Update Event</Button>
+                                        <Button type="submit" className="formButton" variant="danger" onClick={handleDeleteEvent} style={{ marginLeft: '10px'}}>Delete Event</Button>
+                                    </div>
+                                ) : (
+                                    <Button>
+                                        <div className="create-event">
+                                            <Button type="submit" className="formButton" onClick={handleEvent}>List Event</Button>
+                                        </div>
+                                    </Button>
+                                )}
+                            </div>
                         </Form>
                     </Container>
-                    {/* Add if else logic: If event=true (Event is being updated), update event, else (this is a new event) list event */}
-                    <div style={{ marginBottom: "2em", marginTop: "2em" }}>
-                        {id ? (
-                            <div className="update-delete">
-                                <Button className="formButton" variant="success" onClick={handleEvent} style={{ marginRight: '10px'}}>Update Event</Button>
-                                <Button className="formButton" variant="danger" onClick={handleDeleteEvent} style={{ marginLeft: '10px'}}>Delete Event</Button>
-                            </div>
-                        ) : (
-                            <Button>
-                                <div className="create-event">
-                                    <Button className="formButton" onClick={handleEvent}>List Event</Button>
-                                </div>
-                            </Button>
-                        )}
-                    </div>
+                    
 
                 </div>
             </div>
