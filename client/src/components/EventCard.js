@@ -49,7 +49,7 @@ function EventCard({eventId}) {
             </Card.Header>
             <Card.Body>
                 <Card.Text style={{overflow: "clip", maxHeight: "100px"}}>
-                        {eventData && (eventData.description.length > descriptionCharacterLimit ?`${eventData.description.substring(0, descriptionCharacterLimit)}...` : eventData.description)}
+                        {eventData && eventData.description.length > 0 ? (eventData.description.length > descriptionCharacterLimit ?`${eventData.description.substring(0, descriptionCharacterLimit)}...` : eventData.description) : <div className='text-muted'>No description provided</div>}
                 </Card.Text>                
             </Card.Body>
             <Card.Footer>

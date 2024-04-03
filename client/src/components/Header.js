@@ -20,7 +20,7 @@ function Header() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="justify-content-end">
-                            <Nav.Item><Nav.Link href="/form">List Event</Nav.Link></Nav.Item>
+                            {showLogoutButton && <Nav.Item><Nav.Link href="/form">List Event</Nav.Link></Nav.Item>}
                             <Nav.Item><Nav.Link href="/eventsearch">Events</Nav.Link></Nav.Item>
                             <Nav.Item><Nav.Link href="/calculator">Calculator</Nav.Link></Nav.Item>
                             {!showLogoutButton && <Nav.Item><Nav.Link href="/login">Login/Register</Nav.Link></Nav.Item>}
