@@ -12,7 +12,7 @@ import FormNumber from "../components/FormNumber";
 import Select from 'react-select';
 import { toast } from "react-toastify";
 
-const { REACT_APP_BACKEND_URL } = process.env;
+import {getBackendURL} from "../Utils";
 
 const EventForm = () => {
     const [event, setEvent] = useState({
@@ -54,14 +54,14 @@ const EventForm = () => {
     useEffect(() => {
         const fetchData = async () => {
             //fetch instruments needed for tags
-            const res = await fetch(`http://${REACT_APP_BACKEND_URL}/instrument/`);
+            const res = await fetch(`http://${getBackendURL()}/instrument/`);
             const data = await res.json();
 
             //Create instruments
             setInstruments(configureInstrumentList(data));
 
             if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
-                const res = await fetch(`http://${REACT_APP_BACKEND_URL}/event/id/${id}`);
+                const res = await fetch(`http://${getBackendURL()}/event/id/${id}`);
                 const data = await res.json();
 
                 //Set optional fields
@@ -99,7 +99,7 @@ const EventForm = () => {
 
             //get user
             if (cookies.jwt) {
-                axios.get(`http://${REACT_APP_BACKEND_URL}/account`, { withCredentials: true }).then(res => {
+                axios.get(`http://${getBackendURL()}/account`, { withCredentials: true }).then(res => {
                     if (res.data?.user) {
                         const userData = res.data.user;
                         setUserId(userData);
@@ -262,13 +262,13 @@ const EventForm = () => {
 
                 //if an id is present, that means the event already exists and we need to put
                 if (id) {
-                    const response = await axios.put(`http://${REACT_APP_BACKEND_URL}/event/${id}`, eventData);
+                    const response = await axios.put(`http://${getBackendURL()}/event/${id}`, eventData);
                     navigate(`../event/${id}`)
                     toast("Event Updated", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
                 } else {
                     //event does not exist, so make a post
                     const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, isListed: isListed};
-                    const response = await axios.post(`http://${REACT_APP_BACKEND_URL}/event/`, eventData)
+                    const response = await axios.post(`http://${getBackendURL()}/event/`, eventData)
                     const newEventId = response.data.newEvent.event_id;
                     navigate(`../event/${newEventId}`);
                     toast("Event Created", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
@@ -287,7 +287,7 @@ const EventForm = () => {
         {
             try {
                 setIsDeleting(true);
-                const response = await axios.delete(`http://${REACT_APP_BACKEND_URL}/event/${id}`)
+                const response = await axios.delete(`http://${getBackendURL()}/event/${id}`)
                 navigate("/")
                 toast("Event Deleted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
             } catch (err) {

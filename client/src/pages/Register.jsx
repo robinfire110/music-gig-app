@@ -4,7 +4,8 @@ import {toast, ToastContainer} from 'react-toastify';
 import { Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import '../App.css'
-const { REACT_APP_BACKEND_URL } = process.env;
+import { getBackendURL } from "../Utils"
+
 
 const Register = () => {
 	const navigate = useNavigate();
@@ -32,7 +33,7 @@ const Register = () => {
 	const handleSubmit = async (event) => {
 		event.preventDefault();
 		try {
-			const {data} =  await axios.post(`http://${REACT_APP_BACKEND_URL}/register`, {
+			const {data} =  await axios.post(`http://${getBackendURL()}/register`, {
 				...values,
 			}, {
 				withCredentials:true,
