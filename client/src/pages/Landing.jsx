@@ -30,12 +30,10 @@ function Landing() {
 
     //Get recent event on first load
     useEffect(() => {
-        console.log("URL", getBackendURL());
         if (cookies.jwt)
         {
             try
             {
-                console.log("For real again URL", getBackendURL());
                 //Get user
                 axios.get(`http://${getBackendURL()}/account`, {withCredentials: true}).then(async res => {
                     //Get data based on user
