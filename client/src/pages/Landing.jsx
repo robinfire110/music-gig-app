@@ -30,6 +30,7 @@ function Landing() {
 
     //Get recent event on first load
     useEffect(() => {
+        console.log("URL", getBackendURL());
         if (cookies.jwt)
         {
             try
