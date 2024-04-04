@@ -10,7 +10,7 @@ import "../App.css";
 import EditProfile from "./dashboards/EditProfile";
 import Gigs from "./dashboards/Gigs";
 import Financials from "./dashboards/Financials";
-const { REACT_APP_BACKEND_URL } = process.env
+import { getBackendURL } from "../Utils"
 
 function Account() {
     const navigate = useNavigate();
@@ -29,7 +29,7 @@ function Account() {
                 navigate('/login');
             } else {
                 try {
-                    const { data } = await axios.get(`http://${REACT_APP_BACKEND_URL}/account`, { withCredentials: true });
+                    const { data } = await axios.get(`http://${getBackendURL()}/account`, { withCredentials: true });
                     setUserData(data.user);
                     setIsAdmin(data.isAdmin);
                     console.log(data)
@@ -49,7 +49,7 @@ function Account() {
     useEffect(() => {
         const fetchUserGigs = async () => {
             try {
-                const { data } = await axios.get(`http://${REACT_APP_BACKEND_URL}/user-gigs`, { withCredentials: true });
+                const { data } = await axios.get(`http://${getBackendURL()}/user-gigs`, { withCredentials: true });
                 setGigs(data.userGigs);
                 console.log(data.userGigs);
             } catch (error) {
@@ -69,7 +69,7 @@ function Account() {
                     console.error('User data or user_id is not available');
                     return;
                 }
-                const { data } = await axios.get(`http://${REACT_APP_BACKEND_URL}/user-financials`, { withCredentials: true });
+                const { data } = await axios.get(`http://${getBackendURL()}/user-financials`, { withCredentials: true });
                 setFinancials(data.userFinancials);
                 console.log(data.userFinancials);
             } catch (error) {

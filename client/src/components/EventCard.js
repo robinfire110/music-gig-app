@@ -3,7 +3,7 @@ import { Card, Button } from 'react-bootstrap';
 import axios from 'axios';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
-const { REACT_APP_BACKEND_URL } = process.env
+import { getBackendURL } from "../Utils"
 
 function EventCard({eventId}) {
     //Get Data
@@ -13,10 +13,10 @@ function EventCard({eventId}) {
     
     //Call API
     useEffect(() => {
-        axios.get(`http://${REACT_APP_BACKEND_URL}/event/id/${eventId}`).then(res => {
+        axios.get(`http://${getBackendURL()}/event/id/${eventId}`).then(res => {
             //Set data
             setEventData(res.data);
-            console.log(res.data);
+            //console.log(res.data);
 
             //Get owner
             res.data.Users.forEach(user => {
@@ -48,9 +48,12 @@ function EventCard({eventId}) {
                 <h6>Instruments:</h6> {eventData && eventData.Instruments[0] ? eventData.Instruments.map(instrument => instrument.name).join(', ') : "None"}
             </Card.Header>
             <Card.Body>
+                {eventData && eventData.description.length > 0 ? (
                 <Card.Text style={{overflow: "clip", maxHeight: "100px"}}>
-                        {eventData && eventData.description.length > 0 ? (eventData.description.length > descriptionCharacterLimit ?`${eventData.description.substring(0, descriptionCharacterLimit)}...` : eventData.description) : <div className='text-muted'>No description provided</div>}
-                </Card.Text>                
+                         {eventData.description.length > descriptionCharacterLimit ?`${eventData.description.substring(0, descriptionCharacterLimit)}...` : eventData.description}
+                </Card.Text>
+                ) :  
+                <Card.Text className='text-muted'>No description provided</Card.Text>}             
             </Card.Body>
             <Card.Footer>
                 <Button variant='primary' href={`/event/${eventId}`}>See more</Button>

@@ -9,7 +9,7 @@ import { Card, Col, Container, ListGroup, Row } from "react-bootstrap";
 import EventCard from "../components/EventCard";
 import {ClipLoader} from 'react-spinners'
 import EventHorizontalScroll from "../components/EventHorizontalScroll";
-const { REACT_APP_BACKEND_URL } = process.env;
+import {getBackendURL} from "../Utils"
 
 const Profile = () => {
     //URL Params
@@ -56,13 +56,13 @@ const Profile = () => {
     //Run on first start
     useEffect(() => {
         //Get user data
-        axios.get(`http://${REACT_APP_BACKEND_URL}/user/id/${paramId}`).then(res => {
+        axios.get(`http://${getBackendURL()}/user/id/${paramId}`).then(res => {
             if (res.data)
             {
                 setUserData(res.data);
 
                 //Get location
-                axios.get(`http://${REACT_APP_BACKEND_URL}/api/geocoding/zip/${res.data.zip}`).then((res) => {
+                axios.get(`http://${getBackendURL()}/api/geocoding/zip/${res.data.zip}`).then((res) => {
                     setUserLocation(res.data);
                     setIsLoading(false);
                     console.log("Location", res.data);

@@ -12,7 +12,7 @@ import {saveAs} from "file-saver"
 import {autoSizeColumn, formatCurrency, getCurrentUser, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined} from "../Utils";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
-const { REACT_APP_BACKEND_URL } = process.env;
+import {getBackendURL} from "../Utils";
 
 const Calculator = () => {
     /* Variables */
@@ -88,7 +88,7 @@ const Calculator = () => {
         //Get Gas Prices
         if (!gasPrices)
         {
-            axios.get(`http://${REACT_APP_BACKEND_URL}/gas`).then(res => {
+            axios.get(`http://${getBackendURL()}/gas`).then(res => {
                 let map = {};
                 for (let i = 0; i < res.data.length; i++)
                 {
@@ -102,10 +102,10 @@ const Calculator = () => {
         //Get user
         if (cookies.jwt)
         {
-            axios.get(`http://${REACT_APP_BACKEND_URL}/account`, {withCredentials: true}).then(res => {
+            axios.get(`http://${getBackendURL()}/account`, {withCredentials: true}).then(res => {
                 if (res.data?.user)
                 {
-                    axios.get(`http://${REACT_APP_BACKEND_URL}/user/id/${res.data.user.user_id}`).then(res => {
+                    axios.get(`http://${getBackendURL()}/user/id/${res.data.user.user_id}`).then(res => {
                         const userData = res.data;
                         setModalOriginZip(userData.zip);
                         setUser(userData);
@@ -191,7 +191,7 @@ const Calculator = () => {
         if (!isEvent)
         {
             //Get data
-            await axios.get(`http://${REACT_APP_BACKEND_URL}/financial/user_id/fin_id/${currentUser?.user_id}/${finId}`).then(res => {
+            await axios.get(`http://${getBackendURL()}/financial/user_id/fin_id/${currentUser?.user_id}/${finId}`).then(res => {
                 const data = res.data[0];
                 if (data && data?.fin_id) setFinId(data.fin_id);
 
@@ -208,7 +208,7 @@ const Calculator = () => {
         else
         {
             //Check for already existing event financial
-            await axios.get(`http://${REACT_APP_BACKEND_URL}/financial/user_id/event_id/${currentUser?.user_id}/${finId}`).then(async res => {
+            await axios.get(`http://${getBackendURL()}/financial/user_id/event_id/${currentUser?.user_id}/${finId}`).then(async res => {
                 const data = res.data[0];
                 if (data) //If financial for event exists, load that data.
                 {
@@ -241,7 +241,7 @@ const Calculator = () => {
         } 
         else
         {
-            await axios.get(`http://${REACT_APP_BACKEND_URL}/event/id/${paramId}`).then(async res => {
+            await axios.get(`http://${getBackendURL()}/event/id/${paramId}`).then(async res => {
             if (res.data)
             {
                 const data = res.data;
@@ -278,7 +278,7 @@ const Calculator = () => {
     async function calculateBasedOnLocation(originZip, destinationZip)
     {
         setIsGettingLocation(true);
-        axios.get(`http://${REACT_APP_BACKEND_URL}/api/distance_matrix/${originZip}/${destinationZip}/`).then(res => {
+        axios.get(`http://${getBackendURL()}/api/distance_matrix/${originZip}/${destinationZip}/`).then(res => {
             console.log("Event Location Data", res.data);
             if (res.data)
             {
@@ -470,7 +470,7 @@ const Calculator = () => {
                 if ((!isEvent && paramId) || (isEvent && !isNewEvent)) //If exists, update
                 {
                     console.log(`UPDATE ${finId} ${paramId}`, data)
-                    await axios.put(`http://${REACT_APP_BACKEND_URL}/financial/${finId}`, data).then(res => {
+                    await axios.put(`http://${getBackendURL()}/financial/${finId}`, data).then(res => {
                         toast("Calculator data updated sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
                         setSaveStatus(false);
 
@@ -503,7 +503,7 @@ const Calculator = () => {
                 else //If new, post.
                 {
                     console.log("ADD");
-                    await axios.post(`http://${REACT_APP_BACKEND_URL}/financial/${user?.user_id}`, data).then(res => {
+                    await axios.post(`http://${getBackendURL()}/financial/${user?.user_id}`, data).then(res => {
                         //SetID
                         setParamId(res.data.fin_id);
                         setFinId(res.data.fin_id);
