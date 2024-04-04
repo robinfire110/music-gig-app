@@ -6,8 +6,8 @@ let REACT_APP_BACKEND_URL;
 
 function getBackendURL()
 {
-    if (window.location.hostname == "localhost") return "localhost:5000";
-    else return "/";
+    if (window.location.hostname == "localhost") return "http://localhost:5000";
+    else return "https://harmonize-api.onrender.com";
 }
 
 //Constant Variables

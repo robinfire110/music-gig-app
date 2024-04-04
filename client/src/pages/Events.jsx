@@ -28,7 +28,7 @@ const Events = () => {
         const fetchEvents = async () => {
             try {
                 //fetch all events from server
-                const res = await fetch(`http://${getBackendURL()}/event`)
+                const res = await fetch(`${getBackendURL()}/event`)
                 const data = await res.json();
                 //Filter out all events from data whose is_listed is false
                 const filteredData = data.filter(event => event.is_listed === true || event.is_listed === 1)
