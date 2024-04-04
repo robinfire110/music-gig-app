@@ -44,7 +44,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
     origin: allowedOrigins,
-    method: ["GET", "POST"],
+    exposedHeaders: 'Set-Cookie',
+    method: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
 app.use(cookieParser());
