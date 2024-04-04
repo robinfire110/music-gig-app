@@ -6,7 +6,10 @@ import { Container, Form, Col, Row, Button } from "react-bootstrap";
 import { ClipLoader } from "react-spinners";
 import EventRow from "../components/EventRow";
 import "../styles/Events.css";
-import {getBackendURL} from "../Utils";
+import { getBackendURL } from "../Utils";
+import Select from 'react-select';
+
+const { REACT_APP_BACKEND_URL } = process.env;
 
 const Events = () => {
 
@@ -16,6 +19,8 @@ const Events = () => {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("")
     const [loading, setLoading] = useState(true);
+    const [instruments, setInstruments] = useState([])
+    const [selectedInstruments, setSelectedInstruments] = useState([])
 
     const navigate = useNavigate();
 
@@ -33,7 +38,17 @@ const Events = () => {
                 console.log(err)
             }
         }
+
+        const fetchInstruments = async () => {
+            //fetch instruments needed for tags
+            const res = await fetch(`http://${REACT_APP_BACKEND_URL}/instrument/`);
+            const data = await res.json();
+
+            //Create instruments
+            setInstruments(configureInstrumentList(data));
+        }
         fetchEvents()
+        fetchInstruments()
     }, [])
 
     const formatDate = (dateString) => {
@@ -52,15 +67,24 @@ const Events = () => {
         event.preventDefault();
         let filteredEvents = events.filter(event => {
             const eventDate = new Date(event.start_time);
-            return (!startDate || eventDate >= new Date(startDate)) && (!endDate || eventDate <= new Date(endDate))
+            const eventInstruments = event.Instruments ? event.Instruments.map(instrument => instrument.name.toLowerCase()) : [];
+            const containsSearchQuery = (!searchQuery || event.event_name.toLowerCase().includes(searchQuery.toLowerCase()));
+            const isInDateRange = (!startDate || eventDate > new Date(startDate)) && (!endDate || eventDate <= new Date(endDate))
+            const matchesSelectedInstruments = selectedInstruments.some(selected => eventInstruments.includes(selected.value.toLowerCase()))
+
+            return containsSearchQuery && isInDateRange && matchesSelectedInstruments;
         });
-
-        if (searchQuery) {
-            filteredEvents = filteredEvents.filter(event => event.event_name.toLowerCase().includes(searchQuery.toLowerCase()));
-        }
-
         setFilteredEvents(filteredEvents);
     };
+
+    //Configure instrument list (to work with special select)
+    const configureInstrumentList = (data) => {
+        const instrumentOptionList = []
+        data.forEach(instrument => {
+            instrumentOptionList.push({value: instrument.name, label: instrument.name});
+        });
+        return instrumentOptionList
+    }
 
     return (
         <div>
@@ -76,6 +100,9 @@ const Events = () => {
                         </Col>
                         <Col>
                             <Form.Control type="date" placeholder="End Date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                        </Col>
+                        <Col lg="4">
+                            <Select placeholder="Instruments..." options={instruments} isMulti onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} required={false}></Select>
                         </Col>
                         <Col>
                             <Button variant="primary" type="submit">Search</Button>
