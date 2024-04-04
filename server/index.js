@@ -35,7 +35,7 @@ if (process.env.NODE_ENV === "development")
 else if (process.env.NODE_ENV === "production")
 {
     allowedOrigins.push("https://harmonize-w2el.onrender.com");
-    allowedOrigins.push("https://api.harmonize.rocks");
+    allowedOrigins.push("https://harmonize.rocks");
 }
 
 // Middleware setup
