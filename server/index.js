@@ -26,11 +26,23 @@ const routeAPI = require('./routes/API');
 const app = express();
 const port = 5000;
 
+//Allowed origins
+const allowedOrigins = []
+if (process.env.NODE_ENV === "development")
+{
+    allowedOrigins.push("http://localhost:3000");
+}
+else if (process.env.NODE_ENV === "production")
+{
+    allowedOrigins.push("https://harmonize-api.onrender.com");
+    allowedOrigins.push("https://api.harmonize.rocks");
+}
+
 // Middleware setup
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: ["http://localhost:3000", "https://harmonize.rocks"],
+    origin: allowedOrigins,
     method: ["GET", "POST"],
     credentials: true
 }));
