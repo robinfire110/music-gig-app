@@ -30,9 +30,11 @@ const Events = () => {
                 //fetch all events from server
                 const res = await fetch(`http://${getBackendURL()}/event`)
                 const data = await res.json();
-                setEvents(data)
+                //Filter out all events from data whose is_listed is false
+                const filteredData = data.filter(event => event.is_listed === true || event.is_listed === 1)
+                setEvents(filteredData)
                 //setting this for managing what data is currently being filtered
-                setFilteredEvents(data)
+                setFilteredEvents(filteredData)
                 setLoading(false);
             } catch (err) {
                 console.log(err)
@@ -68,9 +70,9 @@ const Events = () => {
         let filteredEvents = events.filter(event => {
             const eventDate = new Date(event.start_time);
             const eventInstruments = event.Instruments ? event.Instruments.map(instrument => instrument.name.toLowerCase()) : [];
-            const containsSearchQuery = (!searchQuery || event.event_name.toLowerCase().includes(searchQuery.toLowerCase()));
+            const containsSearchQuery = !searchQuery || event.event_name.toLowerCase().includes(searchQuery.toLowerCase());
             const isInDateRange = (!startDate || eventDate > new Date(startDate)) && (!endDate || eventDate <= new Date(endDate))
-            const matchesSelectedInstruments = selectedInstruments.some(selected => eventInstruments.includes(selected.value.toLowerCase()))
+            const matchesSelectedInstruments = selectedInstruments.length === 0 || selectedInstruments.some(selected => eventInstruments.includes(selected.value.toLowerCase()))
 
             return containsSearchQuery && isInDateRange && matchesSelectedInstruments;
         });
