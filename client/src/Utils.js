@@ -6,7 +6,6 @@ let REACT_APP_BACKEND_URL;
 
 function getBackendURL()
 {
-    return "/";
     if (window.location.hostname == "localhost") return "localhost:5000";
     else return "/";
 }
