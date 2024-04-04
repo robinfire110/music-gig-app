@@ -6,13 +6,13 @@ import axios from "axios";
 import { Container, Form, Col, Row, Button, InputGroup } from "react-bootstrap";
 import moment from "moment";
 import { useCookies } from "react-cookie";
-import { BarLoader, ClipLoader } from "react-spinners";
-import { maxDescriptionLength, maxEventNameLength, parseFloatZero, parseStringUndefined, statesList } from "../Utils";
+import { ClipLoader } from "react-spinners";
+import { maxDescriptionLength, maxEventNameLength, parseFloatZero, statesList } from "../Utils";
 import FormNumber from "../components/FormNumber";
 import Select from 'react-select';
 import { toast } from "react-toastify";
 
-import {getBackendURL} from "../Utils";
+const { REACT_APP_BACKEND_URL } = process.env;
 
 const EventForm = () => {
     const [event, setEvent] = useState({
@@ -21,7 +21,8 @@ const EventForm = () => {
         end_time: new moment().format("YYYY-MM-DD"),
         description: "",
         pay: null,
-        event_hours: ""
+        event_hours: "",
+        is_listed: null
     })
 
     const [address, setAddress] = useState({
@@ -44,9 +45,6 @@ const EventForm = () => {
     const [loading, setLoading] = useState(true);
     const [userLoggedIn, setUserLoggedIn] = useState(false);
     const [descriptionLength, setDescriptionLength] = useState(maxDescriptionLength);
-    const [nameLength, setNameLength] = useState(maxEventNameLength);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
 
     const navigate = useNavigate()
     const { id } = useParams();
@@ -54,20 +52,15 @@ const EventForm = () => {
     useEffect(() => {
         const fetchData = async () => {
             //fetch instruments needed for tags
-            const res = await fetch(`http://${getBackendURL()}/instrument/`);
+            const res = await fetch(`http://${REACT_APP_BACKEND_URL}/instrument/`);
             const data = await res.json();
 
             //Create instruments
             setInstruments(configureInstrumentList(data));
 
             if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
-                const res = await fetch(`http://${getBackendURL()}/event/id/${id}`);
+                const res = await fetch(`http://${REACT_APP_BACKEND_URL}/event/id/${id}`);
                 const data = await res.json();
-
-                //Set optional fields
-                if (data.rehearse_hours <= 0) data.rehearse_hours = "";
-                if (data.mileage_pay <= 0) data.mileage_pay = "";
-
                 setEvent(data);
                 setAddress({
                     street: data.Address.street,
@@ -99,7 +92,7 @@ const EventForm = () => {
 
             //get user
             if (cookies.jwt) {
-                axios.get(`http://${getBackendURL()}/account`, { withCredentials: true }).then(res => {
+                axios.get(`http://${REACT_APP_BACKEND_URL}/account`, { withCredentials: true }).then(res => {
                     if (res.data?.user) {
                         const userData = res.data.user;
                         setUserId(userData);
@@ -114,84 +107,29 @@ const EventForm = () => {
 
     //Update total event hours
     useEffect(() => {
-        //Variables
-        const endDateTime = moment(`${endDate} ${endTime}`);
-        const startDateTime = moment(`${startDate} ${startTime}`);
-        //console.log(startDateTime, endDateTime);
-
-        //Set total hours
-        const eventHours = endDateTime.diff(startDateTime, "hours");
+        const eventHours = moment(`${endDate} ${endTime}`).diff(moment(`${startDate} ${startTime}`), "hours");
         const rehearsalHours = parseFloatZero(event.rehearse_hours);
         setTotalEventHours(eventHours+rehearsalHours);
-        
     }, [startDate, startTime, endDate, endTime, event.rehearse_hours])
 
     //Update description length
-    useEffect(() => {
+    /*useEffect(() => {
         const descriptionBox = document.getElementById("eventDescription");
-        if (descriptionBox)
-        {
-            setDescriptionLength(maxDescriptionLength-descriptionBox.value.length);
-        }
-        
-    }, [event.description]);
-
-    //Update name length
-    useEffect(() => {
-        const nameBox = document.getElementById("eventName");
-        if (nameBox)
-        {
-            setNameLength(maxEventNameLength-nameBox.value.length);
-        }
-        
-    }, [event.event_name]);
+        setDescriptionLength(maxDescriptionLength-descriptionBox.value.length);
+    }, [event.description]); */
     
     //Handle most changes
     const handleChange = (e) => {
+        console.log(e.target.name);
         setEvent(prev => ({ ...prev, [e.target.name]: e.target.value }))
     }
 
     //Hand date change
-    const handleDateTimeChange = (name, e) => {
-        //Variables
-        const value = e.target.value;
-        const currentStartDate = name === "start_date" ? value : startDate;
-        const currentStartTime = name === "start_time" ? value : startTime;
-        const currentEndTime = name === "end_time" ? value : endTime;
-        const currentEndDate = name === "end_date" ? value : endDate;
-        const startDateTime = moment(`${currentStartDate} ${currentStartTime}`);
-        const endDateTime = moment(`${currentEndDate} ${currentEndTime}`);
-        
-        //Update
-        switch (name)
-        {
-            case "start_date": setStartDate(value); break;
-            case "start_time": setStartTime(value); break;
-            case "end_date": setEndDate(value); break;
-            case "end_time": setEndTime(value); break;
-        }
-
-        //Set end date if later than start date (will override above setting)
-        if (endDateTime.isBefore(startDateTime))
-        {
-            endDateTime.set({year: startDateTime.get('year'), month: startDateTime.get('month'), date: startDateTime.get('date'), minute: startDateTime.get('minute')});
-            if (endDateTime.isBefore(startDateTime, "hour"))
-            {
-                endDateTime.set({hour: startDateTime.get('hour')});
-                endDateTime.add(1, "hour");
-            } 
-            setEndDate(endDateTime.format("YYYY-MM-DD"));
-            setEndTime(endDateTime.format("HH:mm"));
-            if (name === "end_date")
-            {
-                e.target.setCustomValidity("End date must be after start date.");
-                e.target.reportValidity();
-            } 
-            if (name === "end_time")
-            {
-                e.target.setCustomValidity("End time must be after start time.");
-                e.target.reportValidity();
-            } 
+    const handleDateChange = (name, value) => {
+        if (name === 'start_date') {
+            setStartDate(value);
+        } else if (name === 'end_date') {
+            setEndDate(value);
         }
     }
 
@@ -225,76 +163,69 @@ const EventForm = () => {
 
     const handleEvent = async e => {
         e.preventDefault()
-        if (!isSubmitting && !isDeleting)
-        {
-            try {
-                //Set submitting
-                setIsSubmitting(true)
-
-                //Check validity (will return false if not valid, HTML will take care of the rest).
-                const inputs = document.getElementById("eventForm").elements;
-                for (let i = 0; i < inputs.length; i++) {
-                    inputs[i].setCustomValidity("");
-                    if (!inputs[i].disabled && !inputs[i].checkValidity())
-                    {
-                        inputs[i].reportValidity();
-                        console.log("NOT VALID");
-                        return false
-                    } 
-                }
-
-                const isListed = 1
-                const { start: startDateTime, end: endDateTime } = formatDateTime(startDate, startTime, endDate, endTime);
-
-                //Prepare instrument data
-                const instrumentsList = [];
-                selectedInstruments.forEach(instrument => {
-                    instrumentsList.push(instrument.value);
-                });
-
-                //Prepare optional values
-                event.rehearse_hours = parseFloatZero(event.rehearse_hours);
-                event.mileage_pay = parseFloatZero(event.mileage_pay);
-
-                //prepare data to be sent to database with event details
-                const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, isListed: isListed};
-                console.log(eventData);
-
-                //if an id is present, that means the event already exists and we need to put
-                if (id) {
-                    const response = await axios.put(`http://${getBackendURL()}/event/${id}`, eventData);
-                    navigate(`../event/${id}`)
-                    toast("Event Updated", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-                } else {
-                    //event does not exist, so make a post
-                    const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, isListed: isListed};
-                    const response = await axios.post(`http://${getBackendURL()}/event/`, eventData)
-                    const newEventId = response.data.newEvent.event_id;
-                    navigate(`../event/${newEventId}`);
-                    toast("Event Created", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-                }
-            } catch (error) {
-                console.log(error);
-                toast("An error has occured, please try again.", {position: "top-center", type: "error", theme: "dark", autoClose: 1500})
-                setIsSubmitting(false);
+        try {
+            //Check validity (will return false if not valid, HTML will take care of the rest).
+            const inputs = document.getElementById("eventForm").elements;
+            for (let i = 0; i < inputs.length; i++) {
+                if (!inputs[i].disabled && !inputs[i].checkValidity())
+                {
+                    inputs[i].reportValidity();
+                    console.log("NOT VALID");
+                    return false
+                } 
             }
+
+            const isListed = 1
+            const { start: startDateTime, end: endDateTime } = formatDateTime(startDate, startTime, endDate, endTime);
+
+            //Prepare instrument data
+            const instrumentsList = [];
+            selectedInstruments.forEach(instrument => {
+                instrumentsList.push(instrument.value);
+            });
+
+            //prepare data to be sent to database with event details
+            const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, is_listed: isListed };
+
+            //if an id is present, that means the event already exists and we need to put
+            if (id) {
+                const response = await axios.put(`http://${REACT_APP_BACKEND_URL}/event/${id}`, eventData);
+                navigate(`../event/${id}`)
+                toast("Event Updated", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+            } else {
+                //event does not exist, so make a post
+                const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, is_listed: isListed };
+                const response = await axios.post(`http://${REACT_APP_BACKEND_URL}/event/`, eventData)
+                const newEventId = response.data.newEvent.event_id;
+                navigate(`../event/${newEventId}`);
+                toast("Event Created", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+            }
+        } catch (error) {
+            console.log(error);
         }
     }
 
-    const handleDeleteEvent = async e => {
+    const handleUnlistEvent = async e => {
         e.preventDefault()
-        if (!isDeleting && !isSubmitting)
-        {
-            try {
-                setIsDeleting(true);
-                const response = await axios.delete(`http://${getBackendURL()}/event/${id}`)
-                navigate("/")
-                toast("Event Deleted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-            } catch (err) {
-                console.log(err)
-                toast("An error has occured, please try again.", {position: "top-center", type: "error", theme: "dark", autoClose: 1500})
-                setIsDeleting(false);
-            }
+        try {
+            const listingUpdate = { is_listed: 0 }
+            const response = await axios.put(`http://${REACT_APP_BACKEND_URL}/event/${id}`, listingUpdate)
+            navigate(`../event/${id}`)
+            toast("Event Unlisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const handleRelistEvent = async e => {
+        e.preventDefault()
+        try {
+            const listingUpdate = { is_listed: 1 }
+            const response = await axios.put(`http://${REACT_APP_BACKEND_URL}/event/${id}`, listingUpdate)
+            navigate(`../event/${id}`)
+            toast("Event Relisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+        } catch (err) {
+            console.log(err)
         }
     }
 
@@ -317,13 +248,8 @@ const EventForm = () => {
                                 <Col lg={8}>
                                     <Row className="mb-3">
                                         <Col>
-                                            <Form.Label style={{width: '100%'}}>
-                                                <Row>
-                                                    <Col lg={10}>Event name<span style={{color: "red"}}>*</span></Col>
-                                                    <Col className="text-end">{nameLength}/{maxEventNameLength}</Col>
-                                                </Row>
-                                            </Form.Label>
-                                            <Form.Control id="eventName" maxLength={maxEventNameLength} type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name" required={true}></Form.Control>
+                                            <Form.Label>Event name<span style={{color: "red"}}>*</span></Form.Label>
+                                            <Form.Control maxLength={maxEventNameLength} type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name" required={true}></Form.Control>
                                         </Col>
                                     </Row>
                                     <Row className="mb-3">
@@ -337,6 +263,7 @@ const EventForm = () => {
                                                     <Col lg={10}>Description</Col>
                                                     <Col className="text-end">{descriptionLength}/{maxDescriptionLength}</Col>
                                                 </Row>
+                                                
                                             </Form.Label>
                                             <Form.Control as="textarea" id="eventDescription" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
                                         </Col>
@@ -346,19 +273,19 @@ const EventForm = () => {
                                     <Row className="mb-3">
                                         <Form.Label>Start Time<span style={{color: "red"}}>*</span></Form.Label>
                                         <Col>
-                                            <Form.Control type="date" value={moment(startDate).format("YYYY-MM-DD")} onChange={(e) => handleDateTimeChange('start_date', e)} required={true}></Form.Control>
+                                            <Form.Control type="date" value={moment(startDate).format("YYYY-MM-DD")} onChange={(e) => handleDateChange('start_date', e.target.value)} required={true}></Form.Control>
                                         </Col>
                                         <Col>
-                                            <Form.Control type="time" value={startTime} onChange={(e) => handleDateTimeChange("start_time", e)} required={true}></Form.Control>
+                                            <Form.Control type="time" defaultValue={startTime} onChange={(e) => setStartTime(e.target.value)} required={true}></Form.Control>
                                         </Col>
                                     </Row>
                                     <Row className="mb-3 align-items-center">
                                         <Form.Label>End Time<span style={{color: "red"}}>*</span></Form.Label>
                                         <Col>
-                                            <Form.Control type="date" value={moment(endDate).format("YYYY-MM-DD")} onChange={(e) => handleDateTimeChange('end_date', e)} required={true}></Form.Control>
+                                            <Form.Control type="date" value={moment(endDate).format("YYYY-MM-DD")} onChange={(e) => handleDateChange('end_date', e.target.value)} required={true}></Form.Control>
                                         </Col>
                                         <Col>
-                                            <Form.Control type="time" min={startTime} value={endTime} onChange={(e) => handleDateTimeChange("end_time", e)} required={true}></Form.Control>
+                                            <Form.Control type="time" min={startTime} defaultValue={endTime} onChange={(e) => setEndTime(e.target.value)} required={true}></Form.Control>
                                         </Col>
                                     </Row>
                                     <Row>
@@ -433,14 +360,19 @@ const EventForm = () => {
                             {/* Add if else logic: If event=true (Event is being updated), update event, else (this is a new event) list event */}
                             <div style={{ marginBottom: "2em", marginTop: "2em" , textAlign: "center"}}>
                                 {id ? (
-                                    <div className="update-delete">
-                                        <Button type="submit" className="formButton" variant="success" onClick={handleEvent} style={{ marginRight: '10px'}}>{isSubmitting ? <BarLoader color="#FFFFFF" height={4} width={50} /> : "Update Event"}</Button>
-                                        <Button type="submit" className="formButton" variant="danger" onClick={handleDeleteEvent} style={{ marginLeft: '10px'}}>{isDeleting ? <BarLoader color="#FFFFFF" height={4} width={50} /> : "Delete Event"}</Button>
+                                    <div className="update-unlist">
+                                        <Button type="submit" className="formButton" variant="success" onClick={handleEvent} style={{ marginRight: '10px'}}>Update Event</Button>
+                                        {event.is_listed ? (
+                                            <Button type="submit" className="formButton" variant="danger" onClick={handleUnlistEvent} style={{ marginLeft: '10px'}}>Unlist Event</Button>
+                                        ) : (
+                                            <Button type="submit" classname="formButton" variant="primary" onClick={handleRelistEvent} style={{marginLeft: '10px'}}>Relist Event</Button>
+                                        )}
+                                        
                                     </div>
                                 ) : (
                                     <Button>
                                         <div className="create-event">
-                                            <Button type="submit" className="formButton" onClick={handleEvent}>{isSubmitting ? <BarLoader color="#FFFFFF" height={4} width={50} /> : "List Event"}</Button>
+                                            <Button type="submit" className="formButton" onClick={handleEvent}>List Event</Button>
                                         </div>
                                     </Button>
                                 )}
