@@ -2,8 +2,9 @@ const { Axios } = require("axios");
 
 function getBackendURL()
 {
-    if (window.location.hostname == "localhost") return "http://localhost:5000";
-    else return "http://harmonize.rocks/api";
+    if (process.env.NODE_ENV== "development") return "http://localhost:5000";
+    else return "api";
+    //else return "http://harmonize.rocks/api";
 }
 
 //Constant Variables
