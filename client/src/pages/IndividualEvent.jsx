@@ -40,7 +40,7 @@ const IndividualEvent = () => {
         const fetchUserData = async () => {
             if (cookies.jwt) {
                 try {
-                    axios.get(`${getBackendURL()}/api/account`, { withCredentials: true }).then(res => {
+                    axios.get(`${getBackendURL()}/account`, { withCredentials: true }).then(res => {
                         if (res.data?.user) {
                             const userData = res.data.user;
                             setUserId(userData);
@@ -54,7 +54,7 @@ const IndividualEvent = () => {
 
         const fetchEvent = async () => {
             try {
-                const res = await fetch(`${getBackendURL()}/api/event/id/${id}`)
+                const res = await fetch(`${getBackendURL()}/event/id/${id}`)
                 const data = await res.json();
                 setEvent(data)
                 setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
@@ -84,7 +84,7 @@ const IndividualEvent = () => {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`${getBackendURL()}/api/event/${id}`);
+            await axios.delete(`${getBackendURL()}/event/${id}`);
             navigate("/");
         } catch (err) {
             console.log(err);
@@ -112,7 +112,7 @@ const IndividualEvent = () => {
         {
             const applicationData = { status: 'applied' }
             try {
-                await axios.post(`${getBackendURL()}/api/event/users/${id}/${userId.user_id}`, applicationData)
+                await axios.post(`${getBackendURL()}/event/users/${id}/${userId.user_id}`, applicationData)
                 window.location.reload();
             } catch (err) {
                 console.log(err)
@@ -122,7 +122,7 @@ const IndividualEvent = () => {
         {
             
             try {
-                await axios.put(`${getBackendURL()}/api/event/users/${id}/${user.user_id}`, applicationData)
+                await axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
                 window.location.reload();
             } catch (err) {
                 console.log(err)
@@ -133,7 +133,7 @@ const IndividualEvent = () => {
     const handleWithdrawApplication = async e => {
         const applicationData = { status: 'withdraw' }
         try {
-            await axios.put(`${getBackendURL()}/api/event/users/${id}/${userId.user_id}`, applicationData)
+            await axios.put(`${getBackendURL()}/event/users/${id}/${userId.user_id}`, applicationData)
             window.location.reload();
         } catch (err) {
             console.log(err)
@@ -143,7 +143,7 @@ const IndividualEvent = () => {
     const handleAcceptApplication = async (user) => {
         const applicationData = { status: 'accept' }
         try {
-            await axios.put(`${getBackendURL()}/api/event/users/${id}/${user.user_id}`, applicationData)
+            await axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
             window.location.reload();
         } catch (err) {
             console.log(err)
@@ -153,7 +153,7 @@ const IndividualEvent = () => {
     const handleRejectApplication = async (user) => {
         const applicationData = { status: 'reject' }
         try {
-            await axios.put(`${getBackendURL()}/api/event/users/${id}/${user.user_id}`, applicationData)
+            await axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
             window.location.reload();
         } catch (err) {
             console.log(err)

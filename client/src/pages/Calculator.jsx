@@ -88,7 +88,7 @@ const Calculator = () => {
         //Get Gas Prices
         if (!gasPrices)
         {
-            axios.get(`${getBackendURL()}/api/api/gas`).then(res => {
+            axios.get(`${getBackendURL()}/gas`).then(res => {
                 let map = {};
                 for (let i = 0; i < res.data.length; i++)
                 {
@@ -102,10 +102,10 @@ const Calculator = () => {
         //Get user
         if (cookies.jwt)
         {
-            axios.get(`${getBackendURL()}/api/account`, {withCredentials: true}).then(res => {
+            axios.get(`${getBackendURL()}/account`, {withCredentials: true}).then(res => {
                 if (res.data?.user)
                 {
-                    axios.get(`${getBackendURL()}/api/user/id/${res.data.user.user_id}`).then(res => {
+                    axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`).then(res => {
                         const userData = res.data;
                         setModalOriginZip(userData.zip);
                         setUser(userData);
@@ -191,7 +191,7 @@ const Calculator = () => {
         if (!isEvent)
         {
             //Get data
-            await axios.get(`${getBackendURL()}/api/financial/user_id/fin_id/${currentUser?.user_id}/${finId}`).then(res => {
+            await axios.get(`${getBackendURL()}/financial/user_id/fin_id/${currentUser?.user_id}/${finId}`).then(res => {
                 const data = res.data[0];
                 if (data && data?.fin_id) setFinId(data.fin_id);
 
@@ -208,7 +208,7 @@ const Calculator = () => {
         else
         {
             //Check for already existing event financial
-            await axios.get(`${getBackendURL()}/api/financial/user_id/event_id/${currentUser?.user_id}/${finId}`).then(async res => {
+            await axios.get(`${getBackendURL()}/financial/user_id/event_id/${currentUser?.user_id}/${finId}`).then(async res => {
                 const data = res.data[0];
                 if (data) //If financial for event exists, load that data.
                 {
@@ -241,7 +241,7 @@ const Calculator = () => {
         } 
         else
         {
-            await axios.get(`${getBackendURL()}/api/event/id/${paramId}`).then(async res => {
+            await axios.get(`${getBackendURL()}/event/id/${paramId}`).then(async res => {
             if (res.data)
             {
                 const data = res.data;
@@ -278,7 +278,7 @@ const Calculator = () => {
     async function calculateBasedOnLocation(originZip, destinationZip)
     {
         setIsGettingLocation(true);
-        axios.get(`${getBackendURL()}/api/api/distance_matrix/${originZip}/${destinationZip}/`).then(res => {
+        axios.get(`${getBackendURL()}/api/distance_matrix/${originZip}/${destinationZip}/`).then(res => {
             console.log("Event Location Data", res.data);
             if (res.data)
             {
@@ -470,7 +470,7 @@ const Calculator = () => {
                 if ((!isEvent && paramId) || (isEvent && !isNewEvent)) //If exists, update
                 {
                     console.log(`UPDATE ${finId} ${paramId}`, data)
-                    await axios.put(`${getBackendURL()}/api/financial/${finId}`, data).then(res => {
+                    await axios.put(`${getBackendURL()}/financial/${finId}`, data).then(res => {
                         toast("Calculator data updated sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
                         setSaveStatus(false);
 
@@ -503,7 +503,7 @@ const Calculator = () => {
                 else //If new, post.
                 {
                     console.log("ADD");
-                    await axios.post(`${getBackendURL()}/api/financial/${user?.user_id}`, data).then(res => {
+                    await axios.post(`${getBackendURL()}/financial/${user?.user_id}`, data).then(res => {
                         //SetID
                         setParamId(res.data.fin_id);
                         setFinId(res.data.fin_id);

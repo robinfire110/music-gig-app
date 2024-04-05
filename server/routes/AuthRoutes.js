@@ -2,14 +2,14 @@ const { register, login, account, update_user, getUserEvents, getUserFinancials}
 const {checkUser} = require("../Middleware/AuthMiddleWare");
 const router = require("express").Router();
 
-router.post("/api/register", register)
+router.post("/register", register)
 
 //example of using the jwt token for auth
-router.get("/api/account",checkUser, account);
-router.post("/api/update_user", checkUser, update_user)
-router.get("/api/user-gigs", checkUser, getUserEvents)
-router.get("/api/user-financials", checkUser, getUserFinancials)
+router.get("/account",checkUser, account);
+router.post("/update_user", checkUser, update_user)
+router.get("/user-gigs", checkUser, getUserEvents)
+router.get("/user-financials", checkUser, getUserFinancials)
 
-router.post("/api/login", login)
+router.post("/login", login)
 
 module.exports = {router};

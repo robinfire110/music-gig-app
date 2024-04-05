@@ -34,9 +34,9 @@ if (process.env.NODE_ENV === "development")
 }
 else if (process.env.NODE_ENV === "production")
 {
-    //allowedOrigins.push("https://harmonize-w2el.onrender.com");
+    allowedOrigins.push("http://152.70.204.132");
+    allowedOrigins.push("http://harmonize.rocks");
     allowedOrigins.push("https://harmonize.rocks");
-    allowedOrigins.push("https://harmonize.andyvillasmil.com");
 }
 
 // Middleware setup
@@ -59,11 +59,11 @@ app.listen(port, async () => {
 });
 
 // Routes setup
-app.use("/api/event", routeEvent.router);
-app.use("/api/financial", routeFinancial.router);
-app.use("/api/instrument", routeInstrument.router);
-app.use("/api/user", routeUser.router);
-app.use("/api/api/gas", routeGas.router);
-app.use("/api/api", routeAPI.router);
+app.use("/event", routeEvent.router);
+app.use("/financial", routeFinancial.router);
+app.use("/instrument", routeInstrument.router);
+app.use("/user", routeUser.router);
+app.use("/gas", routeGas.router);
+app.use("/api", routeAPI.router);
 app.use(authRoutes);
 

@@ -3,8 +3,7 @@ const { Axios } = require("axios");
 function getBackendURL()
 {
     if (window.location.hostname == "localhost") return "http://localhost:5000";
-    else return "https://harmonize-api.andyvillasmil.com";
-    //else return "https://harmonize-api.onrender.com";
+    else return "http://harmonize.rocks/api";
 }
 
 //Constant Variables

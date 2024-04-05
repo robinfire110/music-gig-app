@@ -50,14 +50,14 @@ const EventForm = () => {
     useEffect(() => {
         const fetchData = async () => {
             //fetch instruments needed for tags
-            const res = await fetch(`${getBackendURL()}/api/instrument/`);
+            const res = await fetch(`${getBackendURL()}/instrument/`);
             const data = await res.json();
 
             //Create instruments
             setInstruments(configureInstrumentList(data));
 
             if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
-                const res = await fetch(`${getBackendURL()}/api/event/id/${id}`);
+                const res = await fetch(`${getBackendURL()}/event/id/${id}`);
                 const data = await res.json();
                 setEvent(data);
                 setAddress({
@@ -90,7 +90,7 @@ const EventForm = () => {
 
             //get user
             if (cookies.jwt) {
-                axios.get(`${getBackendURL()}/api/account`, { withCredentials: true }).then(res => {
+                axios.get(`${getBackendURL()}/account`, { withCredentials: true }).then(res => {
                     if (res.data?.user) {
                         const userData = res.data.user;
                         setUserId(userData);
@@ -187,13 +187,13 @@ const EventForm = () => {
 
             //if an id is present, that means the event already exists and we need to put
             if (id) {
-                const response = await axios.put(`${getBackendURL()}/api/event/${id}`, eventData);
+                const response = await axios.put(`${getBackendURL()}/event/${id}`, eventData);
                 navigate(`../event/${id}`)
                 toast("Event Updated", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
             } else {
                 //event does not exist, so make a post
                 const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, is_listed: isListed };
-                const response = await axios.post(`${getBackendURL()}/api/event/`, eventData)
+                const response = await axios.post(`${getBackendURL()}/event/`, eventData)
                 const newEventId = response.data.newEvent.event_id;
                 navigate(`../event/${newEventId}`);
                 toast("Event Created", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
@@ -207,7 +207,7 @@ const EventForm = () => {
         e.preventDefault()
         try {
             const listingUpdate = { is_listed: 0 }
-            const response = await axios.put(`${getBackendURL()}/api/event/${id}`, listingUpdate)
+            const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
             navigate(`../event/${id}`)
             toast("Event Unlisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
         } catch (err) {
@@ -219,7 +219,7 @@ const EventForm = () => {
         e.preventDefault()
         try {
             const listingUpdate = { is_listed: 1 }
-            const response = await axios.put(`${getBackendURL()}/api/event/${id}`, listingUpdate)
+            const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
             navigate(`../event/${id}`)
             toast("Event Relisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
         } catch (err) {

@@ -13,7 +13,7 @@ function EventCard({eventId}) {
     
     //Call API
     useEffect(() => {
-        axios.get(`${getBackendURL()}/api/event/id/${eventId}`).then(res => {
+        axios.get(`${getBackendURL()}/event/id/${eventId}`).then(res => {
             //Set data
             setEventData(res.data);
             //console.log(res.data);

@@ -28,7 +28,7 @@ const Login = () => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
-            const {data} =  await axios.post(`${getBackendURL()}/api/login`, {
+            const {data} =  await axios.post(`${getBackendURL()}/login`, {
                 ...values,
             }, {
                 withCredentials:true,

@@ -29,7 +29,7 @@ function Account() {
                 navigate('/login');
             } else {
                 try {
-                    const { data } = await axios.get(`${getBackendURL()}/api/account`, { withCredentials: true });
+                    const { data } = await axios.get(`${getBackendURL()}/account`, { withCredentials: true });
                     setUserData(data.user);
                     setIsAdmin(data.isAdmin);
                     console.log(data)
@@ -49,7 +49,7 @@ function Account() {
     useEffect(() => {
         const fetchUserGigs = async () => {
             try {
-                const { data } = await axios.get(`${getBackendURL()}/api/user-gigs`, { withCredentials: true });
+                const { data } = await axios.get(`${getBackendURL()}/user-gigs`, { withCredentials: true });
                 setGigs(data.userGigs);
                 console.log(data.userGigs);
             } catch (error) {
@@ -69,7 +69,7 @@ function Account() {
                     console.error('User data or user_id is not available');
                     return;
                 }
-                const { data } = await axios.get(`${getBackendURL()}/api/user-financials`, { withCredentials: true });
+                const { data } = await axios.get(`${getBackendURL()}/user-financials`, { withCredentials: true });
                 setFinancials(data.userFinancials);
                 console.log(data.userFinancials);
             } catch (error) {
