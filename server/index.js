@@ -58,6 +58,13 @@ app.listen(port, async () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
 
+//Test route
+const testRouter = express.Router();
+testRouter.get("/", async (req, res) => {
+    res.send("Got");
+});
+app.use("/", testRouter);
+
 // Routes setup
 app.use("/event", routeEvent.router);
 app.use("/financial", routeFinancial.router);
