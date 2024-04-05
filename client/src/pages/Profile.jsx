@@ -41,24 +41,14 @@ const Profile = () => {
 
     function listEvents()
     {
-        let events;
-        if (userData?.Events.length > 0)
+        const events = userData.Events.filter((event) => {return event.UserStatus.status === "owner"});
+        if (events.length > 0)
         {
-            console.log(userData.Events);
-            return (<EventHorizontalScroll data={userData.Events} />)
-            /*
-            const events = userData?.Events.map(event => {
-                if (event.UserStatus.status == "owner")
-                {
-                    return <Col xxl={4} xl={6} lg={6} md={12} sm={12} xs={12}><EventCard eventId={event.event_id}/></Col>
-                }
-            });
-            return events;
-            */
+            return (<EventHorizontalScroll data={events} />)
         }
         else
         {
-            return "No events listed."
+            return (<Container className="text-muted">No events listed</Container>)
         }
         
     }

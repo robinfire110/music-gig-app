@@ -30,7 +30,7 @@ const port = 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: "*",
+    origin: ["http://localhost:3000", "https://harmonize.rocks"],
     method: ["GET", "POST"],
     credentials: true
 }));
