@@ -6,7 +6,6 @@ import axios from 'axios';
 import '../App.css';
 import {getBackendURL} from "../Utils";
 
-
 const Login = () => {
     const navigate = useNavigate();
     const [values, setValues] = useState({

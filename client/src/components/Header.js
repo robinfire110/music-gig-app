@@ -13,9 +13,8 @@ function Header() {
     useEffect(() => {
       console.log("Logged in", isLoggedIn);
       console.log("Cookies", cookies.jwt);
-      
-    }, [])
-    
+      setIsLoggedIn(cookies.jwt);
+    }, [cookies])
 
     return (
         <div>
