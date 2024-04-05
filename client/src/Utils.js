@@ -59,4 +59,4 @@ function parseStringUndefined(value)
     else return value;
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList};
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, autoSizeColumn};
