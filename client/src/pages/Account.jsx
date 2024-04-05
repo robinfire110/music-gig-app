@@ -87,14 +87,16 @@ function Account() {
             try {
                 if(isAdmin){
                     const { data } = await axios.get('http://localhost:5000/all-users', { withCredentials: true });
+                    console.log(data.users)
                     setUsers(data.users);
                 }
+
             } catch (error) {
                 console.error('Error fetching users:', error);
             }
         };
         fetchUsers();
-    }, []);
+    }, [isAdmin]);
 
     const handleLinkClick = (content) => {
         setSelectedContent(content);
