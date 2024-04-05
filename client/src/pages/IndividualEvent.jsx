@@ -54,10 +54,11 @@ const IndividualEvent = () => {
 
         const fetchEvent = async () => {
             try {
-                await axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
+                axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
                     const data = res.data;
+                    console.log(data);
                     setEvent(data)
-                    setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
+                    setOwnerId((data.Users && data.Users?.length) > 0 ? data.Users[0].user_id : null);
     
                     const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
                     const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
@@ -70,7 +71,6 @@ const IndividualEvent = () => {
     
                     setLoading(false);
                 });
-               
             } catch (err) {
                 console.log(err)
             }
