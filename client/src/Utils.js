@@ -3,8 +3,7 @@ const { Axios } = require("axios");
 function getBackendURL()
 {
     if (process.env.NODE_ENV== "development") return "http://localhost:5000";
-    else return "http://harmonize.rocks/api";
-    //else return "http://harmonize.rocks/api";
+    else return "https://harmonize.rocks/api";
 }
 
 //Constant Variables
@@ -36,6 +35,21 @@ function parseIntZero(value)
 {
     if (value) return parseInt(value);
     else return 0
+}
+
+//Auto fit column width (for spreadsheet)
+function autoSizeColumn(worksheet)
+{
+    worksheet.columns.forEach(function (column, i) {
+        let maxLength = 0;
+        column["eachCell"]({ includeEmpty: true }, function (cell) {
+            var columnLength = cell.value ? cell.value.toString().length : 10;
+            if (columnLength > maxLength ) {
+                maxLength = columnLength;
+            }
+        });
+        column.width = maxLength;
+    });
 }
 
 //Returns undefined if string is empty

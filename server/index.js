@@ -34,8 +34,6 @@ if (process.env.NODE_ENV === "development")
 }
 else if (process.env.NODE_ENV === "production")
 {
-    allowedOrigins.push("http://152.70.204.132");
-    allowedOrigins.push("http://harmonize.rocks");
     allowedOrigins.push("https://harmonize.rocks");
 }
 
