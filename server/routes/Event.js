@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const models = require('../database/models');
-const moment = require('moment');
-const {sequelize} = require('../database/database');
+const db = require('../models/models');
+const {getEventHours, getInstrumentId} = require('../helpers/model-helpers');
+const {sequelize} = require('../config/database_config');
+const { Op } = require('sequelize');
 
 /* GET */
 //Get all
 //Returns JSON of all events
 router.get("/", async (req, res) => {
     try {
-        const events = await models.Event.findAll({include: [models.Instrument, models.Address, models.User]});
+        const events = await db.Event.findAll({include: [db.Instrument, db.Address, db.User]});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -21,7 +22,44 @@ router.get("/", async (req, res) => {
 router.get("/id/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const event = await models.Event.findOne({where: {event_id: id}, include: [models.Instrument, models.Address, models.User]});
+        console.log("GOT", id);
+        const event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, db.User]});
+        res.json(event);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+//Get event by instrument(s)
+//Returns event associated with pass instrument(s) ids. Instrument separated by |.
+//?sort=true (allows to return sorted by date posted)
+//?limit=# (limit the result number)
+router.get("/instrument/:id", async (req, res) => {
+    try {
+        const id = req.params.id.split("|");
+        const isSorted = req.query.sort; //Sort by date posted
+        let limit = 999;
+        if (req.query.limit) limit = req.query.limit;
+        if (isSorted)
+        {
+            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, db.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
+            res.json(instrument);
+        }
+        else
+        {
+            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, db.User], limit: sequelize.literal(limit)});
+            res.json(instrument);
+        } 
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+//Get Event by user_id and event_id
+router.get("/user_id/event_id/:user_id/:event_id", async (req, res) => {
+    try {
+        const {user_id, event_id} = req.params;
+        const event = await db.Event.findAll({where: {event_id: event_id}, include: {model: db.User, where: {user_id: user_id}}});
         res.json(event);
     } catch (error) {
         res.status(500).send(error.message);
@@ -32,7 +70,7 @@ router.get("/id/:id", async (req, res) => {
 router.get("/recent/:limit", async (req, res) => {
     try {
         const limit = req.params.limit;
-        const events = await models.Event.findAll({include: [models.Instrument, models.Address, models.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
+        const events = await db.Event.findAll({include: [db.Instrument, db.Address, db.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -43,7 +81,7 @@ router.get("/recent/:limit", async (req, res) => {
 router.get("/soonest/:limit", async (req, res) => {
     try {
         const limit = req.params.limit;
-        const events = await models.Event.findAll({include: [models.Instrument, models.Address, models.User], order: [['start_time', 'ASC']], limit: sequelize.literal(limit)});
+        const events = await db.Event.findAll({include: [db.Instrument, db.Address, db.User], order: [['start_time', 'ASC']], limit: sequelize.literal(limit)});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -54,7 +92,7 @@ router.get("/soonest/:limit", async (req, res) => {
 router.get("/address/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const address = await models.Address.findOne({where: {event_id: id}});
+        const address = await db.Address.findOne({where: {event_id: id}});
         res.json(address);
     } catch (error) {
         res.status(500).send(error.message);
@@ -86,13 +124,13 @@ router.post("/", async (req, res) => {
         if (data.start_time && data.end_time)
         {
             //Convert from milliseconds to hours
-            event_hours = models.getEventHours(data.start_time, data.end_time);
+            event_hours = getEventHours(data.start_time, data.end_time);
         }
 
         //Add to event & address
-        const newEvent = await models.Event.create({event_name: data?.event_name, start_time: data?.start_time, end_time: data?.end_time, pay: data?.pay, address: data?.address, event_hours: event_hours, description: data?.description, rehearse_hours: data?.rehearse_hours, mileage_pay: data?.mileage_pay});
-        const newAddress = await models.Address.create({event_id: newEvent.event_id, street: addressData?.street, city: addressData?.city, zip: addressData?.zip, state: addressData?.state});
-        const newStatus = await models.UserStatus.create({user_id: data?.user_id, event_id: newEvent.event_id, status: "owner"});
+        const newEvent = await db.Event.create({event_name: data?.event_name, start_time: data?.start_time, end_time: data?.end_time, pay: data?.pay, address: data?.address, event_hours: event_hours, description: data?.description, rehearse_hours: data?.rehearse_hours, mileage_pay: data?.mileage_pay});
+        const newAddress = await db.Address.create({event_id: newEvent.event_id, street: addressData?.street, city: addressData?.city, zip: addressData?.zip, state: addressData?.state});
+        const newStatus = await db.UserStatus.create({user_id: data?.user_id, event_id: newEvent.event_id, status: "owner"});
 
         //Add instrument (adds relation to EventInstrument table)
         let newInstrumentArray = [];
@@ -100,12 +138,12 @@ router.post("/", async (req, res) => {
         {
             for (const instrument of data.instruments) {
                 //Get instrumentId
-                let instrumentId = await models.getInstrumentId(instrument);
+                let instrumentId = await getInstrumentId(instrument);
                 
                 //Add if found
                 if (instrumentId)
                 {
-                    var newInstrument = await models.EventInstrument.create({instrument_id: instrumentId, event_id: newEvent.event_id});
+                    var newInstrument = await db.EventInstrument.create({instrument_id: instrumentId, event_id: newEvent.event_id});
                     newInstrumentArray.push(newInstrument);
                 }
                 else
@@ -131,7 +169,7 @@ router.post("/users/:event_id/:user_id", async (req, res) => {
         const {event_id, user_id} = req.params;
 
         //Get event
-        const newStatus = await models.UserStatus.findOrCreate({user_id: user_id, event_id: event_id, status: data?.status});
+        const newStatus = await db.UserStatus.findOrCreate({where :{user_id: user_id, event_id: event_id, status: data?.status}});
 
         res.send({newStatus});
     } catch (error) {
@@ -153,12 +191,12 @@ router.post("/instrument/:id", async (req, res) => {
         {
             for (const instrument of data.instruments) {
                 //Get instrumentId
-                let instrumentId = await models.getInstrumentId(instrument); 
+                let instrumentId = await getInstrumentId(instrument); 
 
                 //Add if found
                 if (instrumentId)
                 {
-                    newInstrument = await models.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: id}});
+                    newInstrument = await db.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: id}});
                     newInstrumentArray.push(newInstrument);
                 }
                 else
@@ -179,7 +217,7 @@ router.put("/:id", async (req, res) => {
     try {
         const data = req.body;
         const id = req.params.id;
-        const event = await models.Event.findOne({where: {event_id: id}, include: [models.Address]});
+        const event = await db.Event.findOne({where: {event_id: id}, include: [db.Address]});
         if (event)
         {
             //Set Data
@@ -188,34 +226,33 @@ router.put("/:id", async (req, res) => {
             //Recalculate Event Time (if needed)
             if (data.start_time || data.end_time)
             {
-                event_hours = models.getEventHours(data.start_time ? data.start_time : event.start_time, data.end_time ? data.end_time : event.end_time);
+                event_hours = getEventHours(data.start_time ? data.start_time : event.start_time, data.end_time ? data.end_time : event.end_time);
                 event.set({event_hours: event_hours});
             }
 
             //Set Address (if exists)
             if (data.address)
             {
-                const address = await models.Address.findOne({where: {address_id: event.Address.address_id}});
+                const address = await db.Address.findOne({where: {address_id: event.Address.address_id}});
                 address.set(data.address);
                 await address.save();
             }
 
             //Set Instruments (if exists)
-            //Delete old entries
-            await models.EventInstrument.destroy({where: {event_id: id}});
-
-            //Add instrument (adds relation to EventInstrument table)
             newInstrumentArray = [];
             if (data.instruments)
             {
+                //Delete old entries
+                await db.EventInstrument.destroy({where: {event_id: id}});
+
                 for (const instrument of data.instruments) {
                     //Get instrumentId
-                    let instrumentId = await models.getInstrumentId(instrument);
+                    let instrumentId = await getInstrumentId(instrument);
                     
                     //Add if found
                     if (instrumentId)
                     {
-                        newInstrument = await models.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: event.event_id}});
+                        newInstrument = await db.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: event.event_id}});
                         newInstrumentArray.push(newInstrument);
                     }
                     else
@@ -243,7 +280,7 @@ router.put("/users/:event_id/:user_id", async (req, res) => {
     try {
         const data = req.body;
         const {event_id, user_id} = req.params;
-        const status = await models.UserStatus.findOne({where: {event_id: event_id, user_id: user_id}});
+        const status = await db.UserStatus.findOne({where: {event_id: event_id, user_id: user_id}});
         if (status)
         {
             //Set Data
@@ -265,7 +302,7 @@ router.put("/address/:id", async (req, res) => {
     try {
         const data = req.body;
         const id = req.params.id;
-        const address = await models.Address.findOne({where: {event_id: id}});
+        const address = await db.Address.findOne({where: {event_id: id}});
         if (address)
         {
             //Set Data
@@ -291,21 +328,21 @@ router.put("/instrument/:id", async (req, res) => {
         const data = req.body;
         const id = req.params.id;
 
-        //Delete old entries
-        await models.EventInstrument.destroy({where: {event_id: id}});
-
         //Add instrument (adds relation to EventInstrument table)
         newInstrumentArray = [];
         if (data.instruments)
         {
+            //Delete old entries
+            await db.EventInstrument.destroy({where: {event_id: id}});
+
             for (const instrument of data.instruments) {
                 //Get instrumentId
-                let instrumentId = await models.getInstrumentId(instrument);
+                let instrumentId = await getInstrumentId(instrument);
                 
                 //Add if found
                 if (instrumentId)
                 {
-                    newInstrument = await models.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: id}});
+                    newInstrument = await db.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: id}});
                     newInstrumentArray.push(newInstrument);
                 }
                 else
@@ -328,7 +365,7 @@ router.put("/instrument/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const event = await models.Event.findOne({where: {event_id: id}});
+        const event = await db.Event.findOne({where: {event_id: id}});
         if (event)
         {
             await event.destroy();
@@ -347,7 +384,7 @@ router.delete("/:id", async (req, res) => {
 router.delete("/instrument/:event_id/:user_id", async (req, res) => {
     try {
         const {event_id, user_id} = req.params;
-        const status = await models.UserStatus.findOne({where: {event_id: event_id, user_id: user_id}});
+        const status = await db.UserStatus.findOne({where: {event_id: event_id, user_id: user_id}});
 
         if (status)
         {
@@ -367,7 +404,7 @@ router.delete("/instrument/:event_id/:user_id", async (req, res) => {
 router.delete("/instrument/:user_id/:instrument_id", async (req, res) => {
     try {
         const {event_id, instrument_id} = req.params;
-        const instrument = await models.EventInstrument.findOne({where: {event_id: event_id, instrument_id: instrument_id}});
+        const instrument = await db.EventInstrument.findOne({where: {event_id: event_id, instrument_id: instrument_id}});
 
         if (instrument)
         {

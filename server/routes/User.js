@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const models = require('../database/models');
+const {getInstrumentId} = require("../helpers/model-helpers");
+const db = require('../models/models');
 
 /* GET */
 //Get all
 //Returns JSON of all users
 router.get("/", async (req, res) => {
     try {
-        const users = await models.User.findAll({include: [models.Instrument, models.Event]});
+        const users = await db.User.findAll({include: [db.Instrument, db.Event, db.Financial]});
         res.json(users);
     } catch (error) {
         res.status(500).send(error.message);
@@ -19,7 +20,7 @@ router.get("/", async (req, res) => {
 router.get("/id/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const user = await models.User.findOne({where: {user_id: id}, include: [models.Instrument, models.Event]});
+        const user = await db.User.findOne({where: {user_id: id}, include: [db.Instrument, db.Event, db.Financial]});
         res.json(user);
     } catch (error) {
         res.status(500).send(error.message);
@@ -33,7 +34,7 @@ router.get("/id/:id", async (req, res) => {
 router.get("/email/:email", async (req, res) => {
     try {
         const email = req.params.email;
-        const user = await models.User.findOne({where: {email: email}, include: [models.Instrument, models.Event]});
+        const user = await db.User.findOne({where: {email: email}, include: [db.Instrument, db.Event]});
         res.json(user);
     } catch (error) {
         res.status(500).send(error.message);
@@ -51,7 +52,7 @@ router.post("/", async (req, res) => {
         const data = req.body;
 
         //Add to User
-        const newUser = await models.User.create({email: data?.email, password: data?.password, f_name: data?.f_name, l_name: data?.l_name, zip: data?.zip, bio: data?.bio, is_admin: data?.is_admin});
+        const newUser = await db.User.create({email: data?.email, password: data?.password, f_name: data?.f_name, l_name: data?.l_name, zip: data?.zip, bio: data?.bio, is_admin: data?.is_admin});
 
         //Add instrument (adds relation to UserInstrument table)
         newInstrumentArray = [];
@@ -59,12 +60,12 @@ router.post("/", async (req, res) => {
         {
             for (const instrument of data.instruments) {
                 //Get instrumentId
-                let instrumentId = await models.getInstrumentId(instrument);
+                let instrumentId = await getInstrumentId(instrument);
                 
                 //Add if found
                 if (instrumentId)
                 {
-                    newInstrument = await models.UserInstrument.create({instrument_id: instrumentId, user_id: newUser.user_id});
+                    newInstrument = await db.UserInstrument.create({instrument_id: instrumentId, user_id: newUser.user_id});
                     newInstrumentArray.push(newInstrument);
                 }
                 else
@@ -94,12 +95,12 @@ router.post("/instrument/:id", async (req, res) => {
         {
             for (const instrument of data.instruments) {
                 //Get instrumentId
-                let instrumentId = await models.getInstrumentId(instrument);
+                let instrumentId = await getInstrumentId(instrument);
                 
                 //Add if found
                 if (instrumentId)
                 {
-                    newInstrument = await models.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
+                    newInstrument = await db.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
                     newInstrumentArray.push(newInstrument);
                 }
                 else
@@ -122,7 +123,7 @@ router.put("/:id", async (req, res) => {
     try {
         const data = req.body;
         const id = req.params.id;
-        const user = await models.User.findOne({where: {user_id: id}});
+        const user = await db.User.findOne({where: {user_id: id}});
         if (user)
         {
             //Update user
@@ -130,18 +131,18 @@ router.put("/:id", async (req, res) => {
             await user.save();
 
             //Update instrument (if exists)
-            await models.UserInstrument.destroy({where: {user_id: id}});
             newInstrumentArray = [];
             if (data.instruments)
             {
+                await db.UserInstrument.destroy({where: {user_id: id}});
                 for (const instrument of data.instruments) {
                     //Get instrumentId
-                    let instrumentId = await models.getInstrumentId(instrument);
+                    let instrumentId = await getInstrumentId(instrument);
                     
                     //Add if found
                     if (instrumentId)
                     {
-                        newInstrument = await models.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
+                        newInstrument = await db.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
                         newInstrumentArray.push(newInstrument);
                     }
                     else
@@ -171,21 +172,21 @@ router.put("/instrument/:id", async (req, res) => {
         const data = req.body;
         const id = req.params.id;
 
-        //Delete old entries
-        await models.UserInstrument.destroy({where: {user_id: id}});
-
         //Add instrument (adds relation to UserInstrument table)
         newInstrumentArray = [];
         if (data.instruments)
         {
+             //Delete old entries
+            await db.UserInstrument.destroy({where: {user_id: id}});
+            
             for (const instrument of data.instruments) {
                 //Get instrumentId
-                let instrumentId = await models.getInstrumentId(instrument);
+                let instrumentId = await getInstrumentId(instrument);
                 
                 //Add if found
                 if (instrumentId)
                 {
-                    newInstrument = await models.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
+                    newInstrument = await db.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
                     newInstrumentArray.push(newInstrument);
                 }
                 else
@@ -209,9 +210,17 @@ router.put("/instrument/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const user = await models.User.findOne({where: {user_id: id}});
+        const user = await db.User.findOne({where: {user_id: id}, include: [{model: db.Event}]});
         if (user)
         {
+            //Destroy events
+            user.Events.forEach(async event => {
+                //If owner, delete
+                if (event.UserStatus.status == "owner")
+                {
+                    await event.destroy();
+                }
+            });
             await user.destroy();
             res.send(user);
         }
@@ -228,7 +237,7 @@ router.delete("/:id", async (req, res) => {
 router.delete("/instrument/:user_id/:instrument_id?", async (req, res) => {
     try {
         const {user_id, instrument_id} = req.params;
-        const instrument = await models.UserInstrument.findOne({where: {user_id: user_id, instrument_id: instrument_id}});
+        const instrument = await db.UserInstrument.findOne({where: {user_id: user_id, instrument_id: instrument_id}});
 
         if (instrument)
         {

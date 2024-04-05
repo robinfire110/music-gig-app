@@ -1,33 +1,76 @@
-const express = require('express'); //Creates instance of express framework, which well help route things.
-const app = express(); //Create the app using express
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-const {sequelize, connectToDatabase} = require('./database/database'); //Get object from database function
-const instrumentList = require('./database/instrumentList');
-const models = require('./database/models');
-const port = 5000;
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const { sequelize, connectToDatabase } = require('./config/database_config');
+const db = require('./models/models');
+const {
+    importInstruments,
+    getGasPrices,
+    createFakerData,
+    fixData
+} = require("./helpers/model-helpers");
 
-//Routes (connect the files with the various routes to other parts of the site)
+// Middleware to log request headers
+
+
+const { router: authRoutes } = require('./routes/AuthRoutes');
 const routeEvent = require('./routes/Event');
 const routeFinancial = require('./routes/Financial');
 const routeInstrument = require('./routes/Instrument');
 const routeUser = require('./routes/User');
+const routeGas = require('./routes/GasPrice');
+const routeAPI = require('./routes/API');
 
-//Determines where app is hosted
+const app = express();
+const port = process.env.port || 5000;
+
+//Allowed origins
+const allowedOrigins = []
+if (process.env.NODE_ENV === "development")
+{
+    allowedOrigins.push("http://localhost:3000");
+}
+else if (process.env.NODE_ENV === "production")
+{
+    allowedOrigins.push("https://harmonize.rocks");
+    allowedOrigins.push("http://harmonize.rocks");
+    allowedOrigins.push("http://http://152.70.204.132/");
+}
+
+// Middleware setup
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+    origin: allowedOrigins,
+    exposedHeaders: 'Set-Cookie',
+    method: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
+app.use(cookieParser());
+
+// Database setup
 app.listen(port, async () => {
-    //Connect to database
     await connectToDatabase();
-
-    //Sync models
-    await sequelize.sync({ alter: false }); //THIS IS ONLY FOR DEVELOPMENT. We should comment out for final version.
-    models.importInstruments(); //Adds instrument list if empty
-    //models.createFakerData(25, 25, 25); //CREATE FAKER DATA. COMMENT OUT TO NOT CREATE DATA
-
+    await sequelize.sync({ alter: false });
+    importInstruments();
     console.log(`Server is running at http://localhost:${port}`);
 });
 
-/* Routes */
+//Test route
+const testRouter = express.Router();
+testRouter.get("/", async (req, res) => {
+    res.send("Got");
+});
+app.use("/", testRouter);
+
+// Routes setup
 app.use("/event", routeEvent.router);
 app.use("/financial", routeFinancial.router);
 app.use("/instrument", routeInstrument.router);
 app.use("/user", routeUser.router);
+app.use("/gas", routeGas.router);
+app.use("/api", routeAPI.router);
+app.use(authRoutes);
+

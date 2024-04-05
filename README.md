@@ -26,6 +26,11 @@ Postman allows you to test HTTP requests to make sure everything is functioning 
 3. Run the backend by changing your directory to the "server" folder and running ```npm run dev```. This will start the backend using nodemon. You can use ```npm run start``` to start node without nodemon.
 4. Run the frontend by changing your directory to the "client" folder and running ```npm run start```. This will start the frontend, and open a new tab in your web browser showing the website's landing page.
 
+## Database setup
+You can use both a remote or local database to run the application. To use the local database, ensure you have a MySQL server set up on your computer as listed above. To use remote, ensure you have a .env file in the root directory with your database information. 
+
+Lastly, to switch between the two, simply change the ```sequelize``` variable in ```/server/config/database.js``` to either ```local_database``` or ```remote_database```.
+
 ## Development Packages
 I've found that there are several common packages that may make our lives a bit easier in the long run. It's a bit more learning we have to do up front, but I think it'll be worth it. Here's some information about each.
 
@@ -35,6 +40,9 @@ I've found that there are several common packages that may make our lives a bit 
 
 * **[Moment](https://momentjs.com/)** - Easier to use date and time manipulation and control objects. Use instead of built in JavaScript Date object. The documentation is [here](https://momentjs.com/docs/).
 
+
+* **[React Bootstrap](https://react-bootstrap.netlify.app/) & [Bootstrap](https://getbootstrap.com/)** - For styling and formatting. Very useful.
+
 ## Resource 
 
-* **[API Documentation](https://documenter.getpostman.com/view/20451093/2sA2xcausW) - This is the documentation for our internal API. It's made through Postman (which you don't have to use, that's just what I did). It has a list of all the requests you can make. We'll add more if needed and fix any errors as they appear.
+* **[API Documentation](https://documenter.getpostman.com/view/20451093/2sA2xcausW)** - This is the documentation for our internal API. It's made through Postman (which you don't have to use, that's just what I did). It has a list of all the requests you can make. We'll add more if needed and fix any errors as they appear.
