@@ -8,6 +8,7 @@ import EventRow from "../components/EventRow";
 import "../styles/Events.css";
 import { getBackendURL } from "../Utils";
 import Select from 'react-select';
+import axios from "axios";
 
 const Events = () => {
 
@@ -26,14 +27,15 @@ const Events = () => {
         const fetchEvents = async () => {
             try {
                 //fetch all events from server
-                const res = await fetch(`${getBackendURL()}/event`)
-                const data = await res.json();
-                //Filter out all events from data whose is_listed is false
-                const filteredData = data.filter(event => event.is_listed === true || event.is_listed === 1)
-                setEvents(filteredData)
-                //setting this for managing what data is currently being filtered
-                setFilteredEvents(filteredData)
-                setLoading(false);
+                await axios.get(`${getBackendURL()}/event`).then((res) => {
+                    const data = res.data;
+                    //Filter out all events from data whose is_listed is false
+                    const filteredData = data.filter(event => event.is_listed === true || event.is_listed === 1)
+                    setEvents(filteredData)
+                    //setting this for managing what data is currently being filtered
+                    setFilteredEvents(filteredData)
+                    setLoading(false);
+                })
             } catch (err) {
                 console.log(err)
             }
@@ -41,11 +43,13 @@ const Events = () => {
 
         const fetchInstruments = async () => {
             //fetch instruments needed for tags
-            const res = await fetch(`${getBackendURL()}/instrument/`);
-            const data = await res.json();
+            await axios.get(`${getBackendURL()}/instrument/`).then((res) => {
+                const data = res.data;
 
-            //Create instruments
-            setInstruments(configureInstrumentList(data));
+                //Create instruments
+                setInstruments(configureInstrumentList(data));
+            });
+            
         }
         fetchEvents()
         fetchInstruments()

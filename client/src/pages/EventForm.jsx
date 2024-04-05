@@ -50,43 +50,45 @@ const EventForm = () => {
     useEffect(() => {
         const fetchData = async () => {
             //fetch instruments needed for tags
-            const res = await fetch(`${getBackendURL()}/instrument/`);
-            const data = await res.json();
+            axios.get(`${getBackendURL()}/instrument/`).then(async (res) => {
+                const data = res.data;
 
-            //Create instruments
-            setInstruments(configureInstrumentList(data));
+                //Create instruments
+                setInstruments(configureInstrumentList(data));
 
-            if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
-                const res = await fetch(`${getBackendURL()}/event/id/${id}`);
-                const data = await res.json();
-                setEvent(data);
-                setAddress({
-                    street: data.Address.street,
-                    city: data.Address.city,
-                    zip: data.Address.zip,
-                    state: data.Address.state
-                })
-                setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
+                if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
+                    axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
+                        const data = res.data;
+                        setEvent(data);
+                        setAddress({
+                            street: data.Address.street,
+                            city: data.Address.city,
+                            zip: data.Address.zip,
+                            state: data.Address.state
+                        })
+                        setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
 
-                //autofill data selectedInstruments from id
-                setSelectedInstruments(configureInstrumentList(data.Instruments));
+                        //autofill data selectedInstruments from id
+                        setSelectedInstruments(configureInstrumentList(data.Instruments));
 
-                //autofill data start and end times from id
-                const startTime = moment(data.start_time).local().format("HH:mm");
-                const endTime = moment(data.end_time).local().format("HH:mm");
+                        //autofill data start and end times from id
+                        const startTime = moment(data.start_time).local().format("HH:mm");
+                        const endTime = moment(data.end_time).local().format("HH:mm");
 
-                setStartTime(startTime);
-                setEndTime(endTime);
+                        setStartTime(startTime);
+                        setEndTime(endTime);
 
-                //autofill data of start and end date
-                const startDate = moment(data.start_time).format("YYYY-MM-DD");
-                const endDate = moment(data.end_time).format("YYYY-MM-DD");
+                        //autofill data of start and end date
+                        const startDate = moment(data.start_time).format("YYYY-MM-DD");
+                        const endDate = moment(data.end_time).format("YYYY-MM-DD");
 
-                setStartDate(startDate);
-                setEndDate(endDate);
-            } else {
-                setOwnerId(null);
-            }
+                        setStartDate(startDate);
+                        setEndDate(endDate);
+                        });
+                } else {
+                    setOwnerId(null);
+                }
+            });
 
             //get user
             if (cookies.jwt) {

@@ -54,21 +54,23 @@ const IndividualEvent = () => {
 
         const fetchEvent = async () => {
             try {
-                const res = await fetch(`${getBackendURL()}/event/id/${id}`)
-                const data = await res.json();
-                setEvent(data)
-                setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
-
-                const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
-                const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
-                const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
-                const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
-                setApplications(appliedUsers);
-                setWithdrawn(withdrawnUsers);
-                setAccepted(acceptedUsers);
-                setRejected(rejectedUsers);
-
-                setLoading(false);
+                await axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
+                    const data = res.data;
+                    setEvent(data)
+                    setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
+    
+                    const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
+                    const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
+                    const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
+                    const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
+                    setApplications(appliedUsers);
+                    setWithdrawn(withdrawnUsers);
+                    setAccepted(acceptedUsers);
+                    setRejected(rejectedUsers);
+    
+                    setLoading(false);
+                });
+               
             } catch (err) {
                 console.log(err)
             }
