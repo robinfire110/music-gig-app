@@ -40,6 +40,11 @@ function Financials({ financials }) {
 		});
 	};
 
+	const handleDeleteFinancial = (finId) =>
+	{
+		console.log("remove this financial")
+	}
+
 
 	if (!Array.isArray(financials) || financials.length === 0) {
 		return <p>No financial data available.</p>;
@@ -67,6 +72,7 @@ function Financials({ financials }) {
 					<th>Event Hours</th>
 					<th>Calculation</th>
 					<th>Total Wage</th>
+					<th>Action</th>
 				</tr>
 				</thead>
 				<tbody>
@@ -77,6 +83,9 @@ function Financials({ financials }) {
 						<td>{financial.event_hours}</td>
 						<td>{financial.fin_name}</td>
 						<td>${financial.total_wage}</td>
+						<td>
+							<Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeleteFinancial(financial.fin_id); }}>Delete</Button>
+						</td>
 					</tr>
 				))}
 				</tbody>
