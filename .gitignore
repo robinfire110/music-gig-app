@@ -16,6 +16,9 @@
 *.sln.docstates
 *.env
 
+# Hosting script I made to get changes and restart everything.
+refresh.sh 
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
