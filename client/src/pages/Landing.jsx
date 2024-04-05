@@ -35,12 +35,12 @@ function Landing() {
             try
             {
                 //Get user
-                axios.get(`http://${getBackendURL()}/account`, {withCredentials: true}).then(async res => {
+                axios.get(`${getBackendURL()}/account`, {withCredentials: true}).then(async res => {
                     //Get data based on user
                     if (res.data?.user)
                     {
                         //Get user data
-                        axios.get(`http://${getBackendURL()}/user/id/${res.data.user.user_id}`).then(async res => {
+                        axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`).then(async res => {
                             const userData = res.data;
                             setUser(userData);
 
@@ -64,7 +64,7 @@ function Landing() {
                             //Get event data
                             if (instrumentSearch.length > 0)
                             {
-                                axios.get(`http://${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${25}`).then(res => {
+                                axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${25}`).then(res => {
                                     //Get list of locations
                                     const instrumentEventSearch = res.data;
                                     const zipList = [];
@@ -73,7 +73,7 @@ function Landing() {
                                     });
 
                                     //Sort by location
-                                    axios.get(`http://${getBackendURL()}/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
+                                    axios.get(`${getBackendURL()}/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
                                         const distanceMatrixData = res.data.rows[0].elements;
                                         //Add to data
                                         for (let i = 0; i < instrumentEventSearch.length; i++)
@@ -120,7 +120,7 @@ function Landing() {
         if (getRecent)
         {
             //Get non-logged in data
-            axios.get(`http://${getBackendURL()}/event/recent/${recentNum}`).then(res => {
+            axios.get(`${getBackendURL()}/event/recent/${recentNum}`).then(res => {
                 setRecentEvents(res.data);
                 setIsLoading(false);
                 setGetRecent(false);

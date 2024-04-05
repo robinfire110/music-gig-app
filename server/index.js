@@ -24,18 +24,31 @@ const routeGas = require('./routes/GasPrice');
 const routeAPI = require('./routes/API');
 
 const app = express();
-const port = 5000;
+const port = process.env.port || 5000;
+
+//Allowed origins
+const allowedOrigins = []
+if (process.env.NODE_ENV === "development")
+{
+    allowedOrigins.push("http://localhost:3000");
+}
+else if (process.env.NODE_ENV === "production")
+{
+    allowedOrigins.push("https://harmonize.rocks");
+    allowedOrigins.push("http://harmonize.rocks");
+    allowedOrigins.push("http://http://152.70.204.132/");
+}
 
 // Middleware setup
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: ["http://localhost:3000", "https://harmonize.rocks"],
-    method: ["GET", "POST"],
+    origin: allowedOrigins,
+    exposedHeaders: 'Set-Cookie',
+    method: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
 app.use(cookieParser());
-
 
 // Database setup
 app.listen(port, async () => {
@@ -44,6 +57,13 @@ app.listen(port, async () => {
     importInstruments();
     console.log(`Server is running at http://localhost:${port}`);
 });
+
+//Test route
+const testRouter = express.Router();
+testRouter.get("/", async (req, res) => {
+    res.send("Got");
+});
+app.use("/", testRouter);
 
 // Routes setup
 app.use("/event", routeEvent.router);
