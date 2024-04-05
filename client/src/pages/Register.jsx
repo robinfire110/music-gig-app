@@ -32,7 +32,7 @@ const Register = () => {
 	const handleSubmit = async (event) => {
 		event.preventDefault();
 		try {
-			const {data} =  await axios.post(`${getBackendURL()}/register`, {
+			const {data} =  await axios.post(`${getBackendURL()}/api/register`, {
 				...values,
 			}, {
 				withCredentials:true,

@@ -9,8 +9,6 @@ import "../styles/Events.css";
 import { getBackendURL } from "../Utils";
 import Select from 'react-select';
 
-const { REACT_APP_BACKEND_URL } = process.env;
-
 const Events = () => {
 
     const [events, setEvents] = useState([]);
@@ -28,7 +26,7 @@ const Events = () => {
         const fetchEvents = async () => {
             try {
                 //fetch all events from server
-                const res = await fetch(`${getBackendURL()}/event`)
+                const res = await fetch(`${getBackendURL()}/api/event`)
                 const data = await res.json();
                 //Filter out all events from data whose is_listed is false
                 const filteredData = data.filter(event => event.is_listed === true || event.is_listed === 1)
@@ -43,7 +41,7 @@ const Events = () => {
 
         const fetchInstruments = async () => {
             //fetch instruments needed for tags
-            const res = await fetch(`http://${REACT_APP_BACKEND_URL}/instrument/`);
+            const res = await fetch(`${getBackendURL()}/api/instrument/`);
             const data = await res.json();
 
             //Create instruments

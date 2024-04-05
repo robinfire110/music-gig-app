@@ -24,7 +24,7 @@ const routeGas = require('./routes/GasPrice');
 const routeAPI = require('./routes/API');
 
 const app = express();
-const port = 5000;
+const port = process.env.port || 5000;
 
 //Allowed origins
 const allowedOrigins = []
@@ -59,11 +59,11 @@ app.listen(port, async () => {
 });
 
 // Routes setup
-app.use("/event", routeEvent.router);
-app.use("/financial", routeFinancial.router);
-app.use("/instrument", routeInstrument.router);
-app.use("/user", routeUser.router);
-app.use("/gas", routeGas.router);
-app.use("/api", routeAPI.router);
+app.use("/api/event", routeEvent.router);
+app.use("/api/financial", routeFinancial.router);
+app.use("/api/instrument", routeInstrument.router);
+app.use("/api/user", routeUser.router);
+app.use("/api/api/gas", routeGas.router);
+app.use("/api/api", routeAPI.router);
 app.use(authRoutes);
 

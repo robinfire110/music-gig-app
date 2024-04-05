@@ -1,9 +1,5 @@
 const { Axios } = require("axios");
 
-//"Environment" variables
-//const REACT_APP_BACKEND_URL = "/"; //REMOTE
-let REACT_APP_BACKEND_URL;
-
 function getBackendURL()
 {
     if (window.location.hostname == "localhost") return "http://localhost:5000";
@@ -49,4 +45,4 @@ function parseStringUndefined(value)
     else return value;
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, REACT_APP_BACKEND_URL, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList};
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList};

@@ -56,13 +56,13 @@ const Profile = () => {
     //Run on first start
     useEffect(() => {
         //Get user data
-        axios.get(`${getBackendURL()}/user/id/${paramId}`).then(res => {
+        axios.get(`${getBackendURL()}/api/user/id/${paramId}`).then(res => {
             if (res.data)
             {
                 setUserData(res.data);
 
                 //Get location
-                axios.get(`${getBackendURL()}/api/geocoding/zip/${res.data.zip}`).then((res) => {
+                axios.get(`${getBackendURL()}/api/api/geocoding/zip/${res.data.zip}`).then((res) => {
                     setUserLocation(res.data);
                     setIsLoading(false);
                     console.log("Location", res.data);

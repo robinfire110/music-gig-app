@@ -7,12 +7,10 @@ import { Container, Form, Col, Row, Button, InputGroup } from "react-bootstrap";
 import moment from "moment";
 import { useCookies } from "react-cookie";
 import { ClipLoader } from "react-spinners";
-import { maxDescriptionLength, maxEventNameLength, parseFloatZero, statesList } from "../Utils";
+import { maxDescriptionLength, maxEventNameLength, parseFloatZero, statesList, getBackendURL} from "../Utils";
 import FormNumber from "../components/FormNumber";
 import Select from 'react-select';
 import { toast } from "react-toastify";
-
-const { REACT_APP_BACKEND_URL } = process.env;
 
 const EventForm = () => {
     const [event, setEvent] = useState({
@@ -52,14 +50,14 @@ const EventForm = () => {
     useEffect(() => {
         const fetchData = async () => {
             //fetch instruments needed for tags
-            const res = await fetch(`http://${REACT_APP_BACKEND_URL}/instrument/`);
+            const res = await fetch(`${getBackendURL()}/api/instrument/`);
             const data = await res.json();
 
             //Create instruments
             setInstruments(configureInstrumentList(data));
 
             if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
-                const res = await fetch(`http://${REACT_APP_BACKEND_URL}/event/id/${id}`);
+                const res = await fetch(`${getBackendURL()}/api/event/id/${id}`);
                 const data = await res.json();
                 setEvent(data);
                 setAddress({
@@ -92,7 +90,7 @@ const EventForm = () => {
 
             //get user
             if (cookies.jwt) {
-                axios.get(`http://${REACT_APP_BACKEND_URL}/account`, { withCredentials: true }).then(res => {
+                axios.get(`${getBackendURL()}/api/account`, { withCredentials: true }).then(res => {
                     if (res.data?.user) {
                         const userData = res.data.user;
                         setUserId(userData);
@@ -189,13 +187,13 @@ const EventForm = () => {
 
             //if an id is present, that means the event already exists and we need to put
             if (id) {
-                const response = await axios.put(`http://${REACT_APP_BACKEND_URL}/event/${id}`, eventData);
+                const response = await axios.put(`${getBackendURL()}/api/event/${id}`, eventData);
                 navigate(`../event/${id}`)
                 toast("Event Updated", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
             } else {
                 //event does not exist, so make a post
                 const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, is_listed: isListed };
-                const response = await axios.post(`http://${REACT_APP_BACKEND_URL}/event/`, eventData)
+                const response = await axios.post(`${getBackendURL()}/api/event/`, eventData)
                 const newEventId = response.data.newEvent.event_id;
                 navigate(`../event/${newEventId}`);
                 toast("Event Created", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
@@ -209,7 +207,7 @@ const EventForm = () => {
         e.preventDefault()
         try {
             const listingUpdate = { is_listed: 0 }
-            const response = await axios.put(`http://${REACT_APP_BACKEND_URL}/event/${id}`, listingUpdate)
+            const response = await axios.put(`${getBackendURL()}/api/event/${id}`, listingUpdate)
             navigate(`../event/${id}`)
             toast("Event Unlisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
         } catch (err) {
@@ -221,7 +219,7 @@ const EventForm = () => {
         e.preventDefault()
         try {
             const listingUpdate = { is_listed: 1 }
-            const response = await axios.put(`http://${REACT_APP_BACKEND_URL}/event/${id}`, listingUpdate)
+            const response = await axios.put(`${getBackendURL()}/api/event/${id}`, listingUpdate)
             navigate(`../event/${id}`)
             toast("Event Relisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
         } catch (err) {
