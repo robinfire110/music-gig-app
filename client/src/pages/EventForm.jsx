@@ -59,6 +59,7 @@ const EventForm = () => {
                 if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
                     axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
                         const data = res.data;
+                        console.log(data);
                         setEvent(data);
                         setAddress({
                             street: data.Address.street,
