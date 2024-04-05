@@ -31,7 +31,7 @@ const IndividualEvent = () => {
     const [rejected, setRejected] = useState([]);
     const [loading, setLoading] = useState(true);
     const [colSize, setColSize] = useState({xs: 5, sm: 5, md: 5, lg: 5, xl: 4})
-    const { id } = useParams();
+    const [id, setId] = useState(useParams().id);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -56,7 +56,7 @@ const IndividualEvent = () => {
             try {
                 axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
                     const data = res.data;
-                    console.log(data);
+                    console.log(id);
                     setEvent(data)
                     setOwnerId((data.Users && data.Users?.length) > 0 ? data.Users[0].user_id : null);
     
