@@ -31,7 +31,7 @@ const IndividualEvent = () => {
     const [rejected, setRejected] = useState([]);
     const [loading, setLoading] = useState(true);
     const [colSize, setColSize] = useState({xs: 5, sm: 5, md: 5, lg: 5, xl: 4})
-    const { id } = useParams();
+    const [id, setId] = useState(useParams().id);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -40,7 +40,7 @@ const IndividualEvent = () => {
         const fetchUserData = async () => {
             if (cookies.jwt) {
                 try {
-                    axios.get(`http://${getBackendURL()}/account`, { withCredentials: true }).then(res => {
+                    axios.get(`${getBackendURL()}/account`, { withCredentials: true }).then(res => {
                         if (res.data?.user) {
                             const userData = res.data.user;
                             setUserId(userData);
@@ -54,21 +54,23 @@ const IndividualEvent = () => {
 
         const fetchEvent = async () => {
             try {
-                const res = await fetch(`http://${getBackendURL()}/event/id/${id}`)
-                const data = await res.json();
-                setEvent(data)
-                setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
-
-                const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
-                const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
-                const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
-                const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
-                setApplications(appliedUsers);
-                setWithdrawn(withdrawnUsers);
-                setAccepted(acceptedUsers);
-                setRejected(rejectedUsers);
-
-                setLoading(false);
+                axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
+                    const data = res.data;
+                    console.log(id);
+                    setEvent(data)
+                    setOwnerId((data.Users && data.Users?.length) > 0 ? data.Users[0].user_id : null);
+    
+                    const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
+                    const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
+                    const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
+                    const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
+                    setApplications(appliedUsers);
+                    setWithdrawn(withdrawnUsers);
+                    setAccepted(acceptedUsers);
+                    setRejected(rejectedUsers);
+    
+                    setLoading(false);
+                });
             } catch (err) {
                 console.log(err)
             }
@@ -84,7 +86,7 @@ const IndividualEvent = () => {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://${getBackendURL()}/event/${id}`);
+            await axios.delete(`${getBackendURL()}/event/${id}`);
             navigate("/");
         } catch (err) {
             console.log(err);
@@ -112,7 +114,7 @@ const IndividualEvent = () => {
         {
             const applicationData = { status: 'applied' }
             try {
-                await axios.post(`http://${getBackendURL()}/event/users/${id}/${userId.user_id}`, applicationData)
+                await axios.post(`${getBackendURL()}/event/users/${id}/${userId.user_id}`, applicationData)
                 window.location.reload();
             } catch (err) {
                 console.log(err)
@@ -122,7 +124,7 @@ const IndividualEvent = () => {
         {
             
             try {
-                await axios.put(`http://${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
+                await axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
                 window.location.reload();
             } catch (err) {
                 console.log(err)
@@ -133,7 +135,7 @@ const IndividualEvent = () => {
     const handleWithdrawApplication = async e => {
         const applicationData = { status: 'withdraw' }
         try {
-            await axios.put(`http://${getBackendURL()}/event/users/${id}/${userId.user_id}`, applicationData)
+            await axios.put(`${getBackendURL()}/event/users/${id}/${userId.user_id}`, applicationData)
             window.location.reload();
         } catch (err) {
             console.log(err)
@@ -143,7 +145,7 @@ const IndividualEvent = () => {
     const handleAcceptApplication = async (user) => {
         const applicationData = { status: 'accept' }
         try {
-            await axios.put(`http://${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
+            await axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
             window.location.reload();
         } catch (err) {
             console.log(err)
@@ -153,7 +155,7 @@ const IndividualEvent = () => {
     const handleRejectApplication = async (user) => {
         const applicationData = { status: 'reject' }
         try {
-            await axios.put(`http://${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
+            await axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
             window.location.reload();
         } catch (err) {
             console.log(err)

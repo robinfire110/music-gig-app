@@ -1,13 +1,9 @@
 const { Axios } = require("axios");
 
-//"Environment" variables
-//const REACT_APP_BACKEND_URL = "/"; //REMOTE
-let REACT_APP_BACKEND_URL;
-
 function getBackendURL()
 {
-    if (window.location.hostname == "localhost") return "localhost:5000";
-    else return "/";
+    if (process.env.NODE_ENV== "development") return "http://localhost:5000";
+    else return "https://harmonize.rocks/api";
 }
 
 //Constant Variables
@@ -41,6 +37,21 @@ function parseIntZero(value)
     else return 0
 }
 
+//Auto fit column width (for spreadsheet)
+function autoSizeColumn(worksheet)
+{
+    worksheet.columns.forEach(function (column, i) {
+        let maxLength = 0;
+        column["eachCell"]({ includeEmpty: true }, function (cell) {
+            var columnLength = cell.value ? cell.value.toString().length : 10;
+            if (columnLength > maxLength ) {
+                maxLength = columnLength;
+            }
+        });
+        column.width = maxLength;
+    });
+}
+
 //Returns undefined if string is empty
 function parseStringUndefined(value)
 {
@@ -48,4 +59,4 @@ function parseStringUndefined(value)
     else return value;
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, REACT_APP_BACKEND_URL, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList};
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, autoSizeColumn};

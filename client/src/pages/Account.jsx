@@ -32,7 +32,7 @@ function Account() {
                 navigate('/login');
             } else {
                 try {
-                    const { data } = await axios.get(`http://${getBackendURL()}/account`, { withCredentials: true });
+                    const { data } = await axios.get(`${getBackendURL()}/account`, { withCredentials: true });
                     setUserData(data.user);
                     setIsAdmin(data.user.isAdmin);
                     toast(`hi ${data.user.f_name}`, { theme: 'dark' });
@@ -51,7 +51,7 @@ function Account() {
     useEffect(() => {
         const fetchUserGigs = async () => {
             try {
-                const { data } = await axios.get(`http://${getBackendURL()}/user-gigs`, { withCredentials: true });
+                const { data } = await axios.get(`${getBackendURL()}/user-gigs`, { withCredentials: true });
                 setGigs(data.userGigs);
             } catch (error) {
                 console.error('Error fetching user gigs:', error);
@@ -70,7 +70,7 @@ function Account() {
                     console.error('User data or user_id is not available');
                     return;
                 }
-                const { data } = await axios.get(`http://${getBackendURL()}/user-financials`, { withCredentials: true });
+                const { data } = await axios.get(`${getBackendURL()}/user-financials`, { withCredentials: true });
                 setFinancials(data.userFinancials);
             } catch (error) {
                 console.error('Error fetching user financials:', error);

@@ -44,7 +44,7 @@ function EditProfile({ userData }) {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			const response = await axios.post(`http://${getBackendURL()}/update_user`, formData, {
+			const response = await axios.post(`${getBackendURL()}/update_user`, formData, {
 				withCredentials: true
 			});
 			if (response.data.success) {
