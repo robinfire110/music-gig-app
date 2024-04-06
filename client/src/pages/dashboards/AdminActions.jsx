@@ -2,12 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {useNavigate} from "react-router-dom";
 import {Button, Tab, Tabs, Table} from "react-bootstrap";
+import ConfirmationModal from './ConfirmationModal';
 
 function AdminActions({ userData }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [usersPerPage] = useState(20);
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+    const [confirmationMessage, setConfirmationMessage] = useState('');
+    const [actionToConfirm, setActionToConfirm] = useState(null);
+    const [userToDelete, setUserToDelete] = useState(null);
+    const [userToResetPass, setUserToResetPass] = useState(null);
+    const [userToPromote, setUserToPromote] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -16,10 +23,13 @@ function AdminActions({ userData }) {
 
     useEffect(() => {
         const filtered = userData.filter(user =>
-            user.f_name.toLowerCase().includes(searchQuery.toLowerCase())
+            user.f_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            user.l_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchQuery.toLowerCase())
         );
         setFilteredUsers(filtered);
     }, [searchQuery, userData]);
+
 
     const handleSearchInputChange = (event) => {
         setSearchQuery(event.target.value);
@@ -29,24 +39,37 @@ function AdminActions({ userData }) {
         navigate(`../profile/${userId}`);
     };
 
-    const handleEditUser = (userId) => {
-        console.log('Edit user:', userId);
+    const handlePasswordReset = (user) => {
+        setUserToResetPass(user);
+        setConfirmationMessage(`Are you sure you want to reset the password for ${user.email}?`);
+        setShowConfirmationModal(true);
+        console.log(`reset user pass for  ${user.email}`)
     };
 
-    const handlePromoteUser = (userId) => {
-        console.log('Edit user:', userId);
+    const handlePromoteUser = (user) => {
+        setUserToPromote(user);
+        setConfirmationMessage(`Are you sure you want to promote ${user.email} to Admin?`);
+        setShowConfirmationModal(true);
+        console.log(`Promoting ${user.email}`)
     };
 
-    const  handleDemoteUser = (userId) => {
-        console.log('Demote user:', userId)
+    const  handleDemoteUser = (user) => {
+        console.log('Demote user:', user)
     }
 
-    const handleDeleteUser = (userId) => {
-        console.log('Delete user:', userId);
+    const handleDeleteUser = (user) => {
+        setUserToDelete(user);
+        setConfirmationMessage(`Are you sure you want to delete this ${user.email}?`);
+        setShowConfirmationModal(true);
+        console.log('Delete user:', user);
     };
 
     const handleGoBackToDashboard = () => {
         window.location.reload();
+    };
+
+    const handleConfirmation = () => {
+        setShowConfirmationModal(false);
     };
 
     const indexOfLastUser = currentPage * usersPerPage;
@@ -82,7 +105,6 @@ function AdminActions({ userData }) {
 
                             }}
                             />
-                            <FontAwesomeIcon icon="fas fa-search" />
                         </div>
                         <Table striped bordered hover>
                             <thead>
@@ -105,12 +127,12 @@ function AdminActions({ userData }) {
                                     <td><td>{user.isAdmin ? 'Admin' : 'User'}</td></td>
                                     <td>
                                         {user.isAdmin ? (
-                                            <Button variant="warning" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDemoteUser(user.user_id); }}>Demote</Button>
+                                            <Button variant="warning" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDemoteUser(user); }}>Demote</Button>
                                         ) : (
-                                            <Button variant="primary" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handlePromoteUser(user.user_id); }}>Promote</Button>
+                                            <Button variant="primary" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handlePromoteUser(user); }}>Promote</Button>
                                         )}
-                                        <Button variant="secondary" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleEditUser(user.user_id); }}>Reset Password</Button>
-                                        <Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeleteUser(user.user_id); }}>Delete</Button>
+                                        <Button variant="secondary" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handlePasswordReset(user); }}>Reset Password</Button>
+                                        <Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeleteUser(user); }}>Delete</Button>
 
                                     </td>
                                 </tr>
@@ -131,6 +153,12 @@ function AdminActions({ userData }) {
                     {/* Add post related logic here */}
                 </Tab>
             </Tabs>
+            <ConfirmationModal
+                show={showConfirmationModal}
+                handleClose={() => setShowConfirmationModal(false)}
+                message={confirmationMessage}
+                onConfirm={handleConfirmation}
+            />
         </>
     );
 }

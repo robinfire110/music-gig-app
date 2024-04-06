@@ -11,8 +11,6 @@ function Header() {
     const [isLoggedIn, setIsLoggedIn] = useState(cookies.jwt)
 
     useEffect(() => {
-      console.log("Logged in", isLoggedIn);
-      console.log("Cookies", cookies.jwt);
       setIsLoggedIn(cookies.jwt);
     }, [cookies])
 
