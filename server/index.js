@@ -54,7 +54,8 @@ app.use(cookieParser());
 app.listen(port, async () => {
     await connectToDatabase();
     await sequelize.sync({ alter: false });
-    importInstruments();
+    //importInstruments();
+    //fixData();
     console.log(`Server is running at http://localhost:${port}`);
 });
 

@@ -2,9 +2,6 @@ import React, { useRef } from "react";
 import { useEffect, useState} from "react";
 import { Link, Router } from "react-router-dom";
 import { Container, Row, Col, CardGroup, Button, Carousel } from "react-bootstrap";
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import EventCard from "../components/EventCard";
 import axios from "axios";
 import EventHorizontalScroll from "../components/EventHorizontalScroll";
 import { ClipLoader } from "react-spinners";
@@ -47,7 +44,7 @@ function Landing() {
                             //Set user events
                             const userEventList = [];
                             userData.Events.forEach(event => {
-                                if (event.UserStatus.status == "owner")
+                                if (event.UserStatus.status == "owner" && event.is_listed)
                                 {
                                     userEventList.push(event);
                                 }

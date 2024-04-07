@@ -9,6 +9,7 @@ import { ClipLoader } from "react-spinners";
 import "../styles/IndividualEvent.css";
 import {formatCurrency } from "../Utils";
 import {getBackendURL} from "../Utils";
+import { toast } from "react-toastify";
 
 const IndividualEvent = () => {
     const [event, setEvent] = useState({
@@ -35,9 +36,34 @@ const IndividualEvent = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        try {
+            axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
+                const data = res.data;
+                if (id != "" && data)
+                {
+                    console.log(id);
+                    setEvent(data)
+                    setOwnerId((data.Users && data.Users?.length) > 0 ? data.Users[0].user_id : null);
 
-        //get user
-        const fetchUserData = async () => {
+                    const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
+                    const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
+                    const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
+                    const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
+                    setApplications(appliedUsers);
+                    setWithdrawn(withdrawnUsers);
+                    setAccepted(acceptedUsers);
+                    setRejected(rejectedUsers);
+
+                    setLoading(false);
+                }
+                else
+                {
+                    navigate("/eventsearch");
+                    toast("This event does not exists", {position: "top-center", type: "error", theme: "dark", autoClose: 1500});
+                }
+            });
+
+            //get user
             if (cookies.jwt) {
                 try {
                     axios.get(`${getBackendURL()}/account`, { withCredentials: true }).then(res => {
@@ -50,34 +76,9 @@ const IndividualEvent = () => {
                     console.log(err)
                 }
             }
+        } catch (err) {
+            console.log(err)
         }
-
-        const fetchEvent = async () => {
-            try {
-                axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
-                    const data = res.data;
-                    console.log(id);
-                    setEvent(data)
-                    setOwnerId((data.Users && data.Users?.length) > 0 ? data.Users[0].user_id : null);
-    
-                    const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
-                    const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
-                    const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
-                    const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
-                    setApplications(appliedUsers);
-                    setWithdrawn(withdrawnUsers);
-                    setAccepted(acceptedUsers);
-                    setRejected(rejectedUsers);
-    
-                    setLoading(false);
-                });
-            } catch (err) {
-                console.log(err)
-            }
-        }
-
-        fetchUserData();
-        fetchEvent();
     }, [id])
 
     const isEventOwner = () => {

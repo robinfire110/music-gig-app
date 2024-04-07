@@ -22,7 +22,6 @@ router.get("/", async (req, res) => {
 router.get("/id/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        console.log("GOT", id);
         const event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, db.User]});
         res.json(event);
     } catch (error) {
@@ -56,10 +55,27 @@ router.get("/instrument/:id", async (req, res) => {
 });
 
 //Get Event by user_id and event_id
+//Param - owner=true, only returns events where user is the owner
 router.get("/user_id/event_id/:user_id/:event_id", async (req, res) => {
     try {
         const {user_id, event_id} = req.params;
-        const event = await db.Event.findAll({where: {event_id: event_id}, include: {model: db.User, where: {user_id: user_id}}});
+        const onlyOwner = req.query.owner == "true" || false;
+        let event = await db.Event.findAll({where: {event_id: event_id}, include: [{model: db.User, where: {user_id: user_id}}, db.Instrument, db.Address]});
+        
+        //Filter by owner
+        if (onlyOwner)
+        {
+            event = event.filter((e) => {
+                for (let i = 0; i < e.Users.length; i++)
+                {
+                    if (e.Users[i].user_id == user_id)
+                    {
+                        if (e.Users[i].UserStatus.status === "owner") return true;
+                    }
+                }
+                return false;
+            });
+        }
         res.json(event);
     } catch (error) {
         res.status(500).send(error.message);
