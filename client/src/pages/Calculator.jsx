@@ -9,7 +9,7 @@ import axios from "axios";
 import {BarLoader, ClipLoader} from 'react-spinners'
 import * as ExcelJS from "exceljs"
 import {saveAs} from "file-saver"
-import {autoSizeColumn, formatCurrency, getCurrentUser, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined} from "../Utils";
+import {autoSizeColumn, formatCurrency, getCurrentUser, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, toastError, toastInfo, toastSuccess} from "../Utils";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
 import {getBackendURL} from "../Utils";
@@ -201,7 +201,7 @@ const Calculator = () => {
                 {
                     setParamId(0);
                     navigate(`/calculator`); 
-                    toast("You do not have access to this data.", { theme: 'dark', position: "top-center", type: "error" })
+                    toast("You do not have access to this data.", toastError)
                 }
             });
         }
@@ -216,7 +216,7 @@ const Calculator = () => {
                     await loadEventData(false, currentUser); //Get event data for later use
                     setFinId(data.fin_id);
                     loadData(data);
-                    toast("Loaded from previously saved event data.", { theme: 'dark', position: "top-center", type: "info" });
+                    toast("Loaded from previously saved event data.", toastInfo);
                 } 
                 else
                 {
@@ -472,7 +472,7 @@ const Calculator = () => {
                 {
                     console.log(`UPDATE ${finId} ${paramId}`, data)
                     await axios.put(`${getBackendURL()}/financial/${finId}`, data).then(res => {
-                        toast("Calculator data updated sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
+                        toast("Calculator data updated sucessfuly", toastSuccess);
                         setSaveStatus(false);
 
                         //Update user
@@ -496,7 +496,7 @@ const Calculator = () => {
                         
                         
                     }).catch(error => {
-                        toast("An error occured while updating. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
+                        toast("An error occured while updating. Please ensure all fields are filled out correctly and try again.", toastError);
                         setSaveStatus(false);
                         console.log(error);
                     });
@@ -512,7 +512,7 @@ const Calculator = () => {
 
                         //Update URL
                         if (!isEvent) navigate(`/calculator/${res.data.fin_id}`);
-                        toast("Calculator data saved sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
+                        toast("Calculator data saved sucessfuly", toastSuccess);
                         setSaveStatus(false);
 
                         //Update user
@@ -521,7 +521,7 @@ const Calculator = () => {
                         setUser(newUser);
                         getSavedFinancials(newUser); 
                     }).catch(error => {
-                        toast("An error occured while saving. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
+                        toast("An error occured while saving. Please ensure all fields are filled out correctly and try again.", toastError);
                         setSaveStatus(false);
                         console.log(error);
                     });
@@ -609,12 +609,12 @@ const Calculator = () => {
 
             const buf = await workbook.xlsx.writeBuffer();
             saveAs(new Blob([buf]), `${calcName.replace(/ /g,"_")}.xlsx`);
-            toast("Calculator data exported", { theme: 'dark', position: "top-center", type: "success" });
+            toast("Calculator data exported", toastSuccess);
         }
         catch(error)
         {
             console.log(error);
-            toast("An error occured while exporting. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
+            toast("An error occured while exporting. Please ensure all fields are filled out correctly and try again.", toastError);
         }
     }
 

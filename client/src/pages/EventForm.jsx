@@ -7,7 +7,7 @@ import { Container, Form, Col, Row, Button, InputGroup } from "react-bootstrap";
 import moment from "moment";
 import { useCookies } from "react-cookie";
 import { ClipLoader, BarLoader } from "react-spinners";
-import { maxDescriptionLength, maxEventNameLength, parseFloatZero, statesList, getBackendURL} from "../Utils";
+import { maxDescriptionLength, maxEventNameLength, parseFloatZero, statesList, getBackendURL, toastSuccess, toastError, toastInfo} from "../Utils";
 import FormNumber from "../components/FormNumber";
 import Select from 'react-select';
 import { toast } from "react-toastify";
@@ -106,7 +106,7 @@ const EventForm = () => {
                         else
                         {
                             navigate("/form");
-                            toast("You do not have access to this page.", {position: "top-center", type: "error", theme: "dark", autoClose: 1500});
+                            toast("You do not have access to this page.", toastError);
                         }
                     });
                 } else {
@@ -267,7 +267,7 @@ const EventForm = () => {
                     const response = await axios.put(`${getBackendURL()}/event/${id}`, eventData);
                     setIsSubmitting(false);
                     navigate(`../event/${id}`)
-                    toast("Event Updated", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+                    toast("Event Updated", toastSuccess);
                 } else {
                     //event does not exist, so make a post
                     setIsSubmitting(false);
@@ -275,7 +275,7 @@ const EventForm = () => {
                     const response = await axios.post(`${getBackendURL()}/event/`, eventData)
                     const newEventId = response.data.newEvent.event_id;
                     navigate(`../event/${newEventId}`);
-                    toast("Event Created", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+                    toast("Event Created", toastSuccess);
                 }
             } catch (error) {
                 console.log(error);
@@ -294,7 +294,7 @@ const EventForm = () => {
                 const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
                 setIsDeleting(false);
                 navigate(`../event/${id}`)
-                toast("Event Unlisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+                toast("Event Unlisted", toastSuccess);
             } catch (err) {
                 console.log(err)
                 setIsDeleting(false);
@@ -311,7 +311,7 @@ const EventForm = () => {
                 const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
                 setIsDeleting(false);
                 navigate(`../event/${id}`)
-                toast("Event Relisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+                toast("Event Relisted", toastSuccess);
             } catch (err) {
                 console.log(err)
                 setIsDeleting(false);

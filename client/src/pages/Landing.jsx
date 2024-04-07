@@ -7,7 +7,7 @@ import EventHorizontalScroll from "../components/EventHorizontalScroll";
 import { ClipLoader } from "react-spinners";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
-import { getBackendURL, getEventOwner } from "../Utils"
+import { getBackendURL, getEventOwner, toastError, toastInfo, toastSuccess } from "../Utils"
 
 function Landing() {
     //Varaibles
@@ -88,7 +88,7 @@ function Landing() {
                                                 instrumentEventSearch[i]["distance"] = 9999;
                                             }
                                         }
-
+                                        
                                         //Sort
                                         instrumentEventSearch.sort((a, b) => a.distance - b.distance);
                                         console.log("Got Relevant");
@@ -106,7 +106,7 @@ function Landing() {
             catch (error)
             {
                 console.log(error);
-                toast("An error occured loading event data.", { theme: 'dark', position: "top-center", type: "error" });
+                toast("An error occured loading event data.", toastError);
                 setGetRecent(true); //Try to get recent events
             }
         }
@@ -128,7 +128,7 @@ function Landing() {
                 console.log("Got recent");
             }).catch(error => {
                 console.log(error);
-                toast("An error occured loading event data.", { theme: 'dark', position: "top-center", type: "error" })
+                toast("An error occured loading event data.", toastError)
                 setIsLoading(false);
             });
         }
