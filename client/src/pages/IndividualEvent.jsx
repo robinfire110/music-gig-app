@@ -7,7 +7,7 @@ import { Container, Col, Row, Button, Card } from "react-bootstrap"; // Bootstra
 import { useCookies } from "react-cookie";
 import { ClipLoader } from "react-spinners";
 import "../styles/IndividualEvent.css";
-import {formatCurrency, getEventOwner } from "../Utils";
+import {createToast, formatCurrency, getEventOwner, toastError, toastInfo, toastSuccess } from "../Utils";
 import {getBackendURL} from "../Utils";
 import { toast } from "react-toastify";
 
@@ -49,38 +49,42 @@ const IndividualEvent = () => {
         {
             try {
                 //Get event
-                axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
-                    const data = res.data;
-                    const eventOwner = getEventOwner(data);
-                    if (id != "" && data && (data.is_listed || (userId?.user_id == eventOwner?.user_id)))
-                    {
-                        setEvent(data)
-                        console.log(data);
-                        setOwnerId(eventOwner?.user_id);
-
-                        const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
-                        const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
-                        const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
-                        const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
-                        setApplications(appliedUsers);
-                        setWithdrawn(withdrawnUsers);
-                        setAccepted(acceptedUsers);
-                        setRejected(rejectedUsers);
-
-                        setLoading(false);
-                    }
-                    else
-                    {
-                        navigate("/eventsearch");
-                        toast("This event does not exists", {position: "top-center", type: "error", theme: "dark", autoClose: 1500});
-                    }
-                });
+                getEventData();
             
             } catch (error) {
                 console.log(error)
             }
         }
     }, [userId]);
+
+    const getEventData = () => {
+        axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
+            const data = res.data;
+            const eventOwner = getEventOwner(data);
+            if (id != "" && data && (data.is_listed || (userId?.user_id == eventOwner?.user_id)))
+            {
+                setEvent(data)
+                console.log(data);
+                setOwnerId(eventOwner?.user_id);
+
+                const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
+                const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
+                const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
+                const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
+                setApplications(appliedUsers);
+                setWithdrawn(withdrawnUsers);
+                setAccepted(acceptedUsers);
+                setRejected(rejectedUsers);
+
+                setLoading(false);
+            }
+            else
+            {
+                navigate("/eventsearch");
+                toast("This event does not exists", toastError);
+            }
+        });
+    }
 
     const isEventOwner = () => {
         return ownerId && userId && ownerId === userId.user_id
@@ -116,8 +120,10 @@ const IndividualEvent = () => {
         {
             const applicationData = { status: 'applied' }
             try {
-                await axios.post(`${getBackendURL()}/event/users/${id}/${userId.user_id}`, applicationData)
-                window.location.reload();
+                axios.post(`${getBackendURL()}/event/users/${id}/${userId.user_id}`, applicationData).then(res => {
+                    getEventData(); //Reload data
+                    toast("Application Submitted", toastSuccess);
+                });
             } catch (err) {
                 console.log(err)
             }
@@ -126,8 +132,10 @@ const IndividualEvent = () => {
         {
             
             try {
-                await axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
-                window.location.reload();
+                axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData).then(res => {
+                    getEventData(); //Reload data
+                    toast("Application Submitted", toastSuccess);
+                })
             } catch (err) {
                 console.log(err)
             }
@@ -137,8 +145,10 @@ const IndividualEvent = () => {
     const handleWithdrawApplication = async e => {
         const applicationData = { status: 'withdraw' }
         try {
-            await axios.put(`${getBackendURL()}/event/users/${id}/${userId.user_id}`, applicationData)
-            window.location.reload();
+            axios.put(`${getBackendURL()}/event/users/${id}/${userId.user_id}`, applicationData).then(res => {
+                getEventData(); //Reload data
+                toast("Application Withdrawn", toastSuccess);
+            });  
         } catch (err) {
             console.log(err)
         }
@@ -147,8 +157,10 @@ const IndividualEvent = () => {
     const handleAcceptApplication = async (user) => {
         const applicationData = { status: 'accept' }
         try {
-            await axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
-            window.location.reload();
+            axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData).then(res => {
+                getEventData(); //Reload data
+                toast("Application Accepted", toastSuccess);
+            });
         } catch (err) {
             console.log(err)
         }
@@ -157,8 +169,10 @@ const IndividualEvent = () => {
     const handleRejectApplication = async (user) => {
         const applicationData = { status: 'reject' }
         try {
-            await axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData)
-            window.location.reload();
+            axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData).then(res => {
+                getEventData(); //Reload data
+                toast("Application Rejected", toastSuccess);
+            });
         } catch (err) {
             console.log(err)
         }

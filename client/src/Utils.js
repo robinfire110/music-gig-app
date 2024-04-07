@@ -1,4 +1,5 @@
 const { Axios } = require("axios");
+const { toast } = require("react-toastify");
 
 function getBackendURL()
 {
@@ -11,6 +12,14 @@ const maxDescriptionLength = 750; //Max length for event descriptions
 const maxBioLength = 500; //Max length for user bios
 const maxEventNameLength = 50;
 const statesList = [ 'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY' ];
+
+//Default toast settings
+const toastTheme = 'dark';
+const toastPosition = 'top-center';
+const toastTimeout = 1500;
+const toastSuccess = { theme: toastTheme, position: toastPosition, type: "success", autoClose: toastTimeout};
+const toastError = { theme: toastTheme, position: toastPosition, type: "error", autoClose: toastTimeout};
+const toastInfo = { theme: toastTheme, position: toastPosition, type: "info", autoClose: toastTimeout};
 
 //Format number to currency
 function formatCurrency(value) 
@@ -74,4 +83,4 @@ function getEventOwner(data)
     return null;
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, getEventOwner, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, autoSizeColumn};
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, getEventOwner, autoSizeColumn, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, toastSuccess, toastError, toastInfo};

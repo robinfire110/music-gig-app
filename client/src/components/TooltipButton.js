@@ -1,10 +1,16 @@
 import React from 'react';
 import { OverlayTrigger, Button, Popover } from 'react-bootstrap';
 
+function htmlDecode(input){
+    var e = document.createElement('div');
+    e.innerHTML = input;
+    return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+  }
+
 //Popovers (tool tips)
-const createPopover = (text="") => {
+function createPopover(text="") {
     return (
-        <Popover id="popover-trigger-hover-focus" title="Tool Tip" style={{padding: "10px"}}>{text}</Popover>
+        <Popover id="popover-trigger-hover-focus" title="Tool Tip" style={{padding: "10px"}}><div dangerouslySetInnerHTML={{__html: text}}/></Popover>
     )
 };
 
