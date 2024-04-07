@@ -6,7 +6,7 @@ import axios from "axios";
 import { Container, Form, Col, Row, Button, InputGroup } from "react-bootstrap";
 import moment from "moment";
 import { useCookies } from "react-cookie";
-import { ClipLoader } from "react-spinners";
+import { ClipLoader, BarLoader } from "react-spinners";
 import { maxDescriptionLength, maxEventNameLength, parseFloatZero, statesList, getBackendURL} from "../Utils";
 import FormNumber from "../components/FormNumber";
 import Select from 'react-select';
@@ -43,6 +43,8 @@ const EventForm = () => {
     const [loading, setLoading] = useState(true);
     const [userLoggedIn, setUserLoggedIn] = useState(false);
     const [descriptionLength, setDescriptionLength] = useState(maxDescriptionLength);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const navigate = useNavigate()
     const { id } = useParams();
@@ -164,70 +166,89 @@ const EventForm = () => {
 
     const handleEvent = async e => {
         e.preventDefault()
-        try {
-            //Check validity (will return false if not valid, HTML will take care of the rest).
-            const inputs = document.getElementById("eventForm").elements;
-            for (let i = 0; i < inputs.length; i++) {
-                if (!inputs[i].disabled && !inputs[i].checkValidity())
-                {
-                    inputs[i].reportValidity();
-                    console.log("NOT VALID");
-                    return false
-                } 
+        if (!isSubmitting)
+        {
+            setIsSubmitting(true);
+            try {
+                //Check validity (will return false if not valid, HTML will take care of the rest).
+                const inputs = document.getElementById("eventForm").elements;
+                for (let i = 0; i < inputs.length; i++) {
+                    if (!inputs[i].disabled && !inputs[i].checkValidity())
+                    {
+                        inputs[i].reportValidity();
+                        console.log("NOT VALID");
+                        return false
+                    } 
+                }
+
+                const isListed = 1
+                const { start: startDateTime, end: endDateTime } = formatDateTime(startDate, startTime, endDate, endTime);
+
+                //Prepare instrument data
+                const instrumentsList = [];
+                selectedInstruments.forEach(instrument => {
+                    instrumentsList.push(instrument.value);
+                });
+
+                //prepare data to be sent to database with event details
+                const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, is_listed: isListed };
+
+                //if an id is present, that means the event already exists and we need to put
+                if (id) {
+                    const response = await axios.put(`${getBackendURL()}/event/${id}`, eventData);
+                    setIsSubmitting(false);
+                    navigate(`../event/${id}`)
+                    toast("Event Updated", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+                } else {
+                    //event does not exist, so make a post
+                    setIsSubmitting(false);
+                    const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, is_listed: isListed };
+                    const response = await axios.post(`${getBackendURL()}/event/`, eventData)
+                    const newEventId = response.data.newEvent.event_id;
+                    navigate(`../event/${newEventId}`);
+                    toast("Event Created", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+                }
+            } catch (error) {
+                console.log(error);
+                setIsSubmitting(false);
             }
-
-            const isListed = 1
-            const { start: startDateTime, end: endDateTime } = formatDateTime(startDate, startTime, endDate, endTime);
-
-            //Prepare instrument data
-            const instrumentsList = [];
-            selectedInstruments.forEach(instrument => {
-                instrumentsList.push(instrument.value);
-            });
-
-            //prepare data to be sent to database with event details
-            const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, is_listed: isListed };
-
-            //if an id is present, that means the event already exists and we need to put
-            if (id) {
-                const response = await axios.put(`${getBackendURL()}/event/${id}`, eventData);
-                navigate(`../event/${id}`)
-                toast("Event Updated", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-            } else {
-                //event does not exist, so make a post
-                const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, is_listed: isListed };
-                const response = await axios.post(`${getBackendURL()}/event/`, eventData)
-                const newEventId = response.data.newEvent.event_id;
-                navigate(`../event/${newEventId}`);
-                toast("Event Created", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-            }
-        } catch (error) {
-            console.log(error);
         }
     }
 
     const handleUnlistEvent = async e => {
         e.preventDefault()
-        try {
-            const listingUpdate = { is_listed: 0 }
-            const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
-            navigate(`../event/${id}`)
-            toast("Event Unlisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-        } catch (err) {
-            console.log(err)
-        }
+        if (!isDeleting)
+        {
+            setIsDeleting(true);
+            try {
+                const listingUpdate = { is_listed: 0 }
+                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
+                setIsDeleting(false);
+                navigate(`../event/${id}`)
+                toast("Event Unlisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+            } catch (err) {
+                console.log(err)
+                setIsDeleting(false);
+            }
+        }   
     }
 
     const handleRelistEvent = async e => {
         e.preventDefault()
-        try {
-            const listingUpdate = { is_listed: 1 }
-            const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
-            navigate(`../event/${id}`)
-            toast("Event Relisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-        } catch (err) {
-            console.log(err)
+        if (!isDeleting)
+        {
+            try {
+                const listingUpdate = { is_listed: 1 }
+                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
+                setIsDeleting(false);
+                navigate(`../event/${id}`)
+                toast("Event Relisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
+            } catch (err) {
+                console.log(err)
+                setIsDeleting(false);
+            }
         }
+        
     }
 
     const isEventOwner = () => {
@@ -362,11 +383,11 @@ const EventForm = () => {
                             <div style={{ marginBottom: "2em", marginTop: "2em" , textAlign: "center"}}>
                                 {id ? (
                                     <div className="update-unlist">
-                                        <Button type="submit" className="formButton" variant="success" onClick={handleEvent} style={{ marginRight: '10px'}}>Update Event</Button>
+                                        <Button type="submit" className="formButton" variant="success" onClick={handleEvent} style={{ marginRight: '10px'}}>{isSubmitting ? <BarLoader color="#FFFFFF" height={4} width={50} /> : "Update Event"}</Button>
                                         {event.is_listed ? (
-                                            <Button type="submit" className="formButton" variant="danger" onClick={handleUnlistEvent} style={{ marginLeft: '10px'}}>Unlist Event</Button>
+                                            <Button type="submit" className="formButton" variant="danger" onClick={handleUnlistEvent} style={{ marginLeft: '10px'}}>{isDeleting ? <BarLoader color="#FFFFFF" height={4} width={50} /> : "Unlist Event"}</Button>
                                         ) : (
-                                            <Button type="submit" classname="formButton" variant="primary" onClick={handleRelistEvent} style={{marginLeft: '10px'}}>Relist Event</Button>
+                                            <Button type="submit" classname="formButton" variant="primary" onClick={handleRelistEvent} style={{marginLeft: '10px'}}>{isDeleting ? <BarLoader color="#FFFFFF" height={4} width={50} /> : "Relist Event"}</Button>
                                         )}
                                         
                                     </div>
