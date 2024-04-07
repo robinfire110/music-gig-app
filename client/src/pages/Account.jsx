@@ -102,6 +102,37 @@ function Account() {
         setSelectedContent(content);
     };
 
+    const handlePasswordReset = async (user) => {
+        try {
+            // Make backend request to reset password
+            // await axios.post(`${getBackendURL()}/reset-password`, { userId: user.id });
+            // console.log(`Password reset successful for ${user.email}`);
+        } catch (error) {
+            console.error('Error resetting password:', error);
+        }
+    };
+
+    const handlePromoteUser = async (user) => {
+        try {
+            // // Make backend request to promote user
+            // await axios.post(`${getBackendURL()}/promote-user`, { userId: user.id });
+            // console.log(`User ${user.email} successfully promoted to Admin`);
+            console.log('Promote user function called in acccoutn')
+        } catch (error) {
+            console.error('Error promoting user:', error);
+        }
+    };
+
+    const handleDemoteUser = async (user) => {
+        try {
+            // // Make backend request to demote user
+            // await axios.post(`${getBackendURL()}/demote-user`, { userId: user.id });
+            // console.log(`User ${user.email} successfully demoted`);
+        } catch (error) {
+            console.error('Error demoting user:', error);
+        }
+    };
+
     const renderContent = () => {
         switch(selectedContent) {
             case 'editProfile':
@@ -111,7 +142,11 @@ function Account() {
             case 'financials':
                 return <Financials userData={userData} financials={financials} />;
             case 'adminActions':
-                return <AdminActions userData={ users } />;
+                return <
+                    AdminActions userData={ users }
+                                 onPasswordReset={handlePasswordReset}
+                                 onPromoteUser={handlePromoteUser}
+                                 onDemoteUser={handleDemoteUser}/>;
             default:
                 return null;
         }

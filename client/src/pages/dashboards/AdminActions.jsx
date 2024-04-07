@@ -4,7 +4,7 @@ import {useNavigate} from "react-router-dom";
 import {Button, Tab, Tabs, Table} from "react-bootstrap";
 import ConfirmationModal from './ConfirmationModal';
 
-function AdminActions({ userData }) {
+function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -43,6 +43,7 @@ function AdminActions({ userData }) {
         setUserToResetPass(user);
         setConfirmationMessage(`Are you sure you want to reset the password for ${user.email}?`);
         setShowConfirmationModal(true);
+        onPasswordReset(user);
         console.log(`reset user pass for  ${user.email}`)
     };
 
@@ -50,10 +51,12 @@ function AdminActions({ userData }) {
         setUserToPromote(user);
         setConfirmationMessage(`Are you sure you want to promote ${user.email} to Admin?`);
         setShowConfirmationModal(true);
+        onPromoteUser(user);
         console.log(`Promoting ${user.email}`)
     };
 
     const  handleDemoteUser = (user) => {
+        onDemoteUser(user);
         console.log('Demote user:', user)
     }
 
