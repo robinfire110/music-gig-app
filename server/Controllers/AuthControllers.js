@@ -194,7 +194,6 @@ module.exports.getUsers = async (req,res,next) => {
 	try{
 		if (req.user.isAdmin) {
 			const users = await getAllUsers();
-			console.log(users)
 			res.status(200).json({users : users});
 		} else {
 			res.status(403).json({ error: "Access denied. You are not authorized to perform this action." });
@@ -205,16 +204,25 @@ module.exports.getUsers = async (req,res,next) => {
 	}
 }
 
-module.exports.giveUserAdmin = async (req,res,next) => {
-	try{
-		const userId = req.user.user_id;
-		await updateUserToAdmin(userId);
-		res.status(200).json({ success: true, message: "User now has admin privileges" });
-	}catch (error){
-		console.error('Error Giving user admin privliges:', error);
-		throw new Error('Failed to update User');
+module.exports.giveUserAdmin = async (req, res, next) => {
+	try {
+		const userIdToUpdate = req.body.user_id;
+
+		await updateUserToAdmin(userIdToUpdate);
+
+		const updatedUser = await db.User.findByPk(userIdToUpdate);
+		if (updatedUser && updatedUser.isAdmin) {
+			res.status(200).json({ success: true, message: "User now has admin privileges" });
+		} else {
+			res.status(500).json({ error: 'Failed to update User' });
+		}
+	} catch (error) {
+		console.error('Error Giving user admin privileges:', error);
+		res.status(500).json({ error: 'Failed to update User' });
 	}
 }
+
+
 
 
 

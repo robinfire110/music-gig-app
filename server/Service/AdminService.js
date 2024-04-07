@@ -13,7 +13,8 @@ async function updateUserToAdmin(userId) {
 	try {
 		const user = await db.User.findByPk(userId);
 		if (user) {
-			await user.update({ isAdmin: true });
+			user.isAdmin = true;
+			await user.save();
 		} else {
 			throw new Error("User not found");
 		}
@@ -22,6 +23,7 @@ async function updateUserToAdmin(userId) {
 		throw error;
 	}
 }
+
 
 async function getAllUsers() {
 	try {

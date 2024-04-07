@@ -86,8 +86,8 @@ function Account() {
         const fetchUsers = async () => {
             try {
                 if(isAdmin){
-                    const { data } = await axios.get('http://localhost:5000/all-users', { withCredentials: true });
-                    console.log(data.users)
+                    const { data } = await axios.get(`${getBackendURL()}/all-users`, { withCredentials: true });
+                    // console.log(data.users)
                     setUsers(data.users);
                 }
 
@@ -114,14 +114,21 @@ function Account() {
 
     const handlePromoteUser = async (user) => {
         try {
-            // // Make backend request to promote user
-            // await axios.post(`${getBackendURL()}/promote-user`, { userId: user.id });
-            // console.log(`User ${user.email} successfully promoted to Admin`);
-            console.log('Promote user function called in acccoutn')
+            const response = await axios.post(`${getBackendURL()}/promote-user`,
+                user , {
+                    withCredentials: true
+                });
+            if (response.data.success) {
+                window.location.reload();
+
+            } else {
+                console.error('Failed to promote user:', response.data.message);
+            }
         } catch (error) {
             console.error('Error promoting user:', error);
         }
     };
+
 
     const handleDemoteUser = async (user) => {
         try {

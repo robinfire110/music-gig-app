@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {useNavigate} from "react-router-dom";
 import {Button, Tab, Tabs, Table} from "react-bootstrap";
 import ConfirmationModal from './ConfirmationModal';
@@ -42,29 +41,32 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser 
     const handlePasswordReset = (user) => {
         setUserToResetPass(user);
         setConfirmationMessage(`Are you sure you want to reset the password for ${user.email}?`);
+        setActionToConfirm(() => () => onPasswordReset(user)); // Set the action to confirm
         setShowConfirmationModal(true);
-        onPasswordReset(user);
-        console.log(`reset user pass for  ${user.email}`)
     };
 
     const handlePromoteUser = (user) => {
         setUserToPromote(user);
+        setActionToConfirm(() => () => {
+            onPromoteUser(userToPromote);
+        });
         setConfirmationMessage(`Are you sure you want to promote ${user.email} to Admin?`);
         setShowConfirmationModal(true);
-        onPromoteUser(user);
-        console.log(`Promoting ${user.email}`)
     };
 
-    const  handleDemoteUser = (user) => {
-        onDemoteUser(user);
-        console.log('Demote user:', user)
-    }
+
+    const handleDemoteUser = (user) => {
+        // setUserToDemote(user);
+        setConfirmationMessage(`Are you sure you want to demote ${user.email} from Admin?`);
+        setActionToConfirm(() => () => onDemoteUser(user)); // Set the action to confirm
+        setShowConfirmationModal(true);
+    };
 
     const handleDeleteUser = (user) => {
-        setUserToDelete(user);
-        setConfirmationMessage(`Are you sure you want to delete this ${user.email}?`);
-        setShowConfirmationModal(true);
-        console.log('Delete user:', user);
+        // setUserToDelete(user);
+        // setConfirmationMessage(`Are you sure you want to delete ${user.email}?`);
+        // setActionToConfirm(() => () => onDeleteUser(user)); // Set the action to confirm
+        // setShowConfirmationModal(true);
     };
 
     const handleGoBackToDashboard = () => {
@@ -72,6 +74,10 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser 
     };
 
     const handleConfirmation = () => {
+        if (actionToConfirm) {
+            actionToConfirm();
+            setActionToConfirm(null);
+        }
         setShowConfirmationModal(false);
     };
 
@@ -152,8 +158,7 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser 
                     </div>
                 </Tab>
                 <Tab eventKey="posts" title="Posts">
-                    {/* Content for Posts Tab */}
-                    {/* Add post related logic here */}
+
                 </Tab>
             </Tabs>
             <ConfirmationModal

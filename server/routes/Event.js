@@ -22,7 +22,6 @@ router.get("/", async (req, res) => {
 router.get("/id/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        console.log("GOT", id);
         const event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, db.User]});
         res.json(event);
     } catch (error) {
