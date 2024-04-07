@@ -132,11 +132,18 @@ function Account() {
 
     const handleDemoteUser = async (user) => {
         try {
-            // // Make backend request to demote user
-            // await axios.post(`${getBackendURL()}/demote-user`, { userId: user.id });
-            // console.log(`User ${user.email} successfully demoted`);
+            const response = await axios.post(`${getBackendURL()}/demote-user`,
+                user , {
+                    withCredentials: true
+                });
+            if (response.data.success) {
+                window.location.reload();
+
+            } else {
+                console.error('Failed to demote user:', response.data.message);
+            }
         } catch (error) {
-            console.error('Error demoting user:', error);
+            console.error('Error demote user:', error);
         }
     };
 

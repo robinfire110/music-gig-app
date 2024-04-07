@@ -1,4 +1,4 @@
-const { register, login, account, update_user, getUserEvents, getUserFinancials, getUsers, giveUserAdmin} = require("../Controllers/AuthControllers")
+const { register, login, account, update_user, getUserEvents, getUserFinancials, getUsers, giveUserAdmin, giveUserUser} = require("../Controllers/AuthControllers")
 const {checkUser} = require("../Middleware/AuthMiddleWare");
 const router = require("express").Router();
 
@@ -12,6 +12,7 @@ router.get("/user-gigs", checkUser, getUserEvents)
 router.get("/user-financials", checkUser, getUserFinancials)
 router.get("/all-users", checkUser, getUsers)
 router.post("/promote-user", checkUser, giveUserAdmin)
+router.post("/demote-user", checkUser, giveUserUser)
 
 
 

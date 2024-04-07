@@ -13,6 +13,7 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser 
     const [actionToConfirm, setActionToConfirm] = useState(null);
     const [userToDelete, setUserToDelete] = useState(null);
     const [userToResetPass, setUserToResetPass] = useState(null);
+    const [userToDemote, setUserToDemote] = useState(null);
     const [userToPromote, setUserToPromote] = useState(null);
     const navigate = useNavigate();
 
@@ -56,9 +57,9 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser 
 
 
     const handleDemoteUser = (user) => {
-        // setUserToDemote(user);
+        setUserToDemote(user);
+        setActionToConfirm(() => () => onDemoteUser(user));
         setConfirmationMessage(`Are you sure you want to demote ${user.email} from Admin?`);
-        setActionToConfirm(() => () => onDemoteUser(user)); // Set the action to confirm
         setShowConfirmationModal(true);
     };
 

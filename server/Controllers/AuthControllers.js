@@ -1,6 +1,6 @@
 const db = require("../models/models");
 const jwt = require("jsonwebtoken");
-const {updateUserToAdmin, getAllUsers} = require("../Service/AdminService");
+const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin} = require("../Service/AdminService");
 
 
 const maxAge = 3*24*60*60;
@@ -221,6 +221,25 @@ module.exports.giveUserAdmin = async (req, res, next) => {
 		res.status(500).json({ error: 'Failed to update User' });
 	}
 }
+
+module.exports.giveUserUser = async (req, res, next) => {
+	try {
+		const userIdToUpdate = req.body.user_id;
+
+		await demoteUserFromAdmin(userIdToUpdate);
+
+		const updatedUser = await db.User.findByPk(userIdToUpdate);
+		if (updatedUser && !updatedUser.isAdmin) {
+			res.status(200).json({ success: true, message: "Admin User has been demoted to User" });
+		} else {
+			res.status(500).json({ error: 'Failed to update User' });
+		}
+	} catch (error) {
+		console.error('Error Demoting user:', error);
+		res.status(500).json({ error: 'Failed to update User' });
+	}
+}
+
 
 
 
