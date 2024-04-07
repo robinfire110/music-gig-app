@@ -1,6 +1,6 @@
 const db = require("../models/models");
 const jwt = require("jsonwebtoken");
-const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin, removeUser} = require("../Service/AdminService");
+const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin, removeUser, resetUserPassword} = require("../Service/AdminService");
 
 
 const maxAge = 3*24*60*60;
@@ -257,6 +257,22 @@ module.exports.removeUser = async (req, res, next) => {
 		res.status(500).json({ error: 'Failed to remove user from the database' });
 	}
 }
+
+module.exports.resetUserPassword = async (req, res, next) => {
+	try {
+		if (!req.user.isAdmin) {
+			return res.status(403).json({ error: "Access denied. Only admins can reset passwords." });
+		}
+
+		const { userId, newPassword } = req.body;
+		const result = await resetUserPassword(userId, newPassword);
+
+		res.status(200).json(result);
+	} catch (error) {
+		console.error("Error resetting user password:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
 
 
 

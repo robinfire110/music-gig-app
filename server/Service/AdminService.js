@@ -1,4 +1,5 @@
 const db = require("../models/models");
+const bcrypt = require("bcrypt");
 
 async function createUserWithAdminPrivileges(userData) {
 	try {
@@ -52,10 +53,6 @@ async function removeUser(userId) {
 	}
 }
 
-
-
-
-
 async function getAllUsers() {
 	try {
 		return await db.User.findAll();
@@ -65,10 +62,30 @@ async function getAllUsers() {
 	}
 }
 
+async function resetUserPassword(userId, newPassword) {
+	try {
+		const hashedPassword = await bcrypt.hash(newPassword, 10); //higher salt means
+		// longer computational time taken to brute force
+
+		const user = await db.User.findByPk(userId);
+		if(user){
+			user.update({ password: hashedPassword });
+			await user.save();
+		}else{
+			throw new Error("User not found");
+		}
+	} catch (error) {
+		console.error("Error resetting user password:", error);
+		throw error;
+	}
+}
+
+
 module.exports = {
 	createUserWithAdminPrivileges,
 	updateUserToAdmin,
 	getAllUsers,
 	demoteUserFromAdmin,
-	removeUser
+	removeUser,
+	resetUserPassword
 };
