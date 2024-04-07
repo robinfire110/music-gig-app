@@ -7,24 +7,15 @@ import { Container, Col, Row, Button, Card } from "react-bootstrap"; // Bootstra
 import { useCookies } from "react-cookie";
 import { ClipLoader } from "react-spinners";
 import "../styles/IndividualEvent.css";
-import {formatCurrency } from "../Utils";
+import {formatCurrency, getEventOwner } from "../Utils";
 import {getBackendURL} from "../Utils";
+import { toast } from "react-toastify";
 
 const IndividualEvent = () => {
-    const [event, setEvent] = useState({
-        event_name: "",
-        date_posted: "",
-        start_time: "",
-        end_time: "",
-        description: "",
-        pay: null,
-        event_hours: "",
-        Users: []
-    })
-
+    const [event, setEvent] = useState();
     const [cookies, removeCookie] = useCookies([]);
-    const [userId, setUserId] = useState(null) //Current user's id set here
-    const [ownerId, setOwnerId] = useState(null) //get the owner's id here
+    const [userId, setUserId] = useState() //Current user's id set here
+    const [ownerId, setOwnerId] = useState() //get the owner's id here
     const [applications, setApplications] = useState([]);
     const [withdrawn, setWithdrawn] = useState([])
     const [accepted, setAccepted] = useState([]);
@@ -34,51 +25,62 @@ const IndividualEvent = () => {
     const [id, setId] = useState(useParams().id);
     const navigate = useNavigate();
 
+    //Get logged in user data
     useEffect(() => {
-
-        //get user
-        const fetchUserData = async () => {
-            if (cookies.jwt) {
-                try {
-                    axios.get(`${getBackendURL()}/account`, { withCredentials: true }).then(res => {
-                        if (res.data?.user) {
-                            const userData = res.data.user;
-                            setUserId(userData);
-                        }
-                    })
-                } catch (err) {
-                    console.log(err)
-                }
-            }
-        }
-
-        const fetchEvent = async () => {
+        if (cookies.jwt) {
             try {
-                axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
-                    const data = res.data;
-                    console.log(id);
-                    setEvent(data)
-                    setOwnerId((data.Users && data.Users?.length) > 0 ? data.Users[0].user_id : null);
-    
-                    const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
-                    const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
-                    const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
-                    const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
-                    setApplications(appliedUsers);
-                    setWithdrawn(withdrawnUsers);
-                    setAccepted(acceptedUsers);
-                    setRejected(rejectedUsers);
-    
-                    setLoading(false);
+                //Get User
+                axios.get(`${getBackendURL()}/account`, { withCredentials: true }).then(res => {
+                    const userData = res.data?.user;
+                    if (userData) {
+                        setUserId(userData);
+                    }
                 });
-            } catch (err) {
+            }catch (err) {
                 console.log(err)
             }
         }
+        else setUserId(null);
+    }, [])
 
-        fetchUserData();
-        fetchEvent();
-    }, [id])
+    //Get event (after you get logged in data)
+    useEffect(() => {
+        if (userId !== undefined)
+        {
+            try {
+                //Get event
+                axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
+                    const data = res.data;
+                    const eventOwner = getEventOwner(data);
+                    if (id != "" && data && (data.is_listed || (userId?.user_id == eventOwner?.user_id)))
+                    {
+                        setEvent(data)
+                        console.log(data);
+                        setOwnerId(eventOwner?.user_id);
+
+                        const appliedUsers = data.Users.filter(user => user.UserStatus.status === 'applied');
+                        const withdrawnUsers = data.Users.filter(user => user.UserStatus.status === 'withdraw');
+                        const acceptedUsers = data.Users.filter(user => user.UserStatus.status === 'accept');
+                        const rejectedUsers = data.Users.filter(user => user.UserStatus.status === 'reject');
+                        setApplications(appliedUsers);
+                        setWithdrawn(withdrawnUsers);
+                        setAccepted(acceptedUsers);
+                        setRejected(rejectedUsers);
+
+                        setLoading(false);
+                    }
+                    else
+                    {
+                        navigate("/eventsearch");
+                        toast("This event does not exists", {position: "top-center", type: "error", theme: "dark", autoClose: 1500});
+                    }
+                });
+            
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    }, [userId]);
 
     const isEventOwner = () => {
         return ownerId && userId && ownerId === userId.user_id
@@ -181,7 +183,7 @@ const IndividualEvent = () => {
             <hr />
             <Container> 
                 <div style={{textAlign: "left"}}>
-                    <Row >
+                    <Row>
                         <Col>
                             <h1>{event.event_name}</h1>
                         </Col>
@@ -203,6 +205,8 @@ const IndividualEvent = () => {
                             <Card className="shadow" id="infoCard" style={{height: "100%"}} >
                                 <Card.Header>
                                     <h3>Event Information</h3>
+                                    {isEventOwner() && event.is_listed && <><br /><h5 style={{color: "rgb(40, 150, 50)"}}>Event is currently listed</h5></>}
+                                    {isEventOwner() && !event.is_listed && <><br /><h5 style={{color: "rgb(200, 40, 50)"}}>Event is currently unlisted</h5></>}
                                 </Card.Header>
                                 <Card.Body>
                                     <Col>

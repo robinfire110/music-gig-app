@@ -160,6 +160,13 @@ async function fixData() {
         await event.save();
     });
     */
+
+    //Fix is_listed
+    let eventList = await db.Event.findAll();
+    eventList.forEach(async event => {
+        event.set({is_listed: true});
+        await event.save();
+    }); 
 }
 
 module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, getEventHours, fixData }

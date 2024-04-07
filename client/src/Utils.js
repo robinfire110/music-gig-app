@@ -59,4 +59,19 @@ function parseStringUndefined(value)
     else return value;
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, autoSizeColumn};
+//Get event owner
+//Data can either be straight event data or event.Users
+function getEventOwner(data)
+{
+    if (data)
+    {
+        const userData = data?.Users ? data.Users : data;
+        for (let i = 0; i < userData.length; i++)
+        {
+            if (userData[i].UserStatus.status === "owner") return userData[i];
+        }
+    }   
+    return null;
+}
+
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, getEventOwner, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, autoSizeColumn};

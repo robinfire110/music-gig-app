@@ -2,15 +2,12 @@ import React, { useRef } from "react";
 import { useEffect, useState} from "react";
 import { Link, Router } from "react-router-dom";
 import { Container, Row, Col, CardGroup, Button, Carousel } from "react-bootstrap";
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import EventCard from "../components/EventCard";
 import axios from "axios";
 import EventHorizontalScroll from "../components/EventHorizontalScroll";
 import { ClipLoader } from "react-spinners";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
-import { getBackendURL } from "../Utils"
+import { getBackendURL, getEventOwner } from "../Utils"
 
 function Landing() {
     //Varaibles
@@ -47,7 +44,7 @@ function Landing() {
                             //Set user events
                             const userEventList = [];
                             userData.Events.forEach(event => {
-                                if (event.UserStatus.status == "owner")
+                                if (event.UserStatus.status == "owner" && event.is_listed)
                                 {
                                     userEventList.push(event);
                                 }
@@ -65,10 +62,14 @@ function Landing() {
                             if (instrumentSearch.length > 0)
                             {
                                 axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${25}`).then(res => {
+                                    //Filter out our events
+                                    const instrumentEventSearch = res.data.filter((event) => {
+                                        return getEventOwner(event).user_id != userData.user_id;
+                                    });
+                                    
                                     //Get list of locations
-                                    const instrumentEventSearch = res.data;
                                     const zipList = [];
-                                    res.data.forEach(event => {
+                                    instrumentEventSearch.forEach(event => {
                                         zipList.push(event.Address.zip);
                                     });
 
@@ -91,7 +92,7 @@ function Landing() {
                                         //Sort
                                         instrumentEventSearch.sort((a, b) => a.distance - b.distance);
                                         console.log("Got Relevant");
-                                        setRelevantEvents(instrumentEventSearch);
+                                        setRelevantEvents(instrumentEventSearch.slice(0, Math.min(relevantNum, instrumentEventSearch.length)));
                                         setIsLoading(false);
                                     })
                                 })
