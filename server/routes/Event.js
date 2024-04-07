@@ -31,6 +31,7 @@ router.get("/id/:id", async (req, res) => {
 
 //Get event by instrument(s)
 //Returns event associated with pass instrument(s) ids. Instrument separated by |.
+//Will only return listed events
 //?sort=true (allows to return sorted by date posted)
 //?limit=# (limit the result number)
 router.get("/instrument/:id", async (req, res) => {
@@ -41,12 +42,12 @@ router.get("/instrument/:id", async (req, res) => {
         if (req.query.limit) limit = req.query.limit;
         if (isSorted)
         {
-            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, db.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
+            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, db.User], where: {is_listed: true}, order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
             res.json(instrument);
         }
         else
         {
-            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, db.User], limit: sequelize.literal(limit)});
+            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, db.User], where: {is_listed: true}, limit: sequelize.literal(limit)});
             res.json(instrument);
         } 
     } catch (error) {
@@ -83,10 +84,11 @@ router.get("/user_id/event_id/:user_id/:event_id", async (req, res) => {
 });
 
 //Get most recent events (a given number)
+//Will return only listed events
 router.get("/recent/:limit", async (req, res) => {
     try {
         const limit = req.params.limit;
-        const events = await db.Event.findAll({include: [db.Instrument, db.Address, db.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
+        const events = await db.Event.findAll({include: [db.Instrument, db.Address, db.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit), where: {is_listed: true}});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -97,7 +99,7 @@ router.get("/recent/:limit", async (req, res) => {
 router.get("/soonest/:limit", async (req, res) => {
     try {
         const limit = req.params.limit;
-        const events = await db.Event.findAll({include: [db.Instrument, db.Address, db.User], order: [['start_time', 'ASC']], limit: sequelize.literal(limit)});
+        const events = await db.Event.findAll({include: [db.Instrument, db.Address, db.User], order: [['start_time', 'ASC']], limit: sequelize.literal(limit), where: {is_listed: true}});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);

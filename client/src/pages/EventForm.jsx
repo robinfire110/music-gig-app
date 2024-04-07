@@ -11,6 +11,7 @@ import { maxDescriptionLength, maxEventNameLength, parseFloatZero, statesList, g
 import FormNumber from "../components/FormNumber";
 import Select from 'react-select';
 import { toast } from "react-toastify";
+import TooltipButton from "../components/TooltipButton";
 
 const EventForm = () => {
     const [event, setEvent] = useState({
@@ -344,12 +345,15 @@ const EventForm = () => {
                                                     <Col className="text-end">{nameLength}/{maxEventNameLength}</Col>
                                                 </Row>
                                             </Form.Label>
-                                            <Form.Control id="eventName" maxLength={maxEventNameLength} type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name" required={true}></Form.Control>
+                                            <InputGroup>
+                                                <Form.Control id="eventName" maxLength={maxEventNameLength} type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name" required={true}></Form.Control>
+                                                <TooltipButton text="Name of event. 50 character limit."/>
+                                            </InputGroup>
                                         </Col>
                                     </Row>
                                     <Row className="mb-3">
                                         <Form.Label>Instruments</Form.Label>
-                                        <Select options={instruments} isMulti required={true} onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} required={false}></Select>
+                                        <Select options={instruments} isMulti required={true} onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} ></Select>
                                     </Row>
                                     <Row className="mb-3">
                                         <Col>
@@ -360,7 +364,9 @@ const EventForm = () => {
                                                 </Row>
                                                 
                                             </Form.Label>
-                                            <Form.Control as="textarea" id="eventDescription" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
+                                            <InputGroup>
+                                                <Form.Control as="textarea" id="eventDescription" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
+                                            </InputGroup>
                                         </Col>
                                     </Row>
                                 </Col>
@@ -386,11 +392,18 @@ const EventForm = () => {
                                     <Row>
                                         <Col>
                                             <Form.Label>Rehearsal Hours</Form.Label>
-                                            <FormNumber maxValue={100} integer={false} placeholder='Ex. 3' value={event.rehearse_hours} onChange={(e) => {handleChange(e)}} name="rehearse_hours" />
+                                            <InputGroup>
+                                                <FormNumber maxValue={100} integer={false} placeholder='Ex. 3' value={event.rehearse_hours} onChange={(e) => {handleChange(e)}} name="rehearse_hours" />
+                                                <TooltipButton text="How many hours of rehearsal expected from musicians (optional)." />
+                                            </InputGroup>
+                                            
                                         </Col>
                                         <Col>
                                             <Form.Label>Total Event Hours</Form.Label>
-                                            <Form.Control type="number" placeholder='0' value={totalEventHours} name="event_hours" disabled={true}></Form.Control>
+                                            <InputGroup>
+                                                <Form.Control type="number" placeholder='0' value={totalEventHours} name="event_hours" disabled={true}></Form.Control>
+                                                <TooltipButton text="Total number of hours expected from musician. Calculated by start/end time and rehearsal hours." />
+                                            </InputGroup>
                                         </Col>
                                     </Row>
                                 </Col>
@@ -400,7 +413,8 @@ const EventForm = () => {
                                 <Row className="mb-3">
                                     {/* Address Fields */}
                                     <Col lg={8}>
-                                        <h3>Location</h3>
+                                        <h3>Event Location</h3>
+                                        <p></p>
                                         <Row className="my-3">
                                             <Row className="mb-3">
                                                 <Col lg={9}>
@@ -429,12 +443,14 @@ const EventForm = () => {
                                     </Col>
                                     <Col>
                                         <h3>Event Finance</h3>
+                                        <p></p>
                                         <Row className="my-3">
                                             <Form.Label>Pay<span style={{color: "red"}}>*</span></Form.Label>
                                             <Col>
                                                 <InputGroup>
                                                     <InputGroup.Text>$</InputGroup.Text>
                                                     <FormNumber maxValue={9999.99} value={event.pay} placeholder="Ex. $150.00" required={true} integer={false} onChange={handleChange} name="pay"/>
+                                                    <TooltipButton text="How much musician will be paid for this event." />
                                                 </InputGroup>
                                             </Col>
                                         </Row>
@@ -444,6 +460,7 @@ const EventForm = () => {
                                                 <InputGroup>
                                                     <InputGroup.Text>$</InputGroup.Text>
                                                     <FormNumber maxValue={1.00} placeholder='Ex. $0.17' value={event.mileage_pay} integer={false} onChange={handleChange} name="mileage_pay" />
+                                                    <TooltipButton text="How much mileage pay is provided, in $/mile (optional)."/>
                                                 </InputGroup>
                                             </Col>
                                         </Row>
