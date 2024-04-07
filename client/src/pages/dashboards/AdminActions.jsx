@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {Button, Tab, Tabs, Table} from "react-bootstrap";
 import ConfirmationModal from './ConfirmationModal';
 
-function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser }) {
+function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser, onDeleteUser }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -64,10 +64,10 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser 
     };
 
     const handleDeleteUser = (user) => {
-        // setUserToDelete(user);
-        // setConfirmationMessage(`Are you sure you want to delete ${user.email}?`);
-        // setActionToConfirm(() => () => onDeleteUser(user)); // Set the action to confirm
-        // setShowConfirmationModal(true);
+        setUserToDelete(user);
+        setActionToConfirm(() => () => onDeleteUser(user));
+        setConfirmationMessage(`Are you sure you want to delete ${user.email}?`);
+        setShowConfirmationModal(true);
     };
 
     const handleGoBackToDashboard = () => {

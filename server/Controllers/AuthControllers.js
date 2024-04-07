@@ -1,6 +1,6 @@
 const db = require("../models/models");
 const jwt = require("jsonwebtoken");
-const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin} = require("../Service/AdminService");
+const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin, removeUser} = require("../Service/AdminService");
 
 
 const maxAge = 3*24*60*60;
@@ -239,6 +239,25 @@ module.exports.giveUserUser = async (req, res, next) => {
 		res.status(500).json({ error: 'Failed to update User' });
 	}
 }
+
+
+module.exports.removeUser = async (req, res, next) => {
+	try {
+		const userIdToRemove = req.body.user_id;
+		await removeUser(userIdToRemove);
+
+		const userExists = await db.User.findByPk(userIdToRemove);
+		if (!userExists) {
+			res.status(200).json({ success: true, message: "User has been successfully removed from the database" });
+		} else {
+			res.status(500).json({ error: 'Failed to remove user from the database' });
+		}
+	} catch (error) {
+		console.error('Error removing user:', error);
+		res.status(500).json({ error: 'Failed to remove user from the database' });
+	}
+}
+
 
 
 

@@ -38,6 +38,23 @@ async function demoteUserFromAdmin(userId) {
 	}
 }
 
+async function removeUser(userId) {
+	try {
+		const user = await db.User.findByPk(userId);
+		if (user) {
+			await user.destroy();
+		} else {
+			throw new Error("User not found");
+		}
+	} catch (error) {
+		console.error("Error removing user:", error);
+		throw error;
+	}
+}
+
+
+
+
 
 async function getAllUsers() {
 	try {
@@ -52,5 +69,6 @@ module.exports = {
 	createUserWithAdminPrivileges,
 	updateUserToAdmin,
 	getAllUsers,
-	demoteUserFromAdmin
+	demoteUserFromAdmin,
+	removeUser
 };

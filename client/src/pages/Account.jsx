@@ -147,6 +147,23 @@ function Account() {
         }
     };
 
+    const handleDeleteUser = async (user) => {
+        try {
+            const response = await axios.post(`${getBackendURL()}/remove-user`,
+                user , {
+                    withCredentials: true
+                });
+            if (response.data.success) {
+                window.location.reload();
+
+            } else {
+                console.error('Failed to delete user:', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+        }
+    };
+
     const renderContent = () => {
         switch(selectedContent) {
             case 'editProfile':
@@ -160,7 +177,8 @@ function Account() {
                     AdminActions userData={ users }
                                  onPasswordReset={handlePasswordReset}
                                  onPromoteUser={handlePromoteUser}
-                                 onDemoteUser={handleDemoteUser}/>;
+                                 onDemoteUser={handleDemoteUser}
+                                 onDeleteUser={handleDeleteUser}/>;
             default:
                 return null;
         }
