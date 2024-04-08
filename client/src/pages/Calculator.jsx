@@ -9,7 +9,7 @@ import axios from "axios";
 import {BarLoader, ClipLoader} from 'react-spinners'
 import * as ExcelJS from "exceljs"
 import {saveAs} from "file-saver"
-import {autoSizeColumn, formatCurrency, getCurrentUser, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined} from "../Utils";
+import {autoSizeColumn, formatCurrency, getCurrentUser, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, toastError, toastInfo, toastSuccess} from "../Utils";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
 import {getBackendURL} from "../Utils";
@@ -201,7 +201,7 @@ const Calculator = () => {
                 {
                     setParamId(0);
                     navigate(`/calculator`); 
-                    toast("You do not have access to this data.", { theme: 'dark', position: "top-center", type: "error" })
+                    toast("You do not have access to this data.", toastError)
                 }
             });
         }
@@ -216,7 +216,7 @@ const Calculator = () => {
                     await loadEventData(false, currentUser); //Get event data for later use
                     setFinId(data.fin_id);
                     loadData(data);
-                    toast("Loaded from previously saved event data.", { theme: 'dark', position: "top-center", type: "info" });
+                    toast("Loaded from previously saved event data.", toastInfo);
                 } 
                 else
                 {
@@ -388,6 +388,7 @@ const Calculator = () => {
         //Final division
         setTotalPay(wage);
         if (hours > 0) finalPay = wage/hours;
+        if (!gigPay) finalPay = 0;
         
         //Convert
         setHourlyWage(finalPay);
@@ -399,7 +400,7 @@ const Calculator = () => {
         if (gasPricePerGallon && vehicleMPG)
         {
             //Set
-            let value = (gasPricePerGallon/vehicleMPG);
+            let value = (gasPricePerGallon/vehicleMPG).toFixed(2);
             setGasPricePerMile(value);
         }
         else
@@ -471,7 +472,7 @@ const Calculator = () => {
                 {
                     console.log(`UPDATE ${finId} ${paramId}`, data)
                     await axios.put(`${getBackendURL()}/financial/${finId}`, data).then(res => {
-                        toast("Calculator data updated sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
+                        toast("Calculator data updated sucessfuly", toastSuccess);
                         setSaveStatus(false);
 
                         //Update user
@@ -495,7 +496,7 @@ const Calculator = () => {
                         
                         
                     }).catch(error => {
-                        toast("An error occured while updating. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
+                        toast("An error occured while updating. Please ensure all fields are filled out correctly and try again.", toastError);
                         setSaveStatus(false);
                         console.log(error);
                     });
@@ -511,7 +512,7 @@ const Calculator = () => {
 
                         //Update URL
                         if (!isEvent) navigate(`/calculator/${res.data.fin_id}`);
-                        toast("Calculator data saved sucessfuly", { theme: 'dark', position: "top-center", type: "success" });
+                        toast("Calculator data saved sucessfuly", toastSuccess);
                         setSaveStatus(false);
 
                         //Update user
@@ -520,7 +521,7 @@ const Calculator = () => {
                         setUser(newUser);
                         getSavedFinancials(newUser); 
                     }).catch(error => {
-                        toast("An error occured while saving. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
+                        toast("An error occured while saving. Please ensure all fields are filled out correctly and try again.", toastError);
                         setSaveStatus(false);
                         console.log(error);
                     });
@@ -608,12 +609,12 @@ const Calculator = () => {
 
             const buf = await workbook.xlsx.writeBuffer();
             saveAs(new Blob([buf]), `${calcName.replace(/ /g,"_")}.xlsx`);
-            toast("Calculator data exported", { theme: 'dark', position: "top-center", type: "success" });
+            toast("Calculator data exported", toastSuccess);
         }
         catch(error)
         {
             console.log(error);
-            toast("An error occured while exporting. Please ensure all fields are filled out correctly and try again.", { theme: 'dark', position: "top-center", type: "error" });
+            toast("An error occured while exporting. Please ensure all fields are filled out correctly and try again.", toastError);
         }
     }
 
@@ -701,7 +702,7 @@ const Calculator = () => {
                                             <InputGroup>
                                                 <InputGroup.Text id="basic-addon1">$</InputGroup.Text>
                                                 <FormNumber id="gigPay" maxValue={9999.99} value={gigPay} placeholder="Ex. 75.00" required={true} integer={false} onChange={e => setGigPay(e.target.value)}/>
-                                                <TooltipButton text="Payment for gig in dollars."/>
+                                                <TooltipButton text="Payment for gig."/>
                                             </InputGroup>
                                         </Col>
                                         <Col>
@@ -716,7 +717,7 @@ const Calculator = () => {
                                             <InputGroup>
                                                 <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setGigNumEnabled(!gigNumEnabled)}} checked={gigNumEnabled}></Form.Check>
                                                 <FormNumber id="gigNum" max={2} value={gigNum || ""} placeholder="Ex. 1" disabled={!gigNumEnabled} onChange={e => setGigNum(e.target.value)} />
-                                                <TooltipButton text='Number of gigs. Used if you have multiple of the same gig at the same time (i.e. back-to-back performances). Will only add travel, additional hours and other expenses once.'/>
+                                                <TooltipButton text='Number of gigs. Used if you have multiple of the same gig at the same time (i.e. back-to-back performances). Will multiply gig pay and hours but only add travel, additional hours and other expenses once.'/>
                                             </InputGroup>
                                         </Col>
                                     </Row>
@@ -732,24 +733,25 @@ const Calculator = () => {
                                                 <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setTotalMileageEnabled(!totalMileageEnabled);}} checked={totalMileageEnabled}></Form.Check>
                                                 <FormNumber id="totalMileage" maxValue={9999.99} value={totalMileage} placeholder="Ex. 20" integer={false} disabled={!totalMileageEnabled} onChange={e => setTotalMileage(e.target.value)} />
                                                 <Button variant='light' onClick={() => {setLocationModalOpen(!locationModalOpen)}}>Use Location</Button>
-                                                <TooltipButton text='Total number of miles driven to get to event. Will multiply by "Gas Price per Mile" for final result. Click "Use Location" to calculate based off Zip Code.'/>
+                                                <TooltipButton text='Total number of miles driven to get to event. Will multiply by <i>Gas Price per Mile</i> for final result. Click <strong>Use Location</strong> to calculate based off Zip Code.'/>
                                                 <Modal show={locationModalOpen} onHide={() => {setLocationModalOpen(false); setZipCodeError(false)}} centered={true}>
                                                     <Form onSubmit={e => e.preventDefault()}>
                                                         <Modal.Header closeButton>
                                                             <Modal.Title>Calculate Mileage by Location</Modal.Title>
                                                         </Modal.Header>
                                                         <Modal.Body>
-                                                                {zipCodeError ? <Alert variant="danger" dismissible>An error occured, please ensure zip codes are correct</Alert> : ""}
-                                                                <InputGroup>
-                                                                    <InputGroup.Text>Origin Zip</InputGroup.Text>
-                                                                    <FormNumber id="modalOriginZip" value={modalOriginZip} onChange={e => {setModalOriginZip(e.target.value); if (!isGettingLocation) e.target.setCustomValidity("")}} placeholder={"Ex. 27413"} required={true} autoFocus={true} min={5} max={5}></FormNumber>
-                                                                    <TooltipButton text="Zip code of where you are coming from."/>
-                                                                </InputGroup>
-                                                                <InputGroup>
-                                                                    <InputGroup.Text>Destination Zip</InputGroup.Text>
-                                                                    <FormNumber id="modalDestinationZip" value={modalDestinationZip} onChange={e => {setModalDestinationZip(e.target.value); if (!isGettingLocation) e.target.setCustomValidity("")}} placeholder={"Ex. 27413"} required={true} min={5} max={5}></FormNumber>
-                                                                    <TooltipButton text="Zip code of where you are going."/>
-                                                                </InputGroup>
+                                                            <p>Input origin and destination zip codes to calculate milage and distance using Google Maps.</p>
+                                                            {zipCodeError ? <Alert variant="danger" dismissible>An error occured, please ensure zip codes are correct</Alert> : ""}
+                                                            <InputGroup className="mb-2">
+                                                                <InputGroup.Text>Origin Zip</InputGroup.Text>
+                                                                <FormNumber id="modalOriginZip" value={modalOriginZip} onChange={e => {setModalOriginZip(e.target.value); if (!isGettingLocation) e.target.setCustomValidity("")}} placeholder={"Ex. 27413"} required={true} autoFocus={true} min={5} max={5}></FormNumber>
+                                                                <TooltipButton text="Zip code of where you are coming from."/>
+                                                            </InputGroup>
+                                                            <InputGroup>
+                                                                <InputGroup.Text>Destination Zip</InputGroup.Text>
+                                                                <FormNumber id="modalDestinationZip" value={modalDestinationZip} onChange={e => {setModalDestinationZip(e.target.value); if (!isGettingLocation) e.target.setCustomValidity("")}} placeholder={"Ex. 27413"} required={true} min={5} max={5}></FormNumber>
+                                                                <TooltipButton text="Zip code of where you are going."/>
+                                                            </InputGroup>
                                                         </Modal.Body>
                                                         <Modal.Footer>
                                                         <Button type="submit" variant="primary" onClick={() => {getZipCodes(); setZipCodeError(false)}}>
@@ -782,23 +784,23 @@ const Calculator = () => {
                                         <Form.Label>Gas Price per Mile</Form.Label>
                                         <InputGroup>    
                                             <InputGroup.Text>$</InputGroup.Text>
-                                            <FormNumber id='gasPricePerMile' maxValue={9.99} value={gasPricePerMile == "" ? gasPricePerMile : gasPricePerMile.toFixed(2)} placeholder="Ex. 0.14" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerMile(e.target.value)} />
-                                            <Button variant='light' disabled={!totalMileageEnabled} onClick={() => {setGasModalOpen(true)}}>Use Average</Button>
-                                            <TooltipButton text='Price of gas per mile. Calculated using "Gas $/Gallon" and "Vehicle MPG". Click "Calculate Average" to use average values.'/>
+                                            <FormNumber id='gasPricePerMile' maxValue={9.99} value={gasPricePerMile} placeholder="Ex. 0.14" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerMile(e.target.value)} />
+                                            <Button variant='light' onClick={() => {setGasModalOpen(true)}}>Use Average</Button>
+                                            <TooltipButton text='Price of gas per mile. Calculated using <i>Gas $/Gallon</i> and <i>Vehicle MPG</i>. Click <strong>Calculate Average</strong> to use average values.'/>
                                             <Modal show={gasModalOpen} onHide={() => setGasModalOpen(false)} centered={true}>
                                                     <Form onSubmit={e => e.preventDefault()}>
                                                         <Modal.Header closeButton>
                                                             <Modal.Title>Use Average Gas $ Per Mile</Modal.Title>
                                                         </Modal.Header>
                                                         <Modal.Body>
-                                                        <p>Average gas price obtained from <a href="https://gasprices.aaa.com/state-gas-price-averages/" target="_blank">AAA daily average.</a></p>
-                                                        <InputGroup>
+                                                        <p>Select state to use for average gas price. Average gas price obtained from <a href="https://gasprices.aaa.com/state-gas-price-averages/" target="_blank">AAA daily average</a>. Select vehicle type to use average MPG.</p>
+                                                        <InputGroup className="mb-2">
                                                             <InputGroup.Text>Select State</InputGroup.Text>
                                                             <Form.Select id="selectState" value={currentState} onChange={(e) => {setCurrentState(e.target.value)}}>
                                                                 <option key={"average_gas"} value={"average_gas"}>Average</option>
                                                                 {gasPrices ? Object.keys(gasPrices).map((element) => {if (element.length == 2) return <option key={element} value={element}>{element}</option>}) : ""}
                                                             </Form.Select>
-                                                            <TooltipButton text='Select State to use average values. Select "Average" for average gas price across the United States.'/>
+                                                            <TooltipButton text='Select State to use average values. Select <i>Average</i> for average gas price across the United States.'/>
                                                         </InputGroup>
                                                         <InputGroup>
                                                             <InputGroup.Text>Select Vehicle Type</InputGroup.Text>
@@ -813,7 +815,7 @@ const Calculator = () => {
                                                                         } 
                                                                     }) : ""}
                                                                 </Form.Select>
-                                                            <TooltipButton text='Select your type of vehicle. Will determine average MPG value. Choose "Average" for average MPG value.'/>
+                                                            <TooltipButton text='Select your type of vehicle. Will determine average MPG value. Choose <i>Average</i> for average MPG value.'/>
                                                         </InputGroup>
                                                         </Modal.Body>
                                                         <Modal.Footer>
@@ -828,14 +830,14 @@ const Calculator = () => {
                                                 <InputGroup>    
                                                     <InputGroup.Text>Gas $/Gallon</InputGroup.Text>
                                                     <FormNumber id="gasPricePerGallon" maxValue={9.99} value={gasPricePerGallon} placeholder="Ex. 2.80" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerGallon(e.target.value)} />
-                                                    <TooltipButton text='Amount of money in dollars per gallon of gas. Divided by "Vehicle MPG" to calculate "Gas Price per Mile". Average value calculated based on state.'/>
+                                                    <TooltipButton text='Amount of money in dollars per gallon of gas. Divided by <i>Vehicle MPG</i> to calculate <i>Gas Price per Mile</i>.'/>
                                                 </InputGroup>
                                             </Row>
                                             <Row >
                                                 <InputGroup>    
                                                     <InputGroup.Text>Vehicle MPG</InputGroup.Text>
                                                     <FormNumber id="vehicleMPG" max={99.9} value={vehicleMPG} placeholder="Ex. 20" integer={false} disabled={!totalMileageEnabled} onChange={e => setVehicleMPG(e.target.value)} />
-                                                    <TooltipButton text='Miles-Per-Gallon of your vehicle. Divisor of "Gas $/Gallon" to calculate "Gas Price per Mile". Average value is 25.'/>
+                                                    <TooltipButton text='Miles-Per-Gallon of your vehicle. Divisor of <i>Gas $/Gallon</i> to calculate <i>Gas Price per Mile</i>.'/>
                                                 </InputGroup>
                                             </Row>
                                         </Col>
@@ -875,7 +877,7 @@ const Calculator = () => {
                                             <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setTaxEnabled(!taxEnabled)}} checked={taxEnabled}></Form.Check>
                                             <InputGroup.Text>%</InputGroup.Text>
                                             <FormNumber id="tax" value={tax} maxValue={100} placeholder="Ex. 17.5" integer={false} disabled={!taxEnabled} onChange={e => setTax(e.target.value)} />
-                                        <TooltipButton text='Percentage of income tax. Taken from initial "Pay per gig" before any other expenses.'/>
+                                        <TooltipButton text='Percentage of income tax. Taken from initial <i>Pay per gig</i> before any other expenses.'/>
                                         </InputGroup>
                                     </Col>
                                     <Col>

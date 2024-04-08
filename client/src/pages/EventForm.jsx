@@ -6,11 +6,12 @@ import axios from "axios";
 import { Container, Form, Col, Row, Button, InputGroup } from "react-bootstrap";
 import moment from "moment";
 import { useCookies } from "react-cookie";
-import { ClipLoader } from "react-spinners";
-import { maxDescriptionLength, maxEventNameLength, parseFloatZero, statesList, getBackendURL} from "../Utils";
+import { ClipLoader, BarLoader } from "react-spinners";
+import { maxDescriptionLength, maxEventNameLength, parseFloatZero, statesList, getBackendURL, toastSuccess, toastError, toastInfo} from "../Utils";
 import FormNumber from "../components/FormNumber";
 import Select from 'react-select';
 import { toast } from "react-toastify";
+import TooltipButton from "../components/TooltipButton";
 
 const EventForm = () => {
     const [event, setEvent] = useState({
@@ -42,82 +43,112 @@ const EventForm = () => {
     const [endDate, setEndDate] = useState(new moment().format("YYYY-MM-DD"));
     const [loading, setLoading] = useState(true);
     const [userLoggedIn, setUserLoggedIn] = useState(false);
+    const [unauthorizedAccess, setUnauthorizedAccess] = useState(false);
     const [descriptionLength, setDescriptionLength] = useState(maxDescriptionLength);
+    const [nameLength, setNameLength] = useState(maxEventNameLength);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const navigate = useNavigate()
     const { id } = useParams();
 
     useEffect(() => {
-        const fetchData = async () => {
-            //fetch instruments needed for tags
-            axios.get(`${getBackendURL()}/instrument/`).then(async (res) => {
-                const data = res.data;
+        //fetch instruments needed for tags
+        axios.get(`${getBackendURL()}/instrument/`).then(async (res) => {
+            //Create instruments
+            setInstruments(configureInstrumentList(res.data));
+        }).catch(error => {
+            console.log(error);
+        });
 
-                //Create instruments
-                setInstruments(configureInstrumentList(data));
+        //get user
+        if (cookies.jwt) {
+            axios.get(`${getBackendURL()}/account`, { withCredentials: true }).then(res => {
+                //Set user
+                const userData = res.data?.user;
+                if (userData) {
+                    setUserId(userData);
+                    setUserLoggedIn(true);
+                }
 
-                if (id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
-                    axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
-                        const data = res.data;
+                if (id && userData?.user_id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
+                    axios.get(`${getBackendURL()}/event/user_id/event_id/${userData.user_id}/${id}?owner=true`).then((res) => {
+                        const data = res.data[0];
                         console.log(data);
-                        setEvent(data);
-                        setAddress({
-                            street: data.Address.street,
-                            city: data.Address.city,
-                            zip: data.Address.zip,
-                            state: data.Address.state
-                        })
-                        setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
-
-                        //autofill data selectedInstruments from id
-                        setSelectedInstruments(configureInstrumentList(data.Instruments));
-
-                        //autofill data start and end times from id
-                        const startTime = moment(data.start_time).local().format("HH:mm");
-                        const endTime = moment(data.end_time).local().format("HH:mm");
-
-                        setStartTime(startTime);
-                        setEndTime(endTime);
-
-                        //autofill data of start and end date
-                        const startDate = moment(data.start_time).format("YYYY-MM-DD");
-                        const endDate = moment(data.end_time).format("YYYY-MM-DD");
-
-                        setStartDate(startDate);
-                        setEndDate(endDate);
-                        });
+                        if (data && data.Users[0].user_id == userData.user_id)
+                        {
+                            setEvent(data);
+                            setAddress({
+                                street: data.Address.street,
+                                city: data.Address.city,
+                                zip: data.Address.zip,
+                                state: data.Address.state
+                            })
+                            setOwnerId(data.Users.length > 0 ? data.Users[0].user_id : null);
+        
+                            //autofill data selectedInstruments from id
+                            setSelectedInstruments(configureInstrumentList(data.Instruments));
+        
+                            //autofill data start and end times from id
+                            const startTime = moment(data.start_time).local().format("HH:mm");
+                            const endTime = moment(data.end_time).local().format("HH:mm");
+        
+                            setStartTime(startTime);
+                            setEndTime(endTime);
+        
+                            //autofill data of start and end date
+                            const startDate = moment(data.start_time).format("YYYY-MM-DD");
+                            const endDate = moment(data.end_time).format("YYYY-MM-DD");
+        
+                            setStartDate(startDate);
+                            setEndDate(endDate);
+                        }
+                        else
+                        {
+                            navigate("/form");
+                            toast("You do not have access to this page.", toastError);
+                        }
+                    });
                 } else {
                     setOwnerId(null);
                 }
-            });
 
-            //get user
-            if (cookies.jwt) {
-                axios.get(`${getBackendURL()}/account`, { withCredentials: true }).then(res => {
-                    if (res.data?.user) {
-                        const userData = res.data.user;
-                        setUserId(userData);
-                        setUserLoggedIn(true);
-                    }
-                })
-                setLoading(false);
-            }
-        };
-        fetchData();
+            })
+            setLoading(false);
+        }
+        else
+        {
+            setUserLoggedIn(false);
+        }
+        
     }, [cookies.jwt]);
 
     //Update total event hours
     useEffect(() => {
         const eventHours = moment(`${endDate} ${endTime}`).diff(moment(`${startDate} ${startTime}`), "hours");
         const rehearsalHours = parseFloatZero(event.rehearse_hours);
-        setTotalEventHours(eventHours+rehearsalHours);
+        setTotalEventHours(eventHours+rehearsalHours > 0 ? eventHours+rehearsalHours : 0);
     }, [startDate, startTime, endDate, endTime, event.rehearse_hours])
 
     //Update description length
-    /*useEffect(() => {
+    useEffect(() => {
         const descriptionBox = document.getElementById("eventDescription");
-        setDescriptionLength(maxDescriptionLength-descriptionBox.value.length);
-    }, [event.description]); */
+        if (descriptionBox)
+        {
+            setDescriptionLength(maxDescriptionLength-descriptionBox.value.length);
+        }
+        
+    }, [event.description]);
+
+    //Update name length
+    useEffect(() => {
+        const nameBox = document.getElementById("eventName");
+        if (nameBox)
+        {
+            setNameLength(maxEventNameLength-nameBox.value.length);
+        }
+        
+    }, [event.event_name]);
     
     //Handle most changes
     const handleChange = (e) => {
@@ -126,11 +157,46 @@ const EventForm = () => {
     }
 
     //Hand date change
-    const handleDateChange = (name, value) => {
-        if (name === 'start_date') {
-            setStartDate(value);
-        } else if (name === 'end_date') {
-            setEndDate(value);
+    const handleDateTimeChange = (name, e) => {
+        //Variables
+        const value = e.target.value;
+        const currentStartDate = name === "start_date" ? value : startDate;
+        const currentStartTime = name === "start_time" ? value : startTime;
+        const currentEndTime = name === "end_time" ? value : endTime;
+        const currentEndDate = name === "end_date" ? value : endDate;
+        const startDateTime = moment(`${currentStartDate} ${currentStartTime}`);
+        const endDateTime = moment(`${currentEndDate} ${currentEndTime}`);
+        
+        //Update
+        switch (name)
+        {
+            case "start_date": setStartDate(value); break;
+            case "start_time": setStartTime(value); break;
+            case "end_date": setEndDate(value); break;
+            case "end_time": setEndTime(value); break;
+        }
+
+        //Set end date if later than start date (will override above setting)
+        if ((name == "start_date" || name == "start_time") && endDateTime.isBefore(startDateTime))
+        {
+            endDateTime.set({year: startDateTime.get('year'), month: startDateTime.get('month'), date: startDateTime.get('date'), minute: startDateTime.get('minute')});
+            if (endDateTime.isBefore(startDateTime, "hour"))
+            {
+                endDateTime.set({hour: startDateTime.get('hour')});
+                endDateTime.add(1, "hour");
+            } 
+            setEndDate(endDateTime.format("YYYY-MM-DD"));
+            setEndTime(endDateTime.format("HH:mm"));
+            if (name === "end_date")
+            {
+                e.target.setCustomValidity("End date must be after start date.");
+                e.target.reportValidity();
+            } 
+            if (name === "end_time")
+            {
+                e.target.setCustomValidity("End time must be after start time.");
+                e.target.reportValidity();
+            } 
         }
     }
 
@@ -164,77 +230,101 @@ const EventForm = () => {
 
     const handleEvent = async e => {
         e.preventDefault()
-        try {
-            //Check validity (will return false if not valid, HTML will take care of the rest).
-            const inputs = document.getElementById("eventForm").elements;
-            for (let i = 0; i < inputs.length; i++) {
-                if (!inputs[i].disabled && !inputs[i].checkValidity())
-                {
-                    inputs[i].reportValidity();
-                    console.log("NOT VALID");
-                    return false
-                } 
+        if (!isSubmitting)
+        {
+            setIsSubmitting(true);
+            try {
+                //Check validity (will return false if not valid, HTML will take care of the rest).
+                const inputs = document.getElementById("eventForm").elements;
+                for (let i = 0; i < inputs.length; i++) {
+                    if (!inputs[i].disabled && !inputs[i].checkValidity())
+                    {
+                        inputs[i].reportValidity();
+                        console.log("NOT VALID");
+                        setIsSubmitting(false);
+                        return false
+                    } 
+                }
+
+                const isListed = 1
+                const { start: startDateTime, end: endDateTime } = formatDateTime(startDate, startTime, endDate, endTime);
+
+                //Prepare instrument data
+                const instrumentsList = [];
+                selectedInstruments.forEach(instrument => {
+                    instrumentsList.push(instrument.value);
+                });
+
+                //Prepare optional values
+                event.rehearse_hours = parseFloatZero(event.rehearse_hours);
+                event.mileage_pay = parseFloatZero(event.mileage_pay);
+
+                //prepare data to be sent to database with event details
+                const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, is_listed: isListed };
+
+                //if an id is present, that means the event already exists and we need to put
+                if (id) {
+                    const response = await axios.put(`${getBackendURL()}/event/${id}`, eventData);
+                    setIsSubmitting(false);
+                    navigate(`../event/${id}`)
+                    toast("Event Updated", toastSuccess);
+                } else {
+                    //event does not exist, so make a post
+                    setIsSubmitting(false);
+                    const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, is_listed: isListed };
+                    const response = await axios.post(`${getBackendURL()}/event/`, eventData)
+                    const newEventId = response.data.newEvent.event_id;
+                    navigate(`../event/${newEventId}`);
+                    toast("Event Created", toastSuccess);
+                }
+            } catch (error) {
+                console.log(error);
+                setIsSubmitting(false);
             }
-
-            const isListed = 1
-            const { start: startDateTime, end: endDateTime } = formatDateTime(startDate, startTime, endDate, endTime);
-
-            //Prepare instrument data
-            const instrumentsList = [];
-            selectedInstruments.forEach(instrument => {
-                instrumentsList.push(instrument.value);
-            });
-
-            //prepare data to be sent to database with event details
-            const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, is_listed: isListed };
-
-            //if an id is present, that means the event already exists and we need to put
-            if (id) {
-                const response = await axios.put(`${getBackendURL()}/event/${id}`, eventData);
-                navigate(`../event/${id}`)
-                toast("Event Updated", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-            } else {
-                //event does not exist, so make a post
-                const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, is_listed: isListed };
-                const response = await axios.post(`${getBackendURL()}/event/`, eventData)
-                const newEventId = response.data.newEvent.event_id;
-                navigate(`../event/${newEventId}`);
-                toast("Event Created", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-            }
-        } catch (error) {
-            console.log(error);
         }
     }
 
     const handleUnlistEvent = async e => {
         e.preventDefault()
-        try {
-            const listingUpdate = { is_listed: 0 }
-            const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
-            navigate(`../event/${id}`)
-            toast("Event Unlisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-        } catch (err) {
-            console.log(err)
-        }
+        if (!isDeleting)
+        {
+            setIsDeleting(true);
+            try {
+                const listingUpdate = { is_listed: 0 }
+                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
+                setIsDeleting(false);
+                navigate(`../event/${id}`)
+                toast("Event Unlisted", toastSuccess);
+            } catch (err) {
+                console.log(err)
+                setIsDeleting(false);
+            }
+        }   
     }
 
     const handleRelistEvent = async e => {
         e.preventDefault()
-        try {
-            const listingUpdate = { is_listed: 1 }
-            const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
-            navigate(`../event/${id}`)
-            toast("Event Relisted", {position: "top-center", type: "success", theme: "dark", autoClose: 1500});
-        } catch (err) {
-            console.log(err)
+        if (!isDeleting)
+        {
+            try {
+                const listingUpdate = { is_listed: 1 }
+                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
+                setIsDeleting(false);
+                navigate(`../event/${id}`)
+                toast("Event Relisted", toastSuccess);
+            } catch (err) {
+                console.log(err)
+                setIsDeleting(false);
+            }
         }
+        
     }
 
     const isEventOwner = () => {
-        return ownerId && userId && ownerId === userId.user_id
+        return ownerId && userId && ownerId === userId.user_id;
     }
 
-    if (ownerId === null && userId !== null || isEventOwner()) {
+    if ((ownerId === null && userId !== null) || isEventOwner()) {
         return (
             <div>
                 <div className='form'>
@@ -249,13 +339,21 @@ const EventForm = () => {
                                 <Col lg={8}>
                                     <Row className="mb-3">
                                         <Col>
-                                            <Form.Label>Event name<span style={{color: "red"}}>*</span></Form.Label>
-                                            <Form.Control maxLength={maxEventNameLength} type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name" required={true}></Form.Control>
+                                            <Form.Label style={{width: '100%'}}>
+                                                <Row>
+                                                    <Col lg={10}>Event name<span style={{color: "red"}}>*</span></Col>
+                                                    <Col className="text-end">{nameLength}/{maxEventNameLength}</Col>
+                                                </Row>
+                                            </Form.Label>
+                                            <InputGroup>
+                                                <Form.Control id="eventName" maxLength={maxEventNameLength} type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name" required={true}></Form.Control>
+                                                <TooltipButton text="Name of event. 50 character limit."/>
+                                            </InputGroup>
                                         </Col>
                                     </Row>
                                     <Row className="mb-3">
                                         <Form.Label>Instruments</Form.Label>
-                                        <Select options={instruments} isMulti required={true} onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} required={false}></Select>
+                                        <Select options={instruments} isMulti required={true} onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} ></Select>
                                     </Row>
                                     <Row className="mb-3">
                                         <Col>
@@ -264,9 +362,10 @@ const EventForm = () => {
                                                     <Col lg={10}>Description</Col>
                                                     <Col className="text-end">{descriptionLength}/{maxDescriptionLength}</Col>
                                                 </Row>
-                                                
                                             </Form.Label>
-                                            <Form.Control as="textarea" id="eventDescription" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
+                                            <InputGroup>
+                                                <Form.Control as="textarea" id="eventDescription" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
+                                            </InputGroup>
                                         </Col>
                                     </Row>
                                 </Col>
@@ -274,29 +373,36 @@ const EventForm = () => {
                                     <Row className="mb-3">
                                         <Form.Label>Start Time<span style={{color: "red"}}>*</span></Form.Label>
                                         <Col>
-                                            <Form.Control type="date" value={moment(startDate).format("YYYY-MM-DD")} onChange={(e) => handleDateChange('start_date', e.target.value)} required={true}></Form.Control>
+                                            <Form.Control type="date" value={moment(startDate).format("YYYY-MM-DD")} onChange={(e) => handleDateTimeChange('start_date', e)} required={true}></Form.Control>
                                         </Col>
                                         <Col>
-                                            <Form.Control type="time" defaultValue={startTime} onChange={(e) => setStartTime(e.target.value)} required={true}></Form.Control>
+                                            <Form.Control type="time" value={startTime} onChange={(e) => handleDateTimeChange("start_time", e)} required={true}></Form.Control>
                                         </Col>
                                     </Row>
                                     <Row className="mb-3 align-items-center">
                                         <Form.Label>End Time<span style={{color: "red"}}>*</span></Form.Label>
                                         <Col>
-                                            <Form.Control type="date" value={moment(endDate).format("YYYY-MM-DD")} onChange={(e) => handleDateChange('end_date', e.target.value)} required={true}></Form.Control>
+                                            <Form.Control type="date" min={startDate} value={moment(endDate).format("YYYY-MM-DD")} onChange={(e) => handleDateTimeChange('end_date', e)} required={true}></Form.Control>
                                         </Col>
                                         <Col>
-                                            <Form.Control type="time" min={startTime} defaultValue={endTime} onChange={(e) => setEndTime(e.target.value)} required={true}></Form.Control>
+                                            <Form.Control type="time" min={startTime} value={endTime} onChange={(e) => handleDateTimeChange("end_time", e)} required={true}></Form.Control>
                                         </Col>
                                     </Row>
                                     <Row>
                                         <Col>
                                             <Form.Label>Rehearsal Hours</Form.Label>
-                                            <FormNumber maxValue={100} integer={false} placeholder='Ex. 3' value={event.rehearse_hours} onChange={(e) => {handleChange(e)}} name="rehearse_hours" />
+                                            <InputGroup>
+                                                <FormNumber maxValue={100} integer={false} placeholder='Ex. 3' value={event.rehearse_hours} onChange={(e) => {handleChange(e)}} name="rehearse_hours" />
+                                                <TooltipButton text="How many hours of rehearsal expected from musicians (optional)." />
+                                            </InputGroup>
+                                            
                                         </Col>
                                         <Col>
                                             <Form.Label>Total Event Hours</Form.Label>
-                                            <Form.Control type="number" placeholder='0' value={totalEventHours} name="event_hours" disabled={true}></Form.Control>
+                                            <InputGroup>
+                                                <Form.Control type="number" placeholder='0' value={totalEventHours} name="event_hours" disabled={true}></Form.Control>
+                                                <TooltipButton text="Total number of hours expected from musician. Calculated by start/end time and rehearsal hours." />
+                                            </InputGroup>
                                         </Col>
                                     </Row>
                                 </Col>
@@ -306,7 +412,8 @@ const EventForm = () => {
                                 <Row className="mb-3">
                                     {/* Address Fields */}
                                     <Col lg={8}>
-                                        <h3>Location</h3>
+                                        <h3>Event Location</h3>
+                                        <p></p>
                                         <Row className="my-3">
                                             <Row className="mb-3">
                                                 <Col lg={9}>
@@ -335,12 +442,14 @@ const EventForm = () => {
                                     </Col>
                                     <Col>
                                         <h3>Event Finance</h3>
+                                        <p></p>
                                         <Row className="my-3">
                                             <Form.Label>Pay<span style={{color: "red"}}>*</span></Form.Label>
                                             <Col>
                                                 <InputGroup>
                                                     <InputGroup.Text>$</InputGroup.Text>
                                                     <FormNumber maxValue={9999.99} value={event.pay} placeholder="Ex. $150.00" required={true} integer={false} onChange={handleChange} name="pay"/>
+                                                    <TooltipButton text="How much musician will be paid for this event." />
                                                 </InputGroup>
                                             </Col>
                                         </Row>
@@ -350,6 +459,7 @@ const EventForm = () => {
                                                 <InputGroup>
                                                     <InputGroup.Text>$</InputGroup.Text>
                                                     <FormNumber maxValue={1.00} placeholder='Ex. $0.17' value={event.mileage_pay} integer={false} onChange={handleChange} name="mileage_pay" />
+                                                    <TooltipButton text="How much mileage pay is provided, in $/mile (optional)."/>
                                                 </InputGroup>
                                             </Col>
                                         </Row>
@@ -362,18 +472,18 @@ const EventForm = () => {
                             <div style={{ marginBottom: "2em", marginTop: "2em" , textAlign: "center"}}>
                                 {id ? (
                                     <div className="update-unlist">
-                                        <Button type="submit" className="formButton" variant="success" onClick={handleEvent} style={{ marginRight: '10px'}}>Update Event</Button>
+                                        <Button type="submit" className="formButton" variant="success" onClick={handleEvent} style={{ marginRight: '10px'}}>{isSubmitting ? <BarLoader color="#FFFFFF" height={4} width={50} /> : "Update Event"}</Button>
                                         {event.is_listed ? (
-                                            <Button type="submit" className="formButton" variant="danger" onClick={handleUnlistEvent} style={{ marginLeft: '10px'}}>Unlist Event</Button>
+                                            <Button type="submit" className="formButton" variant="danger" onClick={handleUnlistEvent} style={{ marginLeft: '10px'}}>{isDeleting ? <BarLoader color="#FFFFFF" height={4} width={50} /> : "Unlist Event"}</Button>
                                         ) : (
-                                            <Button type="submit" classname="formButton" variant="primary" onClick={handleRelistEvent} style={{marginLeft: '10px'}}>Relist Event</Button>
+                                            <Button type="submit" className="formButton" variant="primary" onClick={handleRelistEvent} style={{marginLeft: '10px'}}>{isDeleting ? <BarLoader color="#FFFFFF" height={4} width={50} /> : "Relist Event"}</Button>
                                         )}
                                         
                                     </div>
                                 ) : (
                                     <Button>
                                         <div className="create-event">
-                                            <Button type="submit" className="formButton" onClick={handleEvent}>List Event</Button>
+                                            <Button type="submit" className="formButton" onClick={handleEvent}>{isSubmitting ? <BarLoader color="#FFFFFF" height={4} width={50} /> : "List Event"}</Button>
                                         </div>
                                     </Button>
                                 )}
@@ -400,7 +510,7 @@ const EventForm = () => {
                     </div>
                 </div>
             )
-        } else if (userId && !userLoggedIn) {
+        } else if (!userLoggedIn) {
             return (
                 <div>
                     <div className="id-mismatch">

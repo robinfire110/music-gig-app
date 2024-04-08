@@ -1,4 +1,5 @@
-const { Axios } = require("axios");
+const axios = require('axios');
+const { toast } = require("react-toastify");
 
 function getBackendURL()
 {
@@ -11,6 +12,14 @@ const maxDescriptionLength = 750; //Max length for event descriptions
 const maxBioLength = 500; //Max length for user bios
 const maxEventNameLength = 50;
 const statesList = [ 'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY' ];
+
+//Default toast settings
+const toastTheme = 'dark';
+const toastPosition = 'top-center';
+const toastTimeout = 1500;
+const toastSuccess = { theme: toastTheme, position: toastPosition, type: "success", autoClose: toastTimeout};
+const toastError = { theme: toastTheme, position: toastPosition, type: "error", autoClose: toastTimeout};
+const toastInfo = { theme: toastTheme, position: toastPosition, type: "info", autoClose: toastTimeout};
 
 //Format number to currency
 function formatCurrency(value) 
@@ -59,4 +68,31 @@ function parseStringUndefined(value)
     else return value;
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, autoSizeColumn};
+//Get event owner
+//Data can either be straight event data or event.Users
+function getEventOwner(data)
+{
+    if (data)
+    {
+        const userData = data?.Users ? data.Users : data;
+        for (let i = 0; i < userData.length; i++)
+        {
+            if (userData[i].UserStatus.status === "owner") return userData[i];
+        }
+    }   
+    return null;
+}
+
+//Send email
+async function sendEmail(to, subject, text=null, html=null)
+{
+    const data = {};
+    data['to'] = to;
+    data['subject'] = subject;
+    if (text) data['text'] = text;
+    if (html) data['html'] = html;
+    console.log(`${getBackendURL()}/api/email`);
+    await axios.post(`${getBackendURL()}/api/email`, data);
+}
+
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, getEventOwner, autoSizeColumn, sendEmail, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, toastSuccess, toastError, toastInfo};

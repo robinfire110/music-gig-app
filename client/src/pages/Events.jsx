@@ -24,35 +24,28 @@ const Events = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchEvents = async () => {
-            try {
-                //fetch all events from server
-                await axios.get(`${getBackendURL()}/event`).then((res) => {
-                    const data = res.data;
-                    //Filter out all events from data whose is_listed is false
-                    const filteredData = data.filter(event => event.is_listed === true || event.is_listed === 1)
-                    setEvents(filteredData)
-                    //setting this for managing what data is currently being filtered
-                    setFilteredEvents(filteredData)
-                    setLoading(false);
-                })
-            } catch (err) {
-                console.log(err)
-            }
-        }
-
-        const fetchInstruments = async () => {
-            //fetch instruments needed for tags
-            await axios.get(`${getBackendURL()}/instrument/`).then((res) => {
+        try {
+            //fetch all events from server
+            axios.get(`${getBackendURL()}/event`).then((res) => {
                 const data = res.data;
+                //Filter out all events from data whose is_listed is false
+                const filteredData = data.filter(event => event.is_listed === true || event.is_listed === 1)
+                setEvents(filteredData)
+                //setting this for managing what data is currently being filtered
+                setFilteredEvents(filteredData)
+                setLoading(false);
 
-                //Create instruments
-                setInstruments(configureInstrumentList(data));
+                //fetch instruments needed for tags
+                axios.get(`${getBackendURL()}/instrument/`).then((res) => {
+                    const data = res.data;
+
+                    //Create instruments
+                    setInstruments(configureInstrumentList(data));
+                });
             });
-            
+        } catch (err) {
+            console.log(err)
         }
-        fetchEvents()
-        fetchInstruments()
     }, [])
 
     const formatDate = (dateString) => {

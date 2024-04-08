@@ -43,7 +43,7 @@ module.exports = (sequelize,Sequelize) => {
     },
     is_listed: {
       type: Sequelize.BOOLEAN,
-      defaultValue: false
+      defaultValue: true
     }
   });
 
