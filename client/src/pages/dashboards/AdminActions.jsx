@@ -51,7 +51,7 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser,
     const handlePromoteUser = (user) => {
         setUserToPromote(user);
         setActionToConfirm(() => () => {
-            onPromoteUser(userToPromote);
+            onPromoteUser(user);
         });
         setConfirmationMessage(`Are you sure you want to promote ${user.email} to Admin?`);
         setShowConfirmationModal(true);

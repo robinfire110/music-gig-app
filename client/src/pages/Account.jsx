@@ -109,7 +109,7 @@ function Account() {
                     withCredentials: true
                 });
             if (response.data.success) {
-                toast.success("Password reset successfully");
+                toast.success("Password reset successfully", { theme: 'dark' });
             } else {
                 console.error('Failed to reset password:', response.data.message);
             }
@@ -125,8 +125,7 @@ function Account() {
                     withCredentials: true
                 });
             if (response.data.success) {
-                window.location.reload();
-
+                toast.success(`Successfully promoted ${user.email} to Admin`, { theme: 'dark' });
             } else {
                 console.error('Failed to promote user:', response.data.message);
             }
@@ -143,7 +142,7 @@ function Account() {
                     withCredentials: true
                 });
             if (response.data.success) {
-                window.location.reload();
+                toast.success(`Successfully demoted ${user.email} to user`, { theme: 'dark' });
 
             } else {
                 console.error('Failed to demote user:', response.data.message);
@@ -160,7 +159,7 @@ function Account() {
                     withCredentials: true
                 });
             if (response.data.success) {
-                window.location.reload();
+                toast.success(`Successfully deleted user ${user.email}`, { theme: 'dark' });
 
             } else {
                 console.error('Failed to delete user:', response.data.message);
