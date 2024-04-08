@@ -7,7 +7,6 @@ require('dotenv').config();
 //Get all prices
 router.get("/", async (req, res) => {
     try {
-        console.log("ran");
         const gas = await db.GasPrice.findAll();
         res.json(gas);
     } catch (error) {
