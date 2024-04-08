@@ -92,8 +92,7 @@ const IndividualEvent = () => {
     }
 
     const isEventOwner = () => {
-        console.log(owner, currentUser);
-        if (owner && currentUser) return owner.user_id === currentUser.user_id
+        if (owner && currentUser) return owner?.user_id === currentUser?.user_id
         return false;
     }
 
