@@ -1,4 +1,4 @@
-const { Axios } = require("axios");
+const axios = require('axios');
 const { toast } = require("react-toastify");
 
 function getBackendURL()
@@ -83,4 +83,16 @@ function getEventOwner(data)
     return null;
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, getEventOwner, autoSizeColumn, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, toastSuccess, toastError, toastInfo};
+//Send email
+async function sendEmail(to, subject, text=null, html=null)
+{
+    const data = {};
+    data['to'] = to;
+    data['subject'] = subject;
+    if (text) data['text'] = text;
+    if (html) data['html'] = html;
+    console.log(`${getBackendURL()}/api/email`);
+    await axios.post(`${getBackendURL()}/api/email`, data);
+}
+
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, getEventOwner, autoSizeColumn, sendEmail, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, toastSuccess, toastError, toastInfo};

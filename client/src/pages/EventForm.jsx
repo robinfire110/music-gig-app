@@ -362,7 +362,6 @@ const EventForm = () => {
                                                     <Col lg={10}>Description</Col>
                                                     <Col className="text-end">{descriptionLength}/{maxDescriptionLength}</Col>
                                                 </Row>
-                                                
                                             </Form.Label>
                                             <InputGroup>
                                                 <Form.Control as="textarea" id="eventDescription" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
