@@ -102,11 +102,17 @@ function Account() {
         setSelectedContent(content);
     };
 
-    const handlePasswordReset = async (user) => {
+    const handlePasswordReset = async (user, newPassword) => {
         try {
-            // Make backend request to reset password
-            // await axios.post(`${getBackendURL()}/reset-password`, { userId: user.id });
-            // console.log(`Password reset successful for ${user.email}`);
+            const response = await axios.post(`${getBackendURL()}/reset-user-password`,
+                { user, newPassword }, {
+                    withCredentials: true
+                });
+            if (response.data.success) {
+                toast.success("Password reset successfully");
+            } else {
+                console.error('Failed to reset password:', response.data.message);
+            }
         } catch (error) {
             console.error('Error resetting password:', error);
         }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {useNavigate} from "react-router-dom";
 import {Button, Tab, Tabs, Table} from "react-bootstrap";
 import ConfirmationModal from './ConfirmationModal';
+import PasswordResetModal from "./PasswordResetModal";
 
 function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser, onDeleteUser }) {
     const [searchQuery, setSearchQuery] = useState('');
@@ -10,6 +11,8 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser,
     const [usersPerPage] = useState(20);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [confirmationMessage, setConfirmationMessage] = useState('');
+    const [resetPassMessage, setResetPassMessage] = useState('');
+    const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
     const [actionToConfirm, setActionToConfirm] = useState(null);
     const [userToDelete, setUserToDelete] = useState(null);
     const [userToResetPass, setUserToResetPass] = useState(null);
@@ -41,9 +44,8 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser,
 
     const handlePasswordReset = (user) => {
         setUserToResetPass(user);
-        setConfirmationMessage(`Are you sure you want to reset the password for ${user.email}?`);
-        setActionToConfirm(() => () => onPasswordReset(user)); // Set the action to confirm
-        setShowConfirmationModal(true);
+        setResetPassMessage(`Are you sure you want to reset the password for ${user.email}?`)
+        setShowPasswordResetModal(true);
     };
 
     const handlePromoteUser = (user) => {
@@ -80,6 +82,11 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser,
             setActionToConfirm(null);
         }
         setShowConfirmationModal(false);
+    };
+
+    const handlePasswordResetConfirm = (newPassword) => {
+        onPasswordReset(userToResetPass, newPassword);
+        setShowPasswordResetModal(false);
     };
 
     const indexOfLastUser = currentPage * usersPerPage;
@@ -167,6 +174,12 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser,
                 handleClose={() => setShowConfirmationModal(false)}
                 message={confirmationMessage}
                 onConfirm={handleConfirmation}
+            />
+            <PasswordResetModal
+                show={showPasswordResetModal}
+                handleClose={() => setShowPasswordResetModal(false)}
+                message={resetPassMessage}
+                onConfirm={handlePasswordResetConfirm}
             />
         </>
     );
