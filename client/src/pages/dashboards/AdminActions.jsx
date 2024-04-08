@@ -4,11 +4,14 @@ import {Button, Tab, Tabs, Table} from "react-bootstrap";
 import ConfirmationModal from './ConfirmationModal';
 import PasswordResetModal from "./PasswordResetModal";
 
-function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser, onDeleteUser }) {
+function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onDemoteUser, onDeleteUser }) {
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchQueryPosts, setSearchQueryPosts] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
+    const [filteredPosts, setFilteredPosts] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [usersPerPage] = useState(20);
+    const [postsPerPage] = useState(20);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [confirmationMessage, setConfirmationMessage] = useState('');
     const [resetPassMessage, setResetPassMessage] = useState('');
@@ -34,8 +37,21 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser,
     }, [searchQuery, userData]);
 
 
+    useEffect(() => {
+        const filteredPosts = postData.filter(post =>
+            post.event_name.toLowerCase().includes(searchQueryPosts.toLowerCase())
+        );
+        setFilteredPosts(filteredPosts);
+    }, [searchQueryPosts, postData]);
+
+
+
     const handleSearchInputChange = (event) => {
         setSearchQuery(event.target.value);
+    };
+
+    const handleSearchPostsInputChange = (event) => {
+        setSearchQueryPosts(event.target.value);
     };
 
     const handleUserClick = (userId) => {
@@ -166,7 +182,46 @@ function AdminActions({  userData, onPasswordReset, onPromoteUser, onDemoteUser,
                     </div>
                 </Tab>
                 <Tab eventKey="posts" title="Posts">
-
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{ marginTop: '20px', marginBottom: '20px', width: '50%'}}>
+                            <input
+                                type="text"
+                                placeholder="Search posts..."
+                                value={searchQueryPosts}
+                                onChange={handleSearchPostsInputChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    paddingLeft: '30px',
+                                    backgroundImage: `url('/icons8-search-20.svg')`,
+                                    backgroundPosition: '5px center',
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundSize: '20px 20px',
+                                    borderRadius: '20px',
+                                    border: '1px solid #ced4da',
+                                }}
+                            />
+                        </div>
+                        <Table striped bordered hover>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                {/* Add more headers as needed */}
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {/* Iterate over the posts data and render each row */}
+                            {filteredPosts.map(post => (
+                                <tr key={post.event_id}>
+                                    <td>{post.event_id}</td>
+                                    <td>{post.event_name}</td>
+                                    {/* Render more data fields as needed */}
+                                </tr>
+                            ))}
+                            </tbody>
+                        </Table>
+                    </div>
                 </Tab>
             </Tabs>
             <ConfirmationModal

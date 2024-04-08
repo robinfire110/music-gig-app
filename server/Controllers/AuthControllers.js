@@ -1,6 +1,6 @@
 const db = require("../models/models");
 const jwt = require("jsonwebtoken");
-const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin, removeUser, resetUserPassword} = require("../Service/AdminService");
+const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin, removeUser, resetUserPassword, getAllEvents} = require("../Service/AdminService");
 
 
 const maxAge = 3*24*60*60;
@@ -185,7 +185,7 @@ module.exports.getUserFinancials = async (req,res, next) => {
 
 		res.status(200).json({ userFinancials: cleanedFinancials });
 	}catch (error){
-		console.error('Error fetching user events:', error);
+		console.error('Error fetching user financials:', error);
 		throw new Error('Failed to fetch user financails');
 	}
 }
@@ -201,6 +201,20 @@ module.exports.getUsers = async (req,res,next) => {
 	}catch (error){
 		console.error('Error fetching Users:', error);
 		throw new Error('Failed to fetch users');
+	}
+}
+
+module.exports.getEvents = async (req,res,next) => {
+	try{
+		if (req.user.isAdmin) {
+			const events = await getAllEvents();
+			res.status(200).json({events : events});
+		} else {
+			res.status(403).json({ error: "Access denied. You are not authorized to perform this action." });
+		}
+	}catch (error){
+		console.error('Error fetching Events:', error);
+		throw new Error('Failed to fetch events');
 	}
 }
 

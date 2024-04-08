@@ -62,6 +62,14 @@ async function getAllUsers() {
 	}
 }
 
+async function getAllEvents(){
+	try{
+		return await db.Event.findAll();
+	}catch (error){
+		console.error("Error fetching all Events", error)
+	}
+}
+
 async function resetUserPassword(userId, newPassword) {
 	try {
 		const hashedPassword = await bcrypt.hash(newPassword, 10); //higher salt means
@@ -87,5 +95,6 @@ module.exports = {
 	getAllUsers,
 	demoteUserFromAdmin,
 	removeUser,
-	resetUserPassword
+	resetUserPassword,
+	getAllEvents
 };

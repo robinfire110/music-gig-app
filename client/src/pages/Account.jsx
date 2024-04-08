@@ -22,6 +22,7 @@ function Account() {
     const [gigs, setGigs] = useState([]);
     const [users, setUsers] = useState([]);
     const [financials, setFinancials] = useState([]);
+    const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedContent, setSelectedContent] = useState('');
 
@@ -97,6 +98,23 @@ function Account() {
         };
         fetchUsers();
     }, [isAdmin]);
+
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                if(isAdmin){
+                    const { data } = await axios.get(`${getBackendURL()}/all-events`, { withCredentials: true });
+                   console.log(data.events)
+                    setPosts(data.events);
+                }
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
+        fetchPosts();
+    }, [isAdmin]);
+
 
     const handleLinkClick = (content) => {
         setSelectedContent(content);
@@ -180,6 +198,7 @@ function Account() {
             case 'adminActions':
                 return <
                     AdminActions userData={ users }
+                                 postData={ posts }
                                  onPasswordReset={handlePasswordReset}
                                  onPromoteUser={handlePromoteUser}
                                  onDemoteUser={handleDemoteUser}
