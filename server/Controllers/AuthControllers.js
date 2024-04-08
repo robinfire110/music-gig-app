@@ -263,11 +263,14 @@ module.exports.resetUserPassword = async (req, res, next) => {
 		if (!req.user.isAdmin) {
 			return res.status(403).json({ error: "Access denied. Only admins can reset passwords." });
 		}
-
-		const { userId, newPassword } = req.body;
+		console.log(req.body)
+		const userId = req.body.user.user_id;
+		const newPassword = req.body.newPassword;
+		console.log(userId)
+		console.log(newPassword)
 		const result = await resetUserPassword(userId, newPassword);
 
-		res.status(200).json(result);
+		res.status(200).json({ success: true, message: "Successfully reset user password" });
 	} catch (error) {
 		console.error("Error resetting user password:", error);
 		res.status(500).json({ error: "Internal server error" });
