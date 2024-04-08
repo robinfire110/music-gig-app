@@ -39,65 +39,69 @@ function Landing() {
                         //Get user data
                         axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`).then(async res => {
                             const userData = res.data;
-                            setUser(userData);
-
-                            //Set user events
-                            const userEventList = [];
-                            userData.Events.forEach(event => {
-                                if (event.UserStatus.status == "owner" && event.is_listed)
-                                {
-                                    userEventList.push(event);
-                                }
-                            });
-                            if (userEventList.length > 0) setUserEvents(userEventList);
-
-                            //Get list of instrument ids
-                            const instruments = userData.Instruments;
-                            let instrumentSearch = [];
-                            instruments.forEach(instrument => {
-                                instrumentSearch.push(instrument.instrument_id);
-                            })
-
-                            //Get event data
-                            if (instrumentSearch.length > 0)
+                            if (userData)
                             {
-                                axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${25}`).then(res => {
-                                    //Filter out our events
-                                    const instrumentEventSearch = res.data.filter((event) => {
-                                        return getEventOwner(event).user_id != userData.user_id;
-                                    });
-                                    
-                                    //Get list of locations
-                                    const zipList = [];
-                                    instrumentEventSearch.forEach(event => {
-                                        zipList.push(event.Address.zip);
-                                    });
+                                console.log(userData);
+                                setUser(userData);
 
-                                    //Sort by location
-                                    axios.get(`${getBackendURL()}/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
-                                        const distanceMatrixData = res.data.rows[0].elements;
-                                        //Add to data
-                                        for (let i = 0; i < instrumentEventSearch.length; i++)
-                                        {
-                                            if (distanceMatrixData[i].status == "OK" && distanceMatrixData[i].distance)
-                                            {
-                                                instrumentEventSearch[i]["distance"] = distanceMatrixData[i].distance.value;
-                                            }
-                                            else 
-                                            {
-                                                instrumentEventSearch[i]["distance"] = 9999;
-                                            }
-                                        }
-                                        
-                                        //Sort
-                                        instrumentEventSearch.sort((a, b) => a.distance - b.distance);
-                                        console.log("Got Relevant");
-                                        setRelevantEvents(instrumentEventSearch.slice(0, Math.min(relevantNum, instrumentEventSearch.length)));
-                                        setIsLoading(false);
-                                    })
+                                //Set user events
+                                const userEventList = [];
+                                userData.Events.forEach(event => {
+                                    if (event.UserStatus.status == "owner" && event.is_listed)
+                                    {
+                                        userEventList.push(event);
+                                    }
+                                });
+                                if (userEventList.length > 0) setUserEvents(userEventList);
+
+                                //Get list of instrument ids
+                                const instruments = userData.Instruments;
+                                let instrumentSearch = [];
+                                instruments.forEach(instrument => {
+                                    instrumentSearch.push(instrument.instrument_id);
                                 })
+
+                                //Get event data
+                                if (instrumentSearch.length > 0)
+                                {
+                                    axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${25}`).then(res => {
+                                        //Filter out our events
+                                        const instrumentEventSearch = res.data.filter((event) => {
+                                            return getEventOwner(event)?.user_id != userData?.user_id;
+                                        });
+                                        
+                                        //Get list of locations
+                                        const zipList = [];
+                                        instrumentEventSearch.forEach(event => {
+                                            zipList.push(event.Address.zip);
+                                        });
+
+                                        //Sort by location
+                                        axios.get(`${getBackendURL()}/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
+                                            const distanceMatrixData = res.data.rows[0].elements;
+                                            //Add to data
+                                            for (let i = 0; i < instrumentEventSearch.length; i++)
+                                            {
+                                                if (distanceMatrixData[i].status == "OK" && distanceMatrixData[i].distance)
+                                                {
+                                                    instrumentEventSearch[i]["distance"] = distanceMatrixData[i].distance.value;
+                                                }
+                                                else 
+                                                {
+                                                    instrumentEventSearch[i]["distance"] = 9999;
+                                                }
+                                            }
+                                            
+                                            //Sort
+                                            instrumentEventSearch.sort((a, b) => a.distance - b.distance);
+                                            console.log("Got Relevant");
+                                            setRelevantEvents(instrumentEventSearch.slice(0, Math.min(relevantNum, instrumentEventSearch.length)));
+                                            setIsLoading(false);
+                                        })
+                                    })
+                                }
+                                else setGetRecent(true);
                             }
-                            else setGetRecent(true);
                         })              
                     }
                     else setGetRecent(true);
