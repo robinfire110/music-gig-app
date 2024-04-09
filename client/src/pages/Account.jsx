@@ -187,6 +187,24 @@ function Account() {
         }
     };
 
+    const handleDeletePost = async (post) => {
+        try {
+            console.log(post)
+            const response = await axios.post(`${getBackendURL()}/remove-user-post`,
+                post , {
+                    withCredentials: true
+                });
+            if (response.data.success) {
+                toast.success(`Successfully deleted post ${post.event_name} by ${post.f_name}`, { theme: 'dark' });
+
+            } else {
+                console.error('Failed to delete post:', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+        }
+    };
+
     const renderContent = () => {
         switch(selectedContent) {
             case 'editProfile':
@@ -202,7 +220,8 @@ function Account() {
                                  onPasswordReset={handlePasswordReset}
                                  onPromoteUser={handlePromoteUser}
                                  onDemoteUser={handleDemoteUser}
-                                 onDeleteUser={handleDeleteUser}/>;
+                                 onDeleteUser={handleDeleteUser}
+                                 onDeletePost={handleDeletePost}/>;
             default:
                 return null;
         }

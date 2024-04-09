@@ -64,7 +64,7 @@ async function getAllUsers() {
 
 async function getAllEvents(){
 	try{
-		return await db.Event.findAll();
+		return await db.Event.findAll({include: [db.Instrument, db.Address, db.User]});
 	}catch (error){
 		console.error("Error fetching all Events", error)
 	}
@@ -74,7 +74,6 @@ async function resetUserPassword(userId, newPassword) {
 	try {
 		const hashedPassword = await bcrypt.hash(newPassword, 10); //higher salt means
 		// longer computational time taken to brute force
-
 		const user = await db.User.findByPk(userId);
 		if(user){
 			user.update({ password: hashedPassword });
@@ -88,6 +87,19 @@ async function resetUserPassword(userId, newPassword) {
 	}
 }
 
+async function deletePost(event_id){
+	try{
+		const event = await db.Event.findOne({where: {event_id: event_id}});
+		if (event) {
+			await event.destroy();
+		} else {
+			throw new Error("User not found");
+		}
+	}catch (error){
+
+	}
+}
+
 
 module.exports = {
 	createUserWithAdminPrivileges,
@@ -96,5 +108,6 @@ module.exports = {
 	demoteUserFromAdmin,
 	removeUser,
 	resetUserPassword,
-	getAllEvents
+	getAllEvents,
+	deletePost
 };

@@ -4,7 +4,7 @@ import {Button, Tab, Tabs, Table} from "react-bootstrap";
 import ConfirmationModal from './ConfirmationModal';
 import PasswordResetModal from "./PasswordResetModal";
 
-function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onDemoteUser, onDeleteUser }) {
+function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onDemoteUser, onDeleteUser, onDeletePost }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchQueryPosts, setSearchQueryPosts] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
@@ -18,6 +18,7 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
     const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
     const [actionToConfirm, setActionToConfirm] = useState(null);
     const [userToDelete, setUserToDelete] = useState(null);
+    const [postToDelete, setPostToDelete] = useState(null);
     const [userToResetPass, setUserToResetPass] = useState(null);
     const [userToDemote, setUserToDemote] = useState(null);
     const [userToPromote, setUserToPromote] = useState(null);
@@ -38,6 +39,7 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
 
 
     useEffect(() => {
+        console.log(postData)
         const filteredPosts = postData.filter(post =>
             post.event_name.toLowerCase().includes(searchQueryPosts.toLowerCase())
         );
@@ -88,6 +90,13 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
         setShowConfirmationModal(true);
     };
 
+    const handleDeletePost = (post) => {
+        setPostToDelete(post);
+        setActionToConfirm(() => () => onDeletePost(post));
+        setConfirmationMessage(`Are you sure you want to delete ${post.event_name} by ${post.f_name}?`);
+        setShowConfirmationModal(true);
+    }
+
     const handleGoBackToDashboard = () => {
         window.location.reload();
     };
@@ -109,6 +118,12 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
     const indexOfFirstUser = indexOfLastUser - usersPerPage;
     const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+    const indexOfLastPost = currentPage * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+    const paginatePosts = (pageNumber) => setCurrentPage(pageNumber);
+
     return (
         <>
             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -206,21 +221,34 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
                             <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Date Created</th>
                                 <th>Name</th>
-                                {/* Add more headers as needed */}
+                                <th>Created By</th>
+                                <th>Actions</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {/* Iterate over the posts data and render each row */}
-                            {filteredPosts.map(post => (
+                            {currentPosts.map(post => (
+
                                 <tr key={post.event_id}>
                                     <td>{post.event_id}</td>
+                                    <td>{new Date(post.date_posted).toLocaleDateString()}</td>
                                     <td>{post.event_name}</td>
-                                    {/* Render more data fields as needed */}
+                                    <td>{post.f_name}</td>
+                                    <td>
+                                        <Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeletePost(post); }}>Delete</Button>
+                                    </td>
                                 </tr>
                             ))}
                             </tbody>
                         </Table>
+                        <ul style={{ display: 'flex', justifyContent: 'center', listStyleType: 'none', padding: 0 }}>
+                            {[...Array(Math.ceil(filteredPosts.length / postsPerPage)).keys()].map(number => (
+                                <li key={number} style={{ cursor: 'pointer', margin: '0 5px' }} onClick={() => paginatePosts(number + 1)}>
+                                    {number + 1}
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 </Tab>
             </Tabs>

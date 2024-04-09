@@ -1,6 +1,6 @@
 const db = require("../models/models");
 const jwt = require("jsonwebtoken");
-const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin, removeUser, resetUserPassword, getAllEvents} = require("../Service/AdminService");
+const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin, removeUser, resetUserPassword, getAllEvents, deletePost} = require("../Service/AdminService");
 
 
 const maxAge = 3*24*60*60;
@@ -204,19 +204,36 @@ module.exports.getUsers = async (req,res,next) => {
 	}
 }
 
-module.exports.getEvents = async (req,res,next) => {
-	try{
+module.exports.getEvents = async (req, res, next) => {
+	try {
 		if (req.user.isAdmin) {
 			const events = await getAllEvents();
-			res.status(200).json({events : events});
+			const cleanedEvents = events.map(event => ({
+				event_id: event.dataValues.event_id,
+				event_name: event.dataValues.event_name,
+				date_posted: event.dataValues.date_posted,
+				start_time: event.dataValues.start_time,
+				end_time: event.dataValues.end_time,
+				pay: event.dataValues.pay,
+				description: event.dataValues.description,
+				event_hours: event.dataValues.event_hours,
+				rehearse_hours: event.dataValues.rehearse_hours,
+				mileage_pay: event.dataValues.mileage_pay,
+				is_listed: event.dataValues.is_listed,
+				Instruments: event.dataValues.Instruments,
+				Address: event.dataValues.Address,
+				f_name: event.dataValues.Users.length > 0 ? event.dataValues.Users[0].f_name : null
+			}));
+			res.status(200).json({ events: cleanedEvents });
 		} else {
 			res.status(403).json({ error: "Access denied. You are not authorized to perform this action." });
 		}
-	}catch (error){
+	} catch (error) {
 		console.error('Error fetching Events:', error);
 		throw new Error('Failed to fetch events');
 	}
 }
+
 
 module.exports.giveUserAdmin = async (req, res, next) => {
 	try {
@@ -277,11 +294,8 @@ module.exports.resetUserPassword = async (req, res, next) => {
 		if (!req.user.isAdmin) {
 			return res.status(403).json({ error: "Access denied. Only admins can reset passwords." });
 		}
-		console.log(req.body)
 		const userId = req.body.user.user_id;
 		const newPassword = req.body.newPassword;
-		console.log(userId)
-		console.log(newPassword)
 		const result = await resetUserPassword(userId, newPassword);
 
 		res.status(200).json({ success: true, message: "Successfully reset user password" });
@@ -290,6 +304,28 @@ module.exports.resetUserPassword = async (req, res, next) => {
 		res.status(500).json({ error: "Internal server error" });
 	}
 };
+
+module.exports.deleteUserPost = async  (req,res,next) => {
+	try {
+		console.log(req.body)
+		if (!req.user.isAdmin) {
+			return res.status(403).json({ error: "Access denied. Only admins can reset passwords." });
+		}
+		const eventId = req.body.event_id;
+		const result = await deletePost(eventId);
+
+		const eventExists = await db.Event.findOne({where: {event_id: eventId}});
+		if (!eventExists) {
+			res.status(200).json({ success: true, message: "User has been successfully removed from the database" });
+		} else {
+			res.status(500).json({ error: 'Failed to remove user from the database' });
+		}
+
+	}catch (error){
+		console.error("Error deleting a users post:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+}
 
 
 
