@@ -222,7 +222,8 @@ module.exports.getEvents = async (req, res, next) => {
 				is_listed: event.dataValues.is_listed,
 				Instruments: event.dataValues.Instruments,
 				Address: event.dataValues.Address,
-				f_name: event.dataValues.Users.length > 0 ? event.dataValues.Users[0].f_name : null
+				f_name: event.dataValues.Users.length > 0 ? event.dataValues.Users[0].f_name : null,
+				l_name: event.dataValues.Users.length > 0 ? event.dataValues.Users[0].l_name : null
 			}));
 			res.status(200).json({ events: cleanedEvents });
 		} else {
@@ -307,7 +308,6 @@ module.exports.resetUserPassword = async (req, res, next) => {
 
 module.exports.deleteUserPost = async  (req,res,next) => {
 	try {
-		console.log(req.body)
 		if (!req.user.isAdmin) {
 			return res.status(403).json({ error: "Access denied. Only admins can reset passwords." });
 		}

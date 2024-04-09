@@ -105,7 +105,6 @@ function Account() {
             try {
                 if(isAdmin){
                     const { data } = await axios.get(`${getBackendURL()}/all-events`, { withCredentials: true });
-                   console.log(data.events)
                     setPosts(data.events);
                 }
             } catch (error) {
@@ -189,7 +188,6 @@ function Account() {
 
     const handleDeletePost = async (post) => {
         try {
-            console.log(post)
             const response = await axios.post(`${getBackendURL()}/remove-user-post`,
                 post , {
                     withCredentials: true

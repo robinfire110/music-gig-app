@@ -39,7 +39,6 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
 
 
     useEffect(() => {
-        console.log(postData)
         const filteredPosts = postData.filter(post =>
             post.event_name.toLowerCase().includes(searchQueryPosts.toLowerCase())
         );
@@ -96,6 +95,10 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
         setConfirmationMessage(`Are you sure you want to delete ${post.event_name} by ${post.f_name}?`);
         setShowConfirmationModal(true);
     }
+
+    const handlePostClick = (eventId) => {
+        navigate(`../event/${eventId}`);
+    };
 
     const handleGoBackToDashboard = () => {
         window.location.reload();
@@ -229,12 +232,11 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
                             </thead>
                             <tbody>
                             {currentPosts.map(post => (
-
-                                <tr key={post.event_id}>
+                                <tr key={post.event_id} style={{ cursor: 'pointer' }} onClick={() => handlePostClick(post.event_id)}>
                                     <td>{post.event_id}</td>
                                     <td>{new Date(post.date_posted).toLocaleDateString()}</td>
                                     <td>{post.event_name}</td>
-                                    <td>{post.f_name}</td>
+                                    <td>{post.f_name} {post.l_name}</td>
                                     <td>
                                         <Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeletePost(post); }}>Delete</Button>
                                     </td>
