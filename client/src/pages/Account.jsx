@@ -203,6 +203,26 @@ function Account() {
         }
     };
 
+    const handleDeleteFinancial = async (financial) => {
+        // try {
+            console.log('delete financial record')
+            console.log(financial)
+        // }
+        //     const response = await axios.post(`${getBackendURL()}`,
+        //         financial , {
+        //             withCredentials: true
+        //         });
+        //     if (response.data.success) {
+        //         toast.success(`Successfully deleted financial record`, { theme: 'dark' });
+        //
+        //     } else {
+        //         console.error('Failed to delete financial record:', response.data.message);
+        //     }
+        // } catch (error) {
+        //     console.error('Error deleting financial record:', error);
+        // }
+    };
+
     const renderContent = () => {
         switch(selectedContent) {
             case 'dashboard':
@@ -213,7 +233,9 @@ function Account() {
             case 'gigs':
                 return <Gigs userData={userData} gigs={gigs} />;
             case 'financials':
-                return <Financials userData={userData} financials={financials} />;
+                return <Financials userData={userData}
+                                   financials={financials}
+                                   onDeleteFinancial={handleDeleteFinancial}/>;
             case 'adminActions':
                 return <
                     AdminActions userData={ users }

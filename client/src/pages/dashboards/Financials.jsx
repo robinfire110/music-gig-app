@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { Button, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { saveSpreadsheetAll } from '../../Utils';
+import ConfirmationModal from './ConfirmationModal';
 
 
-function Financials({ financials }) {
-	const navigate = useNavigate();
+function Financials({ financials, onDeleteFinancial }) {
 	const [selectedRows, setSelectedRows] = useState([]);
+	const [financialToDelete, setFinancialToDelete] = useState([]);
+	const [deleteMessage, setDeleteMessage] = useState([]);
+	const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+	const navigate = useNavigate();
 
 	const handleCreateNewCalc = () => {
 		navigate('/calculator');
@@ -36,10 +40,21 @@ function Financials({ financials }) {
 		});
 	};
 
-	const handleDeleteFinancial = (finId) =>
+	const handleDeleteFinancial = (financial) =>
 	{
-		console.log("remove this financial")
+		setFinancialToDelete(financial);
+		setDeleteMessage(`Are you sure you want to delete '${financial.fin_name}' record?`);
+		setShowConfirmationModal(true);
 	}
+
+	const handleConfirmDeleteFinancial = () => {
+		if (financialToDelete) {
+			onDeleteFinancial(financialToDelete);
+			setFinancialToDelete(null);
+			setSelectedRows(selectedRows.filter((rowIndex) => rowIndex !== financialToDelete.index));
+		}
+		setShowConfirmationModal(false);
+	};
 
 
 	if (!Array.isArray(financials) || financials.length === 0) {
@@ -76,13 +91,20 @@ function Financials({ financials }) {
 						<td>{financial.fin_name}</td>
 						<td>${financial.total_wage}</td>
 						<td>
-							<Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeleteFinancial(financial.fin_id); }}>Delete</Button>
+							<Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeleteFinancial(financial); }}>Delete</Button>
 						</td>
 					</tr>
 				))}
 				</tbody>
 			</Table>
+			<ConfirmationModal
+			show={showConfirmationModal}
+			handleClose={() => setShowConfirmationModal(false)}
+			message={deleteMessage}
+			onConfirm={handleConfirmDeleteFinancial}
+		/>
 		</div>
+	
 	);
 }
 

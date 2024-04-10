@@ -1,6 +1,7 @@
 const db = require("../models/models");
 const jwt = require("jsonwebtoken");
-const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin, removeUser, resetUserPassword, getAllEvents, deletePost} = require("../Service/AdminService");
+const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin, removeUser, resetUserPassword,
+	getAllEvents, deletePost} = require("../Service/AdminService");
 
 
 const maxAge = 3*24*60*60;
