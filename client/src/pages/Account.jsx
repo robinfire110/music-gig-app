@@ -232,12 +232,14 @@ function Account() {
     const dashboardTitle = isAdmin ? 'Admin Dashboard' : 'User Dashboard';
 
     return (
-        <Container fluid>
-            <Row>
-                <Col sm={2}>
+        <div className="wrapper">
+            <Container>
+                <div className="sidebar-vertical">
                     <Sidebar handleLinkClick={handleLinkClick} isAdmin={isAdmin} />
-                </Col>
-                <Col sm={10} style={{ padding: '20px', flexGrow: 1 }}>
+                </div>
+            </Container>
+            <Container>
+                <div className="content">
                     {selectedContent === '' && (
                         <div>
                             <h2 style={{ marginBottom: '20px', display: 'block' }}>{dashboardTitle}</h2>
@@ -260,9 +262,9 @@ function Account() {
                         </div>
                     )}
                     {selectedContent && renderContent()}
-                </Col>
-            </Row>
-        </Container>
+                </div>
+            </Container>
+        </div>
     );
 }
 
