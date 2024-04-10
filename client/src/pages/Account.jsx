@@ -205,6 +205,9 @@ function Account() {
 
     const renderContent = () => {
         switch(selectedContent) {
+            case 'dashboard':
+                window.location.reload();
+                return null;
             case 'editProfile':
                 return <EditProfile userData={userData} />;
             case 'gigs':

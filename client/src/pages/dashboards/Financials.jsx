@@ -8,10 +8,6 @@ function Financials({ financials }) {
 	const navigate = useNavigate();
 	const [selectedRows, setSelectedRows] = useState([]);
 
-	const handleGoBackToDashboard = () => {
-		window.location.reload();
-	};
-
 	const handleCreateNewCalc = () => {
 		navigate('/calculator');
 	};
@@ -53,11 +49,7 @@ function Financials({ financials }) {
 	return (
 		<div>
 			<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-				<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column' }}>
-					<Button variant="link" onClick={handleGoBackToDashboard} style={{ textDecoration: 'underline' }}>Go back to Dashboard</Button>
-					<h2>Financials</h2>
-				</div>
-
+				<h2>Financials</h2>
 				<div>
 					<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewCalc}>Calculate New Wage </Button>
 					<Button variant="success"  onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export All to Spread Sheet</Button>

@@ -100,10 +100,6 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
         navigate(`../event/${eventId}`);
     };
 
-    const handleGoBackToDashboard = () => {
-        window.location.reload();
-    };
-
     const handleConfirmation = () => {
         if (actionToConfirm) {
             actionToConfirm();
@@ -129,11 +125,6 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
 
     return (
         <>
-            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column' }}>
-                    <Button variant="link" onClick={handleGoBackToDashboard} style={{ textDecoration: 'underline' }}>Go back to Dashboard</Button>
-                </div>
-            </div>
             <Tabs defaultActiveKey="users" id="admin-actions-tabs">
                 <Tab eventKey="users" title="Users">
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

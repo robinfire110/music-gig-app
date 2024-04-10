@@ -11,6 +11,10 @@ function Sidebar({ handleLinkClick, isAdmin }) {
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto sidebar-vertical">
                         <Nav.Link
+                            onClick={() => handleLinkClick('dashboard')}
+                            href="#"
+                        >Dashboard</Nav.Link>
+                        <Nav.Link
                             onClick={() => handleLinkClick('gigs')}
                             href="#"
                             >Listings</Nav.Link>

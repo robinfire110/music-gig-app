@@ -50,7 +50,7 @@
 }
 .wrapper {
   display: grid;
-  grid-template-columns: 10% 90%;
+  grid-template-columns: 0% 100%;
   min-height: 200px;
 }
 .content {

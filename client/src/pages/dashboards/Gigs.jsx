@@ -11,9 +11,6 @@ function Gigs({ userData, gigs }) {
 	const handleCreateNewListing = () => {
 		navigate('/form');
 	};
-	const handleGoBackToDashboard = () => {
-		window.location.reload();
-	};
 
 	const isInPast = (dateString) => {
 		const eventDate = new Date(dateString);
@@ -46,11 +43,7 @@ function Gigs({ userData, gigs }) {
 	return (
 		<div>
 			<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-				<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column' }}>
-					<Button variant="link" onClick={handleGoBackToDashboard} style={{ textDecoration: 'underline' }}>Go back to Dashboard</Button>
-					<h2>Listings</h2>
-				</div>
-
+				<h2>Listings</h2>
 				<div>
 					<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewListing}>Create New Listing</Button>
 				</div>
