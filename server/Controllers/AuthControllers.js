@@ -1,3 +1,5 @@
+const { instrumentArrayToIds } = require("../helpers/model-helpers");
+const { userSchema } = require("../helpers/validators");
 const db = require("../models/models");
 const jwt = require("jsonwebtoken");
 
@@ -38,34 +40,37 @@ module.exports.register = async (req, res, next) => {
 	let newInstrumentArray;
 	let newInstrument;
 	try {
-		const {
-			email,
-			password,
-			f_name,
-			l_name,
-			zip,
-			bio = "", // Default vals provided for ones that aren't required
-			is_admin = false,
-			instruments = [],
-		} = req.body;
+		const data = req.body;
 
+		//Validate
+		data.instruments = await instrumentArrayToIds(data?.instruments);
+        const {error} = userSchema.validate(data)
+        if (error) 
+        {
+            console.log(error);
+            return res.send(error.details);
+        }
 
-		const newUser = await db.User.create({
-			email,
-			password,
-			f_name,
-			l_name,
-			zip,
-			bio,
-			is_admin,
-		});
+		//Create
+		const newUser = await db.User.create({email: data?.email, password: data?.password, f_name: data?.f_name, l_name: data?.l_name, zip: data?.zip, bio: data?.bio, is_admin: data?.is_admin});
 
 		// If instruments are provided, associate them with the new user
 		newInstrumentArray = [];
-		if (instruments.length > 0) {
-			newInstrument = await db.UserInstrument.create({instrument_id: instrumentId, user_id: newUser.user_id});
-			newInstrumentArray.push(newInstrument);
-		}
+        if (data.instruments)
+        {
+            for (const instrument of data.instruments) {
+                //Add if found
+                if (instrument)
+                {
+                    newInstrument = await db.UserInstrument.create({instrument_id: instrument, user_id: newUser.user_id});
+                    newInstrumentArray.push(newInstrument);
+                }
+                else
+                {
+                    console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+                }
+            }
+        }
 
 		// Generate JWT token for the new user
 		const token = createToken(newUser.user_id, newUser.isAdmin);
@@ -139,18 +144,40 @@ module.exports.account = async (req, res, next) => {
 
 module.exports.update_user = async (req, res, next) => {
 	try {
-		const { f_name, l_name, zip, instruments, bio } = req.body;
+		//const { f_name, l_name, zip, instruments, bio } = req.body;
+		const data = req.body;
 		const userId = req.user.user_id;
 
-		const newData = {
-			f_name,
-			l_name,
-			zip,
-			instruments,
-			bio
-		};
+		//Validate
+		data.instruments = await instrumentArrayToIds(data?.instruments);
+		delete data.password;
+		const {error} = userSchema.fork(['email', 'password'], (schema) => schema.optional()).validate(data)
+        if (error) 
+        {
+            console.log(error);
+            return res.send(error.details);
+        }
 
-		await db.User.updateUser(userId, newData);
+		await db.User.updateUser(userId, data);
+
+		//Instruments
+		newInstrumentArray = [];
+		if (data.instruments)
+		{
+			await db.UserInstrument.destroy({where: {user_id: userId}});
+			for (const instrument of data.instruments) {
+				//Add if found
+				if (instrumentId)
+				{
+					newInstrument = await db.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
+					newInstrumentArray.push(newInstrument);
+				}
+				else
+				{
+					console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+				}
+			}
+		}
 
 		res.status(200).json({ success: true });
 	} catch (err) {

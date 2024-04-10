@@ -123,7 +123,23 @@ const IndividualEvent = () => {
         const isMessage = applyModalData.message.length > 0;
         if (!isLoadingApplication)
         {
+            //Validate data
+            if (document.getElementById("applyModalForm"))
+            {
+                const inputs = document.getElementById("applyModalForm").elements;
+                for (let i = 0; i < inputs.length; i++) {
+                    if (!inputs[i].disabled && (!inputs[i].checkValidity() || (/([<>\\;|~])/g.test(inputs[i].value))))
+                    {
+                        inputs[i].reportValidity();
+                        if (inputs[i].type === "textarea") inputs[i].setCustomValidity("Message cannot include special characters (<>\\;|~).");
+                        console.log("NOT VALID");
+                        return false
+                    } 
+                }
+            }
             setIsLoadingApplication(true);
+
+            //Apply            
             try {
                 const applicationData = { status: 'applied' }
                 const applicantEmail = {
@@ -273,12 +289,12 @@ const IndividualEvent = () => {
     }
 
     const addLineBreak = (str) =>
-    str.split('\n').map((subStr) => {
+    str.split('\n').map((subStr, index) => {
         return (
-        <>
+        <p key={index}>
             {subStr}
             <br />
-        </>
+        </p>
         );
     });
 
@@ -367,7 +383,7 @@ const IndividualEvent = () => {
                                         <Row>
                                             <Container>
                                             <Col xs={colSize.xs} sm={colSize.sm} md={colSize.md} lg={colSize.lg} xl={colSize.xl}><h5>Description</h5></Col>
-                                            <Col><p>{event.description != "" ? addLineBreak(event.description) : <Card.Text className="text-muted">No description provided</Card.Text>}</p></Col>
+                                            <Col>{event.description != "" ? addLineBreak(event.description) : <Card.Text className="text-muted"><p>No description provided</p></Card.Text>}</Col>
                                             </Container>
                                         </Row>
                                     </Col>
@@ -436,7 +452,7 @@ const IndividualEvent = () => {
                                                 <Button className="applyButton" onClick={() => setApplyModalOpen(true)}>Apply to Event</Button>
                                                 {applyModalOpen &&
                                                 <Modal show={applyModalOpen} onHide={() => {setApplyModalOpen(false);}} centered={true}>
-                                                    <Form onSubmit={e => e.preventDefault()}>
+                                                    <Form id="applyModalForm" onSubmit={e => e.preventDefault()}>
                                                             <Modal.Header closeButton>
                                                                 <Modal.Title>Event Application</Modal.Title>
                                                             </Modal.Header>
@@ -444,11 +460,11 @@ const IndividualEvent = () => {
                                                                 <p>Apply to this event by providing contact email. You may also add a brief message to send to the organizer.</p>
                                                                 <Form.Label>Contact Email</Form.Label>
                                                                 <InputGroup className="mb-2">
-                                                                    <Form.Control value={applyModalData.email} onChange={e => {setApplyModalData({...applyModalData, email: e.target.value});}} placeholder={"Ex. email@gmail.com"} required={true} pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"></Form.Control>
+                                                                    <Form.Control value={applyModalData.email} onChange={e => {setApplyModalData({...applyModalData, email: e.target.value});}} placeholder={"Ex. email@gmail.com"} required={true} pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"></Form.Control>
                                                                     <TooltipButton text="Email you wish to be contacted at. By default, it is set to your profile email."/>
                                                                 </InputGroup>
                                                                 <Form.Label>Message</Form.Label>
-                                                                <Form.Control value={applyModalData.message} as="textarea" rows={3} onChange={e => {setApplyModalData({...applyModalData, message: e.target.value});}} placeholder={"Message (Optional)"} autoFocus={true}></Form.Control>
+                                                                <Form.Control value={applyModalData.message} as="textarea" rows={3} onChange={e => {setApplyModalData({...applyModalData, message: e.target.value}); e.target.setCustomValidity("");}} pattern={`[a-zA-Z0-9\s'"\/()]`} placeholder={"Message (Optional)"} autoFocus={true}></Form.Control>
                                                             </Modal.Body>
                                                             <Modal.Footer>
                                                             <Button type="submit" variant="primary" onClick={() => {handleAddApplication(currentUser, true);}}>

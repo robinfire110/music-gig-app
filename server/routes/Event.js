@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models/models');
-const {getEventHours, getInstrumentId} = require('../helpers/model-helpers');
+const {getEventHours, getInstrumentId, checkValidUserId, checkValidEventId, instrumentArrayToIds} = require('../helpers/model-helpers');
 const {sequelize} = require('../config/database_config');
 const { Op } = require('sequelize');
+const { eventSchema, addressSchema, addUserToEventSchema, instrumentSchema } = require('../helpers/validators');
+const Joi = require('joi');
 
 /* GET */
 //Get all
@@ -128,21 +130,30 @@ router.post("/", async (req, res) => {
         //Get data
         const data = req.body;
         const addressData = data.address;
-        if (!addressData) throw {message : "Event must have address."};
-        else 
-        {
-            if (!addressData.street) throw {message : "Address must have street"};
-            else if (!addressData.city) throw {message : "Address must have city"};
-            else if (!addressData.zip) throw {message : "Address must have zip"};
-            else if (!addressData.state) throw {message : "Address must have state"};
-        }
 
+        //Set data values
         //Get calculated values
         let event_hours = 0;
         if (data.start_time && data.end_time)
         {
             //Convert from milliseconds to hours
-            event_hours = getEventHours(data.start_time, data.end_time);
+            data.event_hours = getEventHours(data.start_time, data.end_time);
+        }
+
+        //Convert instrument to only ids (if used names)
+        data.instruments = await instrumentArrayToIds(data?.instruments);
+
+        //Validation
+        const validUser = await checkValidUserId(data?.user_id);
+        const {error} = eventSchema.validate(data)
+        if (error || !validUser) 
+        {
+            if (!validUser) throw new Error("Not valid user_id.")
+            else
+            {
+                console.log(error);
+                return res.send(error.details);
+            }
         }
 
         //Add to event & address
@@ -151,24 +162,20 @@ router.post("/", async (req, res) => {
         const newStatus = await db.UserStatus.create({user_id: data?.user_id, event_id: newEvent.event_id, status: "owner"});
 
         //Add instrument (adds relation to EventInstrument table)
-        let newInstrumentArray = [];
+        const newInstrumentArray = [];
         if (data.instruments)
         {
             for (const instrument of data.instruments) {
-                //Get instrumentId
-                let instrumentId = await getInstrumentId(instrument);
-                
                 //Add if found
-                if (instrumentId)
+                if (instrument)
                 {
-                    var newInstrument = await db.EventInstrument.create({instrument_id: instrumentId, event_id: newEvent.event_id});
+                    var newInstrument = await db.EventInstrument.create({instrument_id: instrument, event_id: newEvent.event_id});
                     newInstrumentArray.push(newInstrument);
                 }
                 else
                 {
                     console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
                 }
-                
             }
         }
 
@@ -185,6 +192,21 @@ router.post("/users/:event_id/:user_id", async (req, res) => {
         //Get data
         const data = req.body;
         const {event_id, user_id} = req.params;
+
+        //Validation (check if ids are valid)
+        const validEventId = await checkValidEventId(event_id);
+        const validUserId = await checkValidUserId(user_id);
+        const {error, value} = addUserToEventSchema.validate(data)
+        if (error || !validEventId || !validUserId) 
+        {
+            if (!validEventId) throw new Error("Invalid event id.");
+            else if (!validUserId) throw new Error("Invalid user id.");
+            else
+            {
+                console.log(error);
+                return res.send(error.details);
+            }
+        }
 
         //Get event
         const newStatus = await db.UserStatus.findOrCreate({where :{user_id: user_id, event_id: event_id, status: data?.status}});
@@ -203,27 +225,33 @@ router.post("/instrument/:id", async (req, res) => {
         const data = req.body;
         const id = req.params.id;
 
-        //Add instrument (adds relation to UserInstrument table)
-        newInstrumentArray = [];
-        if (data.instruments)
+        //Validation
+        if (data?.instruments)
         {
-            for (const instrument of data.instruments) {
-                //Get instrumentId
-                let instrumentId = await getInstrumentId(instrument); 
+            //Add instrument (adds relation to UserInstrument table)
+            data.instruments = await instrumentArrayToIds(data?.instruments);
 
+            //Validation
+            const {error, value} = (Joi.object({instruments: instrumentSchema})).validate(data);
+            if (error) 
+            {
+                console.log(error);
+                return res.send(error.details);
+            }
+
+            //Add
+            const returnArray = []
+            for (const instrument of data.instruments) {
                 //Add if found
-                if (instrumentId)
+                if (instrument)
                 {
-                    newInstrument = await db.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: id}});
-                    newInstrumentArray.push(newInstrument);
-                }
-                else
-                {
-                    console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+                    newInstrument = await db.EventInstrument.findOrCreate({where: {instrument_id: instrument, event_id: id}});
+                    returnArray.push(newInstrument);
                 }
             }
+            res.send({returnArray});
         }
-        res.send({newInstrumentArray});
+        else throw new Error("No instrument array provided")
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -238,22 +266,28 @@ router.put("/:id", async (req, res) => {
         const event = await db.Event.findOne({where: {event_id: id}, include: [db.Address]});
         if (event)
         {
-            //Set Data
-            event.set(data);
-
             //Recalculate Event Time (if needed)
             if (data.start_time || data.end_time)
             {
                 event_hours = getEventHours(data.start_time ? data.start_time : event.start_time, data.end_time ? data.end_time : event.end_time);
-                event.set({event_hours: event_hours});
+                data.event_hours = event_hours;
             }
 
-            //Set Address (if exists)
-            if (data.address)
+            //Set instruments
+            data.instruments = await instrumentArrayToIds(data?.instruments);
+
+            //Validate
+            //Delete values that will not be updated (not in schema)
+            if (data?.event_id) delete data.event_id; 
+            if (data?.date_posted) delete data.date_posted; 
+            if (data?.Users) delete data.Users; 
+            if (data?.Address) delete data.Address; 
+            if (data?.Instruments) delete data.Instruments; 
+            const {error} = eventSchema.fork(['user_id'], (schema) => schema.optional()).validate(data)
+            if (error) 
             {
-                const address = await db.Address.findOne({where: {address_id: event.Address.address_id}});
-                address.set(data.address);
-                await address.save();
+                console.log(error);
+                return res.send(error.details);
             }
 
             //Set Instruments (if exists)
@@ -280,6 +314,17 @@ router.put("/:id", async (req, res) => {
                 }
             }
 
+            //Set Address (if exists)
+            if (data.address)
+            {
+                const address = await db.Address.findOne({where: {address_id: event.Address.address_id}});
+                address.set(data.address);
+                await address.save();
+            }
+
+            //Set Data
+            event.set(data);
+
             //Save
             await event.save();
             res.send({event, newInstrumentArray});
@@ -299,9 +344,25 @@ router.put("/users/:event_id/:user_id", async (req, res) => {
         const data = req.body;
         const {event_id, user_id} = req.params;
         const status = await db.UserStatus.findOne({where: {event_id: event_id, user_id: user_id}});
+        
+        //Validation (check if ids are valid)
+        const validEventId = await checkValidEventId(event_id);
+        const validUserId = await checkValidUserId(user_id);
+        const {error, value} = addUserToEventSchema.validate(data)
+        if (error || !validEventId || !validUserId) 
+        {
+            if (!validEventId) throw new Error("Invalid event id.");
+            else if (!validUserId) throw new Error("Invalid user id.");
+            else
+            {
+                console.log(error);
+                return res.send(error.details);
+            }
+        }
+        
+        //Set Data
         if (status)
         {
-            //Set Data
             status.set(data);
             await status.save();
             res.send(status);
@@ -310,70 +371,6 @@ router.put("/users/:event_id/:user_id", async (req, res) => {
         {
             res.status(404).send(`No user_id ${user_id} found in relation to event of event_id ${event_id} found.`);
         }
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-//Update Address (by event_id)
-router.put("/address/:id", async (req, res) => {
-    try {
-        const data = req.body;
-        const id = req.params.id;
-        const address = await db.Address.findOne({where: {event_id: id}});
-        if (address)
-        {
-            //Set Data
-            address.set(data);
-            await address.save();
-            res.send(address);
-        }
-        else
-        {
-            res.status(404).send(`No address associated with event_id ${id} found.`);
-        }
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-//Update instrument
-//Updates instrumet(s) to event with associated event_id
-//WILL DELETE OLD ENTIRES AND UPDATE ENTIRELY WITH NEW ONES. If you need to only add or delete one instrument, use the POST and DELETE requests instead.
-router.put("/instrument/:id", async (req, res) => {
-    try {
-        //Get data
-        const data = req.body;
-        const id = req.params.id;
-
-        //Add instrument (adds relation to EventInstrument table)
-        newInstrumentArray = [];
-        if (data.instruments)
-        {
-            //Delete old entries
-            await db.EventInstrument.destroy({where: {event_id: id}});
-
-            for (const instrument of data.instruments) {
-                //Get instrumentId
-                let instrumentId = await getInstrumentId(instrument);
-                
-                //Add if found
-                if (instrumentId)
-                {
-                    newInstrument = await db.EventInstrument.findOrCreate({where: {instrument_id: instrumentId, event_id: id}});
-                    newInstrumentArray.push(newInstrument);
-                }
-                else
-                {
-                    console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
-                }
-            }
-        }
-        else
-        {
-            throw {message: "No instrument object given."};
-        }
-        res.send({newInstrumentArray});
     } catch (error) {
         res.status(500).send(error.message);
     }
