@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Card, Container, Row, Col, Button} from 'react-bootstrap';
+import {Card, Container, Row, Col, Button, Tab, Tabs, Table} from 'react-bootstrap';
 import {useNavigate} from "react-router-dom";
 
 function Gigs({ userData, gigs }) {
@@ -39,30 +39,25 @@ function Gigs({ userData, gigs }) {
 			</Container>
 		);
 	};
-
 	return (
-		<div>
+		<>
 			<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-				<h2>Listings</h2>
-				<div>
-					<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewListing}>Create New Listing</Button>
-				</div>
-			</div>
-			<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-				<h3>Your Current Listings</h3>
-				{renderGigsAsCards(gigs.filter((gig) => gig.is_listed))}
-			</div>
-			<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-				<h3>Past Listings</h3>
-				{renderGigsAsCards(
-					gigs.filter((gig) => new Date(gig.end_time) < new Date() || !gig.is_listed)
-				)}
-			</div>
-
-			<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-				<h3>Listings you've applied to</h3>
+			<h2>Listings</h2>
+			<div>
+				<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewListing}>Create New Listing</Button>
 			</div>
 		</div>
+			<Tabs defaultActiveKey="users" id="admin-actions-tabs">
+				<Tab eventKey="allListings" title="Listings">
+				</Tab>
+				<Tab eventKey="applied" title="Active">
+				</Tab>
+				<Tab eventKey="pending" title="Pending">
+				</Tab>
+				<Tab eventKey="closed" title="Closed">
+				</Tab>
+			</Tabs>
+		</>
 	);
 }
 
