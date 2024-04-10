@@ -137,8 +137,41 @@ async function getInstrumentId(instrument) {
     }
 }
 
+//Ensure instrument array is only made up of ids
+async function instrumentArrayToIds(instrumentArray)
+{
+    const newArray = [];
+    if (instrumentArray)
+    {
+        for (const instrument of instrumentArray) 
+        {
+            instrumentId = await getInstrumentId(instrument);
+            if (instrumentId) newArray.push(instrumentId);
+            else console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+        }
+    }
+    console.log("NewArray", newArray);
+    return newArray;
+}
+
 function getEventHours(start_time, end_time) {
     return (moment(end_time) - moment(start_time)) / 3600000;
+}
+
+//Check if userId exists
+async function checkValidUserId(id)
+{
+    let user = await db.User.findOne({where: {user_id: id}});
+    if (parseInt(id) == parseInt(user?.user_id)) return true;
+    return false;
+}
+
+//Check if eventId exists
+async function checkValidEventId(id)
+{
+    let event = await db.Event.findOne({where: {event_id: id}});
+    if (parseInt(id) == parseInt(event?.event_id)) return true;
+    return false;
 }
 
 async function fixData() {
@@ -169,4 +202,4 @@ async function fixData() {
     }); 
 }
 
-module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, getEventHours, fixData }
+module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, instrumentArrayToIds, getEventHours, fixData, checkValidUserId, checkValidEventId }
