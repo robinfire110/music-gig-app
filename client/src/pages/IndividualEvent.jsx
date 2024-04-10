@@ -464,7 +464,7 @@ const IndividualEvent = () => {
                                                                     <TooltipButton text="Email you wish to be contacted at. By default, it is set to your profile email."/>
                                                                 </InputGroup>
                                                                 <Form.Label>Message</Form.Label>
-                                                                <Form.Control value={applyModalData.message} as="textarea" rows={3} onChange={e => {setApplyModalData({...applyModalData, message: e.target.value}); e.target.setCustomValidity("");}} pattern="[^/><\][\\\x22,;|]+" placeholder={"Message (Optional)"} autoFocus={true}></Form.Control>
+                                                                <Form.Control value={applyModalData.message} as="textarea" rows={3} onChange={e => {setApplyModalData({...applyModalData, message: e.target.value}); e.target.setCustomValidity("");}} pattern={`[a-zA-Z0-9\s'"\/()]`} placeholder={"Message (Optional)"} autoFocus={true}></Form.Control>
                                                             </Modal.Body>
                                                             <Modal.Footer>
                                                             <Button type="submit" variant="primary" onClick={() => {handleAddApplication(currentUser, true);}}>

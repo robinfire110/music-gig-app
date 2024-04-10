@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const {getInstrumentId} = require("../helpers/model-helpers");
+const {getInstrumentId, instrumentArrayToIds, checkValidUserId} = require("../helpers/model-helpers");
 const db = require('../models/models');
+const { userSchema, instrumentSchema } = require('../helpers/validators');
+const Joi = require('joi');
 
 /* GET */
 //Get all
@@ -27,8 +29,6 @@ router.get("/id/:id", async (req, res) => {
     }
 });
 
-
-
 //Get single by email
 //Returns JSON of user with given email. Will be empty if does not exist.
 router.get("/email/:email", async (req, res) => {
@@ -51,6 +51,15 @@ router.post("/", async (req, res) => {
         //Get data
         const data = req.body;
 
+        //Validate
+        data.instruments = await instrumentArrayToIds(data?.instruments);
+        const {error} = userSchema.validate(data)
+        if (error) 
+        {
+            console.log(error);
+            return res.send(error.details);
+        }
+
         //Add to User
         const newUser = await db.User.create({email: data?.email, password: data?.password, f_name: data?.f_name, l_name: data?.l_name, zip: data?.zip, bio: data?.bio, is_admin: data?.is_admin});
 
@@ -59,9 +68,6 @@ router.post("/", async (req, res) => {
         if (data.instruments)
         {
             for (const instrument of data.instruments) {
-                //Get instrumentId
-                let instrumentId = await getInstrumentId(instrument);
-                
                 //Add if found
                 if (instrumentId)
                 {
@@ -72,7 +78,6 @@ router.post("/", async (req, res) => {
                 {
                     console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
                 }
-                
             }
         }
         res.send({newUser, newInstrumentArray});
@@ -89,28 +94,40 @@ router.post("/instrument/:id", async (req, res) => {
         const data = req.body;
         const id = req.params.id;
 
-        //Add instrument (adds relation to UserInstrument table)
-        newInstrumentArray = [];
-        if (data.instruments)
+        //Validation
+        if (data?.instruments)
         {
-            for (const instrument of data.instruments) {
-                //Get instrumentId
-                let instrumentId = await getInstrumentId(instrument);
-                
-                //Add if found
-                if (instrumentId)
-                {
-                    newInstrument = await db.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
-                    newInstrumentArray.push(newInstrument);
-                }
-                else
-                {
-                    console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
-                }
-                
+            data.instruments = await instrumentArrayToIds(data?.instruments);        
+            const validUserId = await checkValidUserId(id);
+            const {error, value} = (Joi.object({instruments: instrumentSchema})).validate(data);
+            if (error || !validUserId) 
+            {
+                if (!validUserId) throw new Error("Not valid user id");
+                console.log(error);
+                return res.send(error.details);
             }
+            
+            //Add instrument (adds relation to UserInstrument table)
+            newInstrumentArray = [];
+            if (data.instruments)
+            {
+                for (const instrument of data.instruments) {
+                    //Add if found
+                    if (instrumentId)
+                    {
+                        newInstrument = await db.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
+                        newInstrumentArray.push(newInstrument);
+                    }
+                    else
+                    {
+                        console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+                    }
+                    
+                }
+            }
+            res.send({newInstrumentArray});
         }
-        res.send({newInstrumentArray});
+        
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -126,6 +143,15 @@ router.put("/:id", async (req, res) => {
         const user = await db.User.findOne({where: {user_id: id}});
         if (user)
         {
+            //Validate
+            data.instruments = await instrumentArrayToIds(data?.instruments);
+            const {error, value} = userSchema.fork(['email', 'password'], (schema) => schema.optional()).validate(data);
+            if (error) 
+            {
+                console.log(error);
+                return res.send(error.details);
+            }
+
             //Update user
             user.set(data);
             await user.save();
@@ -136,9 +162,6 @@ router.put("/:id", async (req, res) => {
             {
                 await db.UserInstrument.destroy({where: {user_id: id}});
                 for (const instrument of data.instruments) {
-                    //Get instrumentId
-                    let instrumentId = await getInstrumentId(instrument);
-                    
                     //Add if found
                     if (instrumentId)
                     {
