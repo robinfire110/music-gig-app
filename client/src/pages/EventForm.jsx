@@ -146,8 +146,7 @@ const EventForm = () => {
         if (nameBox)
         {
             setNameLength(maxEventNameLength-nameBox.value.length);
-        }
-        
+        } 
     }, [event.event_name]);
     
     //Handle most changes

@@ -174,6 +174,14 @@ async function checkValidEventId(id)
     return false;
 }
 
+//Check if finId exists
+async function checkValidFinancialId(id)
+{
+    let financial = await db.Financial.findOne({where: {fin_id: id}});
+    if (parseInt(id) == parseInt(financial?.fin_id)) return true;
+    return false;
+}
+
 async function fixData() {
     //Update zip codes
     /*
@@ -202,4 +210,4 @@ async function fixData() {
     }); 
 }
 
-module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, instrumentArrayToIds, getEventHours, fixData, checkValidUserId, checkValidEventId }
+module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, instrumentArrayToIds, getEventHours, fixData, checkValidUserId, checkValidEventId, checkValidFinancialId }
