@@ -41,7 +41,6 @@ function Landing() {
                             const userData = res.data;
                             if (userData)
                             {
-                                console.log(userData);
                                 setUser(userData);
 
                                 //Set user events
@@ -64,7 +63,7 @@ function Landing() {
                                 //Get event data
                                 if (instrumentSearch.length > 0)
                                 {
-                                    axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${25}`).then(res => {
+                                    axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${30}`).then(res => {
                                         //Filter out our events
                                         const instrumentEventSearch = res.data.filter((event) => {
                                             return getEventOwner(event)?.user_id != userData?.user_id;
@@ -126,7 +125,15 @@ function Landing() {
         {
             //Get non-logged in data
             axios.get(`${getBackendURL()}/event/recent/${recentNum}`).then(res => {
-                setRecentEvents(res.data);
+                let recentEvents = res.data;
+                if (user)
+                {
+                    recentEvents = res.data.filter((event) => {
+                        return getEventOwner(event)?.user_id != user?.user_id;
+                    });
+                }
+                
+                setRecentEvents(recentEvents);
                 setIsLoading(false);
                 setGetRecent(false);
                 console.log("Got recent");

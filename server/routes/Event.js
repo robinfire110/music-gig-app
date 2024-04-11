@@ -3,16 +3,19 @@ const router = express.Router();
 const db = require('../models/models');
 const {getEventHours, getInstrumentId, checkValidUserId, checkValidEventId, instrumentArrayToIds} = require('../helpers/model-helpers');
 const {sequelize} = require('../config/database_config');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 const { eventSchema, addressSchema, addUserToEventSchema, instrumentSchema } = require('../helpers/validators');
 const Joi = require('joi');
 
 /* GET */
 //Get all
 //Returns JSON of all events
+//?exclude_user=# (exclude events from user of id provided)
 router.get("/", async (req, res) => {
     try {
-        const events = await db.Event.findAll({include: [db.Instrument, db.Address, db.User]});
+        const exclude_user = req.query?.exclude_user;
+        const userWhere = exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}} : db.User;
+        const events = await db.Event.findAll({include: [db.Instrument, db.Address, userWhere]});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -36,20 +39,23 @@ router.get("/id/:id", async (req, res) => {
 //Will only return listed events
 //?sort=true (allows to return sorted by date posted)
 //?limit=# (limit the result number)
+//?exclude_user=# (exclude events from user of id provided)
 router.get("/instrument/:id", async (req, res) => {
     try {
         const id = req.params.id.split("|");
         const isSorted = req.query.sort; //Sort by date posted
+        const exclude_user = req.query?.exclude_user;
+        const userWhere = exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}} : db.User;
         let limit = 999;
         if (req.query.limit) limit = req.query.limit;
         if (isSorted)
         {
-            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, db.User], where: {is_listed: true}, order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
+            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, userWhere], where: {is_listed: true}, order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
             res.json(instrument);
         }
         else
         {
-            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, db.User], where: {is_listed: true}, limit: sequelize.literal(limit)});
+            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, userWhere], where: {is_listed: true}, limit: sequelize.literal(limit)});
             res.json(instrument);
         } 
     } catch (error) {
@@ -87,10 +93,12 @@ router.get("/user_id/event_id/:user_id/:event_id", async (req, res) => {
 
 //Get most recent events (a given number)
 //Will return only listed events
+//?exclude_user
 router.get("/recent/:limit", async (req, res) => {
     try {
         const limit = req.params.limit;
-        const events = await db.Event.findAll({include: [db.Instrument, db.Address, db.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit), where: {is_listed: true}});
+        const exclude_user = req.query?.exclude_user;
+        const events = await db.Event.findAll({include: [db.Instrument, db.Address, exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}} : db.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit), where: {is_listed: true}});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
