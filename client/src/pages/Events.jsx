@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Form, Col, Row, Button } from "react-bootstrap";
+import { Container, Form, Col, Row, Button, Card} from "react-bootstrap";
 import { ClipLoader } from "react-spinners";
 import EventRow from "../components/EventRow";
 import "../styles/Events.css";
@@ -32,7 +32,7 @@ const Events = () => {
                 const filteredData = data.filter(event => event.is_listed === true || event.is_listed === 1)
                 setEvents(filteredData)
                 //setting this for managing what data is currently being filtered
-                setFilteredEvents(filteredData)
+                setFilteredEvents(filteredData);
                 setLoading(false);
 
                 //fetch instruments needed for tags
@@ -110,22 +110,23 @@ const Events = () => {
                 {loading ? (
                     <div style={{ display: "flex", justifyContent: "center" }}><ClipLoader /></div>
                 ) : (
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Event Name</th>
-                                <th>Event Requirements</th>
-                                <th>Venue Details</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredEvents.map((event) => (
-                                <EventRow key={event.event_id} event={event} goToEvent={goToEvent} formatDate={formatDate} />
+                    <Card>
+                        <Col>
+                            <Card.Header>
+                                <Row>
+                                    <Col lg={1}><h5>Date</h5></Col>
+                                    <Col lg={2}><h5>Event Name</h5></Col>
+                                    <Col lg={1}><h5>Pay</h5></Col>
+                                    <Col lg={3}><h5>Instruments</h5></Col>
+                                    <Col lg={4}><h5>Address</h5></Col>
+                                    <Col lg={1}></Col>
+                                </Row>
+                            </Card.Header>
+                            {filteredEvents.map((event, index) => (
+                                <EventRow key={event.event_id} index={index} event={event} goToEvent={goToEvent} formatDate={formatDate} />
                             ))}
-                        </tbody>
-                    </table>
+                        </Col>
+                    </Card>
                 )}
 
 
