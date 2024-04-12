@@ -64,7 +64,7 @@ const IndividualEvent = () => {
     }, [currentUser]);
 
     const getEventData = () => {
-        axios.get(`${getBackendURL()}/event/id/${id}`).then((res) => {
+        axios.get(`${getBackendURL()}/event/id/${id}`, { withCredentials: true }).then((res) => {
             const data = res.data;
             const eventOwner = getEventOwner(data);
             if (id != "" && data && (data.is_listed || (currentUser?.user_id == eventOwner?.user_id)))
@@ -175,12 +175,12 @@ const IndividualEvent = () => {
                 if (user && event && !event.Users.some(listUser => listUser.user_id === user.user_id))
                 {
                     const applicationData = { status: 'applied' }
-                    axios.post(`${getBackendURL()}/event/users/${id}/${currentUser.user_id}`, applicationData).then(async res => {
+                    axios.post(`${getBackendURL()}/event/users/${id}/${currentUser.user_id}`, applicationData, { withCredentials: true }).then(async res => {
                         //Send emails (doesn't have to wait because it's not crucial to the page)
                         if (email)
                         {
-                            axios.post(`${getBackendURL()}/api/email`, applicantEmail);
-                            axios.post(`${getBackendURL()}/api/email`, ownerEmail);
+                            axios.post(`${getBackendURL()}/api/email`, applicantEmail, { withCredentials: true });
+                            axios.post(`${getBackendURL()}/api/email`, ownerEmail, { withCredentials: true });
                         }
                         getEventData(); //Reload data
                         toast("Application Submitted", toastSuccess);
@@ -191,12 +191,12 @@ const IndividualEvent = () => {
                 }
                 else //If the user is in the list, put.
                 {
-                    axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData).then(async res => {  
+                    axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData, { withCredentials: true }).then(async res => {  
                         //Send emails (doesn't have to wait because it's not crucial to the page)
                         if (email)
                         {
-                            axios.post(`${getBackendURL()}/api/email`, applicantEmail);
-                            axios.post(`${getBackendURL()}/api/email`, ownerEmail);
+                            axios.post(`${getBackendURL()}/api/email`, applicantEmail, { withCredentials: true });
+                            axios.post(`${getBackendURL()}/api/email`, ownerEmail, { withCredentials: true });
                         }
                         
                         getEventData(); //Reload data
@@ -219,7 +219,7 @@ const IndividualEvent = () => {
         {
             setIsLoadingApplication(true);
             try {
-                axios.put(`${getBackendURL()}/event/users/${id}/${currentUser.user_id}`, applicationData).then(res => {
+                axios.put(`${getBackendURL()}/event/users/${id}/${currentUser.user_id}`, applicationData, { withCredentials: true }).then(res => {
                     getEventData(); //Reload data
                     toast("Application Withdrawn", toastSuccess);
                     setWithdrawModalOpen(false); 
@@ -253,9 +253,9 @@ const IndividualEvent = () => {
             `
         };
         try {
-            axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData).then(res => {
+            axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData, { withCredentials: true }).then(res => {
                 getEventData(); //Reload data
-                if (email) axios.post(`${getBackendURL()}/api/email`, applicantEmail);
+                if (email) axios.post(`${getBackendURL()}/api/email`, applicantEmail, { withCredentials: true });
                 toast("Application Accepted", toastSuccess);
             });
         } catch (err) {
@@ -278,9 +278,9 @@ const IndividualEvent = () => {
             `
         };
         try {
-            axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData).then(res => {
+            axios.put(`${getBackendURL()}/event/users/${id}/${user.user_id}`, applicationData, { withCredentials: true }).then(res => {
                 getEventData(); //Reload data
-                if (email) axios.post(`${getBackendURL()}/api/email`, applicantEmail);
+                if (email) axios.post(`${getBackendURL()}/api/email`, applicantEmail, { withCredentials: true });
                 toast("Application Rejected", toastSuccess);
             });
         } catch (err) {

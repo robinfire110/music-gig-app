@@ -3,10 +3,16 @@ const router = express.Router();
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const striptags = require('striptags');
+const {checkUser, checkUserOptional} = require("../Middleware/AuthMiddleWare");
 
 require('dotenv').config();
 
 /* GET */
+router.get("/test", async (req, res) => {
+    console.log(req);
+    res.send("goog");
+});
+
 //Get price by location
 router.get("/distance_matrix/:origin_zip/:destination_zip", async (req, res) => {
     try {
@@ -46,8 +52,14 @@ const transporter = nodemailer.createTransport({
     }
 });
 //Send Mail
-router.post("/email", async (req, res) => {
+router.post("/email", checkUser, async (req, res) => {
     try {
+        //Check for user
+        if (!req.user)
+        {
+            throw new Error("Unauthorized access.");
+        }
+
         //Add to queue
         const intialLength = emailQueue.length;
         emailQueue.push(req.body);
@@ -63,7 +75,7 @@ async function sendEmail()
 {
     const data = emailQueue[0];
     if (data)
-    {
+    {   
         try {
             //Filter data (strip HTML tags)
             if (data?.text) data.text = striptags(data.text);

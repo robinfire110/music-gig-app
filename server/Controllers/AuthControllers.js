@@ -48,7 +48,7 @@ module.exports.register = async (req, res, next) => {
         if (error) 
         {
             console.log(error);
-            return res.send(error.details);
+            return res.status(403).send(error.details);;
         }
 
 		//Create
@@ -155,7 +155,7 @@ module.exports.update_user = async (req, res, next) => {
         if (error) 
         {
             console.log(error);
-            return res.send(error.details);
+            return res.status(403).send(error.details);;
         }
 
 		await db.User.updateUser(userId, data);

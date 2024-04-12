@@ -200,7 +200,7 @@ const Calculator = () => {
         if (!isEvent)
         {
             //Get data
-            await axios.get(`${getBackendURL()}/financial/user_id/fin_id/${currentUser?.user_id}/${finId}`).then(res => {
+            await axios.get(`${getBackendURL()}/financial/user_id/fin_id/${currentUser?.user_id}/${finId}`, {withCredentials: true}).then(res => {
                 const data = res.data[0];
                 if (data && data?.fin_id) setFinId(data.fin_id);
 
@@ -217,7 +217,7 @@ const Calculator = () => {
         else
         {
             //Check for already existing event financial
-            await axios.get(`${getBackendURL()}/financial/user_id/event_id/${currentUser?.user_id}/${finId}`).then(async res => {
+            await axios.get(`${getBackendURL()}/financial/user_id/event_id/${currentUser?.user_id}/${finId}`, {withCredentials: true}).then(async res => {
                 const data = res.data[0];
                 if (data) //If financial for event exists, load that data.
                 {
@@ -480,7 +480,7 @@ const Calculator = () => {
                 if ((!isEvent && paramId) || (isEvent && !isNewEvent)) //If exists, update
                 {
                     console.log(`UPDATE ${finId} ${paramId}`, data)
-                    await axios.put(`${getBackendURL()}/financial/${finId}`, data).then(res => {
+                    await axios.put(`${getBackendURL()}/financial/${finId}`, data, {withCredentials: true}).then(res => {
                         toast("Calculator data updated sucessfuly", toastSuccess);
                         setSaveStatus(false);
 
@@ -513,7 +513,7 @@ const Calculator = () => {
                 else //If new, post.
                 {
                     console.log("ADD");
-                    await axios.post(`${getBackendURL()}/financial/${user?.user_id}`, data).then(res => {
+                    await axios.post(`${getBackendURL()}/financial/${user?.user_id}`, data, {withCredentials: true}).then(res => {
                         //SetID
                         setParamId(res.data.fin_id);
                         setFinId(res.data.fin_id);
