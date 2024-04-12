@@ -4,14 +4,24 @@ const {getInstrumentId, instrumentArrayToIds, checkValidUserId} = require("../he
 const db = require('../models/models');
 const { userSchema, instrumentSchema } = require('../helpers/validators');
 const Joi = require('joi');
+const {checkUser, checkUserOptional} = require("../Middleware/AuthMiddleWare");
+
+//Varaibles
+const userSensitiveAttributes = ['password', 'isAdmin'];
 
 /* GET */
 //Get all
 //Returns JSON of all users
-router.get("/", async (req, res) => {
+//Must be admin to use
+router.get("/", checkUser, async (req, res) => {
     try {
-        const users = await db.User.findAll({include: [db.Instrument, db.Event, db.Financial]});
-        res.json(users);
+        //Check for admin
+        if (req.user.isAdmin == 1)
+        {
+            const users = await db.User.findAll({include: [db.Instrument, db.Event, db.Financial]});
+            res.json(users);
+        }
+        else throw new Error("Unauthorized access.");
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -19,10 +29,13 @@ router.get("/", async (req, res) => {
 
 //Get single by ID
 //Returns JSON of user with given user_id. Will be empty if does not exist.
-router.get("/id/:id", async (req, res) => {
+router.get("/id/:id", checkUserOptional, async (req, res) => {
     try {
         const id = req.params.id;
-        const user = await db.User.findOne({where: {user_id: id}, include: [db.Instrument, db.Event, db.Financial]});
+        //Check user to change attributes returned (if not user or admin, only return non-sensitive attributes); 
+        let attributes = {exclude: userSensitiveAttributes}
+        if (req.user && (req.user.user_id == id || req.user.isAdmin == 1)) attributes = {exclude: []}
+        const user = await db.User.findOne({where: {user_id: id}, attributes: attributes, include: [db.Instrument, db.Event, db.Financial]});
         res.json(user);
     } catch (error) {
         res.status(500).send(error.message);
@@ -31,6 +44,8 @@ router.get("/id/:id", async (req, res) => {
 
 //Get single by email
 //Returns JSON of user with given email. Will be empty if does not exist.
+//Commented out because we never use it and securing it is more difficult
+/*
 router.get("/email/:email", async (req, res) => {
     try {
         const email = req.params.email;
@@ -40,6 +55,7 @@ router.get("/email/:email", async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+*/
 
 /* POST */
 //Add new user
@@ -88,11 +104,17 @@ router.post("/", async (req, res) => {
 
 //Add instrument
 //Adds instrumet(s) to user with associated user_id
-router.post("/instrument/:id", async (req, res) => {
+router.post("/instrument/:id", checkUser, async (req, res) => {
     try {
         //Get data
         const data = req.body;
         const id = req.params.id;
+
+        //Check User
+        if (!(req.user && (req.user.user_id == id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
 
         //Validation
         if (data?.instruments)
@@ -136,10 +158,17 @@ router.post("/instrument/:id", async (req, res) => {
 /* UPDATE */
 //Update user
 //Can update fields. Only need to send the fields you wish to update
-router.put("/:id", async (req, res) => {
+router.put("/:id", checkUser, async (req, res) => {
     try {
         const data = req.body;
         const id = req.params.id;
+
+        //Check User
+        if (!(req.user && (req.user.user_id == id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
+
         const user = await db.User.findOne({where: {user_id: id}});
         if (user)
         {
@@ -189,11 +218,17 @@ router.put("/:id", async (req, res) => {
 //Update instrument
 //Updates instrumet(s) to user with associated user_id
 //WILL DELETE OLD ENTIRES AND UPDATE ENTIRELY WITH NEW ONES. If you need to only add or delete one instrument, use the POST and DELETE requests instead.
-router.put("/instrument/:id", async (req, res) => {
+router.put("/instrument/:id", checkUser, async (req, res) => {
     try {
         //Get data
         const data = req.body;
         const id = req.params.id;
+
+        //Check User
+        if (!(req.user && (req.user.user_id == id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
 
         //Add instrument (adds relation to UserInstrument table)
         newInstrumentArray = [];
@@ -230,10 +265,17 @@ router.put("/instrument/:id", async (req, res) => {
 
 /* DELETE */
 //Delete user
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", checkUser, async (req, res) => {
     try {
         const id = req.params.id;
         const user = await db.User.findOne({where: {user_id: id}, include: [{model: db.Event}]});
+
+        //Check User
+        if (!(req.user && (req.user.user_id == id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
+
         if (user)
         {
             //Destroy events
@@ -257,10 +299,16 @@ router.delete("/:id", async (req, res) => {
 });
 
 //Delete instrument
-router.delete("/instrument/:user_id/:instrument_id?", async (req, res) => {
+router.delete("/instrument/:user_id/:instrument_id?", checkUser, async (req, res) => {
     try {
         const {user_id, instrument_id} = req.params;
         const instrument = await db.UserInstrument.findOne({where: {user_id: user_id, instrument_id: instrument_id}});
+
+        //Check User
+        if (!(req.user && (req.user.user_id == id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
 
         if (instrument)
         {

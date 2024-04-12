@@ -3,12 +3,20 @@ const router = express.Router();
 const db = require('../models/models');
 const { financialSchema } = require('../helpers/validators');
 const { checkValidEventId, checkValidUserId, checkValidFinancialId } = require('../helpers/model-helpers');
+const {checkUser, checkUserOptional} = require("../Middleware/AuthMiddleWare");
 
 /* GET */
 //Get User Financial
-router.get("/user_id/:id", async (req, res) => {
+router.get("/user_id/:id", checkUser, async (req, res) => {
     try {
         const id = req.params.id;
+
+        //Check User
+        if (!(req.user && (req.user.user_id == id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
+
         const financials = await db.Financial.findAll({include: {model: db.User, where: {user_id: id}, attributes: []}});
         res.json(financials);
     } catch (error) {
@@ -17,10 +25,17 @@ router.get("/user_id/:id", async (req, res) => {
 });
 
 //Get Financial by fin id
-router.get("/fin_id/:id", async (req, res) => {
+router.get("/fin_id/:id", checkUser, async (req, res) => {
     try {
         const id = req.params.id;
         const financial = await db.Financial.findOne({where: {fin_id: id}, include: {model: db.User}});
+        
+        //Check User
+        if (!(req.user && (req.user.user_id == financial.Users[0].user_id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
+        
         res.json(financial);
     } catch (error) {
         res.status(500).send(error.message);
@@ -28,9 +43,16 @@ router.get("/fin_id/:id", async (req, res) => {
 });
 
 //Get Financial by user and fin id
-router.get("/user_id/fin_id/:user_id/:fin_id", async (req, res) => {
+router.get("/user_id/fin_id/:user_id/:fin_id", checkUser, async (req, res) => {
     try {
         const {user_id, fin_id} = req.params;
+
+        //Check User
+        if (!(req.user && (req.user.user_id == user_id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
+
         const financials = await db.Financial.findAll({where: {fin_id: fin_id}, include: {model: db.User, where: {user_id: user_id}, attributes: []}});
         res.json(financials);
     } catch (error) {
@@ -38,10 +60,16 @@ router.get("/user_id/fin_id/:user_id/:fin_id", async (req, res) => {
     }
 });
 
-//Get Financial by user and fin id
-router.get("/user_id/event_id/:user_id/:event_id", async (req, res) => {
+//Get Financial by user and event id
+router.get("/user_id/event_id/:user_id/:event_id", checkUser, async (req, res) => {
     try {
         const {user_id, event_id} = req.params;
+        //Check User
+        if (!(req.user && (req.user.user_id == user_id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
+
         const financials = await db.Financial.findAll({where: {event_id: event_id}, include: {model: db.User, where: {user_id: user_id}, attributes: []}});
         res.json(financials);
     } catch (error) {
@@ -53,11 +81,17 @@ router.get("/user_id/event_id/:user_id/:event_id", async (req, res) => {
 //Add new financial
 //Required - fin_name, total_wage, event_hours, date
 //Optional - hourly_wage, event_num, rehearse_hours, practice_hours, travel_hours, total_mileage, mileage_pay, zip, gas_price, mpg, tax, fees, event_id
-router.post("/:id", async (req, res) => {
+router.post("/:id", checkUser, async (req, res) => {
     try {
         //Get data
         const id = req.params.id;
         const data = req.body;
+
+        //Check User
+        if (!(req.user && (req.user.user_id == id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
 
         //Validation
         const validUser = await checkValidUserId(id);
@@ -84,7 +118,7 @@ router.post("/:id", async (req, res) => {
 });
 
 /* UPDATE */
-router.put("/:id", async (req, res) => {
+router.put("/:id", checkUser, async (req, res) => {
     try {
         //Get data
         const id = req.params.id;
@@ -105,9 +139,16 @@ router.put("/:id", async (req, res) => {
             }
         }
 
-        const financial = await db.Financial.findOne({where: {fin_id: id}});
+        const financial = await db.Financial.findOne({where: {fin_id: id}, include: [db.User]});
         if (financial)
         {
+            //Check User
+            console.log(financial);
+            if (!(req.user && (req.user.user_id == financial.Users[0].user_id || req.user.isAdmin == 1)))
+            {
+                throw new Error("Unauthorized access.");
+            }
+
             financial.set(data);
             await financial.save();
             res.send(financial);
@@ -122,12 +163,18 @@ router.put("/:id", async (req, res) => {
 });
 
 /* DELETE */
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", checkUser, async (req, res) => {
     try {
         const id = req.params.id;
-        const financial = await db.Financial.findOne({where: {fin_id: id}});
+
+        const financial = await db.Financial.findOne({where: {fin_id: id}, include: [db.User]});
         if (financial)
         {
+            //Check User
+            if (!(req.user && (req.user.user_id == financial.Users[0].user_id || req.user.isAdmin == 1)))
+            {
+                throw new Error("Unauthorized access.");
+            }
             await financial.destroy();
             res.send(financial);
         }
