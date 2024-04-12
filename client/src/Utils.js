@@ -9,8 +9,11 @@ function getBackendURL()
 
 //Constant Variables
 const maxDescriptionLength = 750; //Max length for event descriptions
+const maxFNameLength = 50;
+const maxLNameLength = 50;
 const maxBioLength = 500; //Max length for user bios
 const maxEventNameLength = 50;
+const maxFinancialNameLength = 50;
 const statesList = [ 'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY' ];
 
 //Default toast settings
@@ -95,4 +98,4 @@ async function sendEmail(to, subject, text=null, html=null)
     await axios.post(`${getBackendURL()}/api/email`, data);
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, getEventOwner, autoSizeColumn, sendEmail, maxDescriptionLength, maxBioLength, maxEventNameLength, statesList, toastSuccess, toastError, toastInfo};
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, getEventOwner, autoSizeColumn, sendEmail, maxDescriptionLength, maxFNameLength, maxLNameLength, maxBioLength, maxEventNameLength, maxFinancialNameLength, statesList, toastSuccess, toastError, toastInfo};

@@ -12,8 +12,9 @@ const Register = () => {
 	const [values, setValues] = useState({
 		email: '',
 		password: '',
-		name: '',
-		location: '',
+		f_name: '',
+		l_name: '',
+		zip: '',
 		instruments: '',
 		bio: ''
 	});

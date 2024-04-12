@@ -3,7 +3,7 @@ import { Card, Button } from 'react-bootstrap';
 import axios from 'axios';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
-import { getBackendURL } from "../Utils"
+import { getBackendURL, getEventOwner } from "../Utils"
 
 function EventCard({eventId}) {
     //Get Data
@@ -19,12 +19,7 @@ function EventCard({eventId}) {
             //console.log(res.data);
 
             //Get owner
-            res.data.Users.forEach(user => {
-                if (user.UserStatus.status == "owner")
-                {
-                    setOwner(user);
-                }
-            });
+            setOwner(getEventOwner(res.data));
         }).catch(error => {
             console.log(error);
         });

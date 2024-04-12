@@ -72,9 +72,8 @@ const EventForm = () => {
                 }
 
                 if (id && userData?.user_id) { //If the previous page had an id, then it's going to be stored and autofill fields with info
-                    axios.get(`${getBackendURL()}/event/user_id/event_id/${userData.user_id}/${id}?owner=true`).then((res) => {
+                    axios.get(`${getBackendURL()}/event/user_id/event_id/${userData.user_id}/${id}?owner=true`, { withCredentials: true }).then((res) => {
                         const data = res.data[0];
-                        console.log(data);
                         if (data && data.Users[0].user_id == userData.user_id)
                         {
                             setEvent(data);
@@ -108,6 +107,10 @@ const EventForm = () => {
                             navigate("/form");
                             toast("You do not have access to this page.", toastError);
                         }
+                    }).catch(error => {
+                        console.log(error);
+                        navigate("/form");
+                        toast("You do not have access to this page.", toastError);
                     });
                 } else {
                     setOwnerId(null);
@@ -146,8 +149,7 @@ const EventForm = () => {
         if (nameBox)
         {
             setNameLength(maxEventNameLength-nameBox.value.length);
-        }
-        
+        } 
     }, [event.event_name]);
     
     //Handle most changes
@@ -264,7 +266,7 @@ const EventForm = () => {
 
                 //if an id is present, that means the event already exists and we need to put
                 if (id) {
-                    const response = await axios.put(`${getBackendURL()}/event/${id}`, eventData);
+                    const response = await axios.put(`${getBackendURL()}/event/${id}`, eventData, { withCredentials: true });
                     setIsSubmitting(false);
                     navigate(`../event/${id}`)
                     toast("Event Updated", toastSuccess);
@@ -272,13 +274,14 @@ const EventForm = () => {
                     //event does not exist, so make a post
                     setIsSubmitting(false);
                     const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, is_listed: isListed };
-                    const response = await axios.post(`${getBackendURL()}/event/`, eventData)
+                    const response = await axios.post(`${getBackendURL()}/event/`, eventData, { withCredentials: true })
                     const newEventId = response.data.newEvent.event_id;
                     navigate(`../event/${newEventId}`);
                     toast("Event Created", toastSuccess);
                 }
             } catch (error) {
                 console.log(error);
+                toast("An error occured when creating event.", toastError);
                 setIsSubmitting(false);
             }
         }
@@ -346,14 +349,14 @@ const EventForm = () => {
                                                 </Row>
                                             </Form.Label>
                                             <InputGroup>
-                                                <Form.Control id="eventName" maxLength={maxEventNameLength} type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name" required={true}></Form.Control>
+                                                <Form.Control id="eventName" maxLength={maxEventNameLength} type="text" placeholder='Event name' value={event.event_name} onChange={handleChange} name="event_name" required={true} pattern={`[a-zA-Z0-9\\s'"-]+`}></Form.Control>
                                                 <TooltipButton text="Name of event. 50 character limit."/>
                                             </InputGroup>
                                         </Col>
                                     </Row>
                                     <Row className="mb-3">
                                         <Form.Label>Instruments</Form.Label>
-                                        <Select options={instruments} isMulti required={true} onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} ></Select>
+                                        <Select options={instruments} isMulti onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} ></Select>
                                     </Row>
                                     <Row className="mb-3">
                                         <Col>
@@ -418,7 +421,7 @@ const EventForm = () => {
                                             <Row className="mb-3">
                                                 <Col lg={9}>
                                                     <Form.Label>Street<span style={{color: "red"}}>*</span></Form.Label>
-                                                    <Form.Control type="text" placeholder='Ex. 1234 Road St.' value={address.street} onChange={(e) => handleAddressChange("street", e.target.value)} required={true}/>
+                                                    <Form.Control type="text" placeholder='Ex. 1234 Road St.' value={address.street} onChange={(e) => handleAddressChange("street", e.target.value)} pattern="[a-zA-Z0-9\s']+" required={true}/>
                                                 </Col>
                                                 <Col>
                                                     <Form.Label>State<span style={{color: "red"}}>*</span></Form.Label>
@@ -430,7 +433,7 @@ const EventForm = () => {
                                             <Row className="mb-3">
                                                 <Col lg={9}>
                                                     <Form.Label>City<span style={{color: "red"}}>*</span></Form.Label>
-                                                    <Form.Control type="text" placeholder='Ex. Boston' value={address.city} onChange={(e) => handleAddressChange("city", e.target.value)} required={true}/>
+                                                    <Form.Control type="text" placeholder='Ex. Boston' value={address.city} onChange={(e) => handleAddressChange("city", e.target.value)} pattern="[a-zA-Z\s.,']+" required={true}/>
                                                 </Col>
                                                 
                                                 <Col>

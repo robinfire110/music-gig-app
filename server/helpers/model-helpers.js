@@ -4,6 +4,7 @@ const axois = require('axios');
 const { faker } = require("@faker-js/faker");
 const moment= require("moment");
 const cheerio = require('cheerio');
+const { where } = require("sequelize");
 require('dotenv').config();
 
 /* Functions */
@@ -13,16 +14,10 @@ function getRandomInt(max) {
 
 //Import Instruments
 async function importInstruments() {
-    const instrumentExists = await db.Instrument.findOne();
-    if (instrumentExists == null) {
-        console.log("Creating instrument list.")
-        instrument.instrumentList.forEach(instrument => {
-            db.Instrument.create({ name: instrument });
-        });
-    }
-    else {
-        console.log("Instrument List exists, skipping inserts.")
-    }
+    console.log("Creating instrument list.")
+    instrument.instrumentList.forEach(instrument => {
+        db.Instrument.findOrCreate({where: { name: instrument }});
+    });
 }
 
 //Get gas prices
@@ -137,8 +132,49 @@ async function getInstrumentId(instrument) {
     }
 }
 
+//Ensure instrument array is only made up of ids
+async function instrumentArrayToIds(instrumentArray)
+{
+    const newArray = [];
+    if (instrumentArray)
+    {
+        for (const instrument of instrumentArray) 
+        {
+            instrumentId = await getInstrumentId(instrument);
+            if (instrumentId) newArray.push(instrumentId);
+            else console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+        }
+    }
+    console.log("NewArray", newArray);
+    return newArray;
+}
+
 function getEventHours(start_time, end_time) {
     return (moment(end_time) - moment(start_time)) / 3600000;
+}
+
+//Check if userId exists
+async function checkValidUserId(id)
+{
+    let user = await db.User.findOne({where: {user_id: id}});
+    if (parseInt(id) == parseInt(user?.user_id)) return true;
+    return false;
+}
+
+//Check if eventId exists
+async function checkValidEventId(id)
+{
+    let event = await db.Event.findOne({where: {event_id: id}});
+    if (parseInt(id) == parseInt(event?.event_id)) return true;
+    return false;
+}
+
+//Check if finId exists
+async function checkValidFinancialId(id)
+{
+    let financial = await db.Financial.findOne({where: {fin_id: id}});
+    if (parseInt(id) == parseInt(financial?.fin_id)) return true;
+    return false;
 }
 
 async function fixData() {
@@ -169,4 +205,4 @@ async function fixData() {
     }); 
 }
 
-module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, getEventHours, fixData }
+module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, instrumentArrayToIds, getEventHours, fixData, checkValidUserId, checkValidEventId, checkValidFinancialId }

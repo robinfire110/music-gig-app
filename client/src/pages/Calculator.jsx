@@ -9,7 +9,7 @@ import axios from "axios";
 import {BarLoader, ClipLoader} from 'react-spinners'
 import * as ExcelJS from "exceljs"
 import {saveAs} from "file-saver"
-import {autoSizeColumn, formatCurrency, getCurrentUser, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, toastError, toastInfo, toastSuccess} from "../Utils";
+import {autoSizeColumn, formatCurrency, getCurrentUser, maxFinancialNameLength, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, toastError, toastInfo, toastSuccess} from "../Utils";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
 import {getBackendURL} from "../Utils";
@@ -42,6 +42,7 @@ const Calculator = () => {
     //States
     //Variables
     const [calcName, setCalcName] = useState();
+    const [nameLength, setNameLength] = useState(maxFinancialNameLength);
     const [calcDate, setCalcDate] = useState(moment().format("YYYY-MM-DD"));
     const [gigPay, setGigPay] = useState();
     const [gigHours, setGigHours] = useState();
@@ -150,6 +151,15 @@ const Calculator = () => {
     useEffect(() => {
       calculateGasPerMile();
     }, [gasPricePerGallon, vehicleMPG])
+
+    //Update name length
+    useEffect(() => {
+        const nameBox = document.getElementById("financialName");
+        if (nameBox)
+        {
+            setNameLength(maxFinancialNameLength-nameBox.value.length);
+        } 
+    }, [calcName]);
     
     /* Functions */
     //Load data
@@ -161,7 +171,7 @@ const Calculator = () => {
         if (data?.hourly_wage) setHourlyWage(data.hourly_wage);
         if (data?.total_wage > 0) setGigPay(data.total_wage);
         if (data?.event_hours > 0) setGigHours(data.event_hours);
-        if (data?.gig_num > 0) setGigNum(data.gig_num); 
+        if (data?.event_num > 0) setGigNum(data.event_num); 
         if (data?.total_mileage > 0) setTotalMileage(data.total_mileage); 
         if (data?.travel_hours > 0) setTravelHours(data.travel_hours); 
         if (data?.mileage_pay > 0) setMileageCovered(data.mileage_pay); 
@@ -173,7 +183,7 @@ const Calculator = () => {
         if (data?.fees > 0) setOtherFees(data.fees);
 
         //Set switches
-        setGigNumEnabled(data?.gig_num > 0);
+        setGigNumEnabled(data?.event_num > 0);
         setTotalMileageEnabled(data?.total_mileage > 0);
         setTravelHoursEnabled(data?.travel_hours > 0);
         setMileageCoveredEnabled(data?.mileage_pay > 0);
@@ -186,12 +196,11 @@ const Calculator = () => {
     //Load from database (both fin_id and event_id)
     async function loadFromDatabase(currentUser=user, finId=paramId)
     {
-        console.log(finId);
         //Check if event
         if (!isEvent)
         {
             //Get data
-            await axios.get(`${getBackendURL()}/financial/user_id/fin_id/${currentUser?.user_id}/${finId}`).then(res => {
+            await axios.get(`${getBackendURL()}/financial/user_id/fin_id/${currentUser?.user_id}/${finId}`, {withCredentials: true}).then(res => {
                 const data = res.data[0];
                 if (data && data?.fin_id) setFinId(data.fin_id);
 
@@ -208,7 +217,7 @@ const Calculator = () => {
         else
         {
             //Check for already existing event financial
-            await axios.get(`${getBackendURL()}/financial/user_id/event_id/${currentUser?.user_id}/${finId}`).then(async res => {
+            await axios.get(`${getBackendURL()}/financial/user_id/event_id/${currentUser?.user_id}/${finId}`, {withCredentials: true}).then(async res => {
                 const data = res.data[0];
                 if (data) //If financial for event exists, load that data.
                 {
@@ -471,7 +480,7 @@ const Calculator = () => {
                 if ((!isEvent && paramId) || (isEvent && !isNewEvent)) //If exists, update
                 {
                     console.log(`UPDATE ${finId} ${paramId}`, data)
-                    await axios.put(`${getBackendURL()}/financial/${finId}`, data).then(res => {
+                    await axios.put(`${getBackendURL()}/financial/${finId}`, data, {withCredentials: true}).then(res => {
                         toast("Calculator data updated sucessfuly", toastSuccess);
                         setSaveStatus(false);
 
@@ -504,7 +513,7 @@ const Calculator = () => {
                 else //If new, post.
                 {
                     console.log("ADD");
-                    await axios.post(`${getBackendURL()}/financial/${user?.user_id}`, data).then(res => {
+                    await axios.post(`${getBackendURL()}/financial/${user?.user_id}`, data, {withCredentials: true}).then(res => {
                         //SetID
                         setParamId(res.data.fin_id);
                         setFinId(res.data.fin_id);
@@ -688,8 +697,13 @@ const Calculator = () => {
                             <Form.Group>
                                     <Row className="mb-3" xs={1} lg={2}>
                                         <Col lg="8">
-                                            <Form.Label>Name<span style={{color: "red"}}>*</span></Form.Label>
-                                            <Form.Control id="financialName" value={calcName || ""} type="text" required={true} placeholder="Calculator Name" onChange={e => setCalcName(e.target.value)}></Form.Control>
+                                            <Form.Label style={{width: '100%'}}>
+                                                <Row>
+                                                    <Col lg={10}>Name<span style={{color: "red"}}>*</span></Col>
+                                                    <Col className="text-end">{nameLength}/{maxFinancialNameLength}</Col>
+                                                </Row>
+                                            </Form.Label>
+                                            <Form.Control id="financialName" value={calcName || ""} type="text" maxLength={maxFinancialNameLength} required={true} placeholder="Calculator Name" onChange={e => setCalcName(e.target.value)}></Form.Control>
                                         </Col>
                                         <Col lg="4">
                                             <Form.Label>Date<span style={{color: "red"}}>*</span></Form.Label>
