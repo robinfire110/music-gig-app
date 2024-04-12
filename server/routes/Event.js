@@ -6,15 +6,19 @@ const {sequelize} = require('../config/database_config');
 const { Op, where } = require('sequelize');
 const { eventSchema, addressSchema, addUserToEventSchema, instrumentSchema } = require('../helpers/validators');
 const Joi = require('joi');
+const {checkUser, checkUserOptional} = require("../Middleware/AuthMiddleWare");
 
 /* GET */
 //Get all
 //Returns JSON of all events
 //?exclude_user=# (exclude events from user of id provided)
+//Only returns the owner of the event. If you want to see all associated users, you have to check individual event.
 router.get("/", async (req, res) => {
     try {
+        //Exclude user 
         const exclude_user = req.query?.exclude_user;
-        const userWhere = exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}} : db.User;
+        const userWhere = exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}} : {model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}};
+                
         const events = await db.Event.findAll({include: [db.Instrument, db.Address, userWhere]});
         res.json(events);
     } catch (error) {
@@ -24,10 +28,25 @@ router.get("/", async (req, res) => {
 
 //Get single by ID
 //Returns JSON of event with given event_id. Will be empty if does not exist.
-router.get("/id/:id", async (req, res) => {
+router.get("/id/:id", checkUserOptional, async (req, res) => {
     try {
         const id = req.params.id;
-        const event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, db.User]});
+        let event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}}]});
+        
+        //No Owner fix (some of the faker data doesn't have owners, so we need to query again in that case)
+        if (!event)
+        {
+            event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address]});
+        }
+
+        //Check user (if owner, give full data)
+        console.log(event);
+        if (req.user && ((event?.Users.length > 0 && req.user.user_id == event?.Users[0].user_id) || req.user.isAdmin == 1))
+        {
+            console.log("Ran");
+            event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, attributes: {exclude: ['password', 'isAdmin']}}]});
+        }
+
         res.json(event);
     } catch (error) {
         res.status(500).send(error.message);
