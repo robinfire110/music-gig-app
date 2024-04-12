@@ -18,7 +18,7 @@ router.get("/", checkUser, async (req, res) => {
         //Check for admin
         if (req.user.isAdmin == 1)
         {
-            const users = await db.User.findAll({include: [db.Instrument, db.Event, db.Financial]});
+            const users = await db.User.findAll({include: [db.Instrument, db.Event, db.Financial], attributes: {exclude: userSensitiveAttributes}});
             res.json(users);
         }
         else throw new Error("Unauthorized access.");
@@ -169,7 +169,7 @@ router.put("/:id", checkUser, async (req, res) => {
             throw new Error("Unauthorized access.");
         }
 
-        const user = await db.User.findOne({where: {user_id: id}});
+        const user = await db.User.findOne({where: {user_id: id}, attributes: {exclude: userSensitiveAttributes}});
         if (user)
         {
             //Validate
@@ -268,7 +268,7 @@ router.put("/instrument/:id", checkUser, async (req, res) => {
 router.delete("/:id", checkUser, async (req, res) => {
     try {
         const id = req.params.id;
-        const user = await db.User.findOne({where: {user_id: id}, include: [{model: db.Event}]});
+        const user = await db.User.findOne({where: {user_id: id}, include: [{model: db.Event}], attributes: {exclude: userSensitiveAttributes}});
 
         //Check User
         if (!(req.user && (req.user.user_id == id || req.user.isAdmin == 1)))

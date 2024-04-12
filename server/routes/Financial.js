@@ -17,7 +17,7 @@ router.get("/user_id/:id", checkUser, async (req, res) => {
             throw new Error("Unauthorized access.");
         }
 
-        const financials = await db.Financial.findAll({include: {model: db.User, where: {user_id: id}, attributes: []}});
+        const financials = await db.Financial.findAll({include: {model: db.User, where: {user_id: id}, attributes: {exclude: ['password', 'isAdmin']}}});
         res.json(financials);
     } catch (error) {
         res.status(500).send(error.message);
@@ -28,7 +28,7 @@ router.get("/user_id/:id", checkUser, async (req, res) => {
 router.get("/fin_id/:id", checkUser, async (req, res) => {
     try {
         const id = req.params.id;
-        const financial = await db.Financial.findOne({where: {fin_id: id}, include: {model: db.User}});
+        const financial = await db.Financial.findOne({where: {fin_id: id}, include: {model: db.User, attributes: {exclude: ['password', 'isAdmin']}}});
         
         //Check User
         if (!(req.user && (req.user.user_id == financial.Users[0].user_id || req.user.isAdmin == 1)))
@@ -53,7 +53,7 @@ router.get("/user_id/fin_id/:user_id/:fin_id", checkUser, async (req, res) => {
             throw new Error("Unauthorized access.");
         }
 
-        const financials = await db.Financial.findAll({where: {fin_id: fin_id}, include: {model: db.User, where: {user_id: user_id}, attributes: []}});
+        const financials = await db.Financial.findAll({where: {fin_id: fin_id}, include: {model: db.User, where: {user_id: user_id}, attributes: {exclude: ['password', 'isAdmin']}}});
         res.json(financials);
     } catch (error) {
         res.status(500).send(error.message);
@@ -70,7 +70,7 @@ router.get("/user_id/event_id/:user_id/:event_id", checkUser, async (req, res) =
             throw new Error("Unauthorized access.");
         }
 
-        const financials = await db.Financial.findAll({where: {event_id: event_id}, include: {model: db.User, where: {user_id: user_id}, attributes: []}});
+        const financials = await db.Financial.findAll({where: {event_id: event_id}, include: {model: db.User, where: {user_id: user_id}, attributes: {exclude: ['password', 'isAdmin']}}});
         res.json(financials);
     } catch (error) {
         res.status(500).send(error.message);
@@ -139,7 +139,7 @@ router.put("/:id", checkUser, async (req, res) => {
             }
         }
 
-        const financial = await db.Financial.findOne({where: {fin_id: id}, include: [db.User]});
+        const financial = await db.Financial.findOne({where: {fin_id: id}, include: [{model: db.User, attributes: {exclude: ['password', 'isAdmin']}}]});
         if (financial)
         {
             //Check User
@@ -166,7 +166,7 @@ router.delete("/:id", checkUser, async (req, res) => {
     try {
         const id = req.params.id;
 
-        const financial = await db.Financial.findOne({where: {fin_id: id}, include: [db.User]});
+        const financial = await db.Financial.findOne({where: {fin_id: id}, include: [{model: db.User, attributes: {exclude: ['password', 'isAdmin']}}]});
         if (financial)
         {
             //Check User
