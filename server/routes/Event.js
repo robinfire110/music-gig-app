@@ -40,10 +40,9 @@ router.get("/id/:id", checkUserOptional, async (req, res) => {
         }
 
         //Check user (if owner, give full data)
-        console.log(event);
         if (req.user && ((event?.Users.length > 0 && req.user.user_id == event?.Users[0].user_id) || req.user.isAdmin == 1))
         {
-            console.log("Ran");
+            
             event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, attributes: {exclude: ['password', 'isAdmin']}}]});
         }
 
@@ -59,52 +58,43 @@ router.get("/id/:id", checkUserOptional, async (req, res) => {
 //?sort=true (allows to return sorted by date posted)
 //?limit=# (limit the result number)
 //?exclude_user=# (exclude events from user of id provided)
-router.get("/instrument/:id", async (req, res) => {
+router.get("/instrument/:id", checkUserOptional, async (req, res) => {
     try {
         const id = req.params.id.split("|");
         const isSorted = req.query.sort; //Sort by date posted
         const exclude_user = req.query?.exclude_user;
-        const userWhere = exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}} : db.User;
-        let limit = 999;
-        if (req.query.limit) limit = req.query.limit;
-        if (isSorted)
+        const limit = req.query?.limit ? req.query.limit : 999;
+
+        //Set clauses
+        const sortOrder = isSorted ? [['date_posted', 'DESC']] : [];
+        const userWhere = exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}} : {model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}};
+        
+        //Search
+        let event = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, userWhere], where: {is_listed: true}, order: sortOrder, limit: sequelize.literal(limit)});
+        
+        //Check user (if owner, give full data)
+        if (req.user && ((event?.Users?.length > 0 && req.user.user_id == event?.Users[0].user_id) || req.user.isAdmin == 1))
         {
-            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, userWhere], where: {is_listed: true}, order: [['date_posted', 'DESC']], limit: sequelize.literal(limit)});
-            res.json(instrument);
+            event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, attributes: {exclude: ['password', 'isAdmin']}}]});
         }
-        else
-        {
-            const instrument = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, userWhere], where: {is_listed: true}, limit: sequelize.literal(limit)});
-            res.json(instrument);
-        } 
+        res.json(event);
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
 //Get Event by user_id and event_id
-//Param - owner=true, only returns events where user is the owner
-router.get("/user_id/event_id/:user_id/:event_id", async (req, res) => {
+//Need to pass token to see event details if owner=false
+router.get("/user_id/event_id/:user_id/:event_id", checkUserOptional, async (req, res) => {
     try {
         const {user_id, event_id} = req.params;
-        const onlyOwner = req.query.owner == "true" || false;
-        let event = await db.Event.findAll({where: {event_id: event_id}, include: [{model: db.User, where: {user_id: user_id}}, db.Instrument, db.Address]});
-        
-        //Filter by owner
-        if (onlyOwner)
+        if (req.user && (req.user.user_id == user_id || req.user.isAdmin == 1))
         {
-            event = event.filter((e) => {
-                for (let i = 0; i < e.Users.length; i++)
-                {
-                    if (e.Users[i].user_id == user_id)
-                    {
-                        if (e.Users[i].UserStatus.status === "owner") return true;
-                    }
-                }
-                return false;
-            });
+            let event = await db.Event.findAll({where: {event_id: event_id}, include: [{model: db.User, where: {user_id: user_id}, attributes: {exclude: ['password', 'isAdmin']}}, db.Instrument, db.Address]});
+            res.json(event);
         }
-        res.json(event);
+        else throw new Error("Unauthorized access.");
+
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -117,7 +107,7 @@ router.get("/recent/:limit", async (req, res) => {
     try {
         const limit = req.params.limit;
         const exclude_user = req.query?.exclude_user;
-        const events = await db.Event.findAll({include: [db.Instrument, db.Address, exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}} : db.User], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit), where: {is_listed: true}});
+        const events = await db.Event.findAll({include: [db.Instrument, db.Address, exclude_user ? ({model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}}) : ({model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}})], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit), where: {is_listed: true}});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -128,7 +118,8 @@ router.get("/recent/:limit", async (req, res) => {
 router.get("/soonest/:limit", async (req, res) => {
     try {
         const limit = req.params.limit;
-        const events = await db.Event.findAll({include: [db.Instrument, db.Address, db.User], order: [['start_time', 'ASC']], limit: sequelize.literal(limit), where: {is_listed: true}});
+        const userWhere = req.query?.exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}} : {model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}};
+        const events = await db.Event.findAll({include: [db.Instrument, db.Address, userWhere], order: [['start_time', 'ASC']], limit: sequelize.literal(limit), where: {is_listed: true}});
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -136,6 +127,7 @@ router.get("/soonest/:limit", async (req, res) => {
 });
 
 //Get Address by event_id
+/*
 router.get("/address/:id", async (req, res) => {
     try {
         const id = req.params.id;
@@ -145,6 +137,7 @@ router.get("/address/:id", async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+*/
 
 /* POST */
 //Add new event
@@ -152,11 +145,17 @@ router.get("/address/:id", async (req, res) => {
 //Calculated - date_posted, event_hours
 //Optional - description, rehearse_hours, mileage_pay, is_listed, instruments
 //Instrument can be either name or ID. Can mix and match.
-router.post("/", async (req, res) => {
+router.post("/", checkUser, async (req, res) => {
     try {
         //Get data
         const data = req.body;
         const addressData = data.address;
+
+        //Check user
+        if (!(req.user && (req.user.user_id == data.user_id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
 
         //Set data values
         //Get calculated values
@@ -179,7 +178,7 @@ router.post("/", async (req, res) => {
             else
             {
                 console.log(error);
-                return res.send(error.details);
+                return res.status(403).send(error.details);;
             }
         }
 
@@ -214,11 +213,17 @@ router.post("/", async (req, res) => {
 });
 
 //Add users to event
-router.post("/users/:event_id/:user_id", async (req, res) => {
+router.post("/users/:event_id/:user_id", checkUser, async (req, res) => {
     try {
         //Get data
         const data = req.body;
         const {event_id, user_id} = req.params;
+
+        //Check user
+        if (!(req.user && (req.user.user_id == user_id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
 
         //Validation (check if ids are valid)
         const validEventId = await checkValidEventId(event_id);
@@ -231,7 +236,7 @@ router.post("/users/:event_id/:user_id", async (req, res) => {
             else
             {
                 console.log(error);
-                return res.send(error.details);
+                return res.status(403).send(error.details);;
             }
         }
 
@@ -246,6 +251,7 @@ router.post("/users/:event_id/:user_id", async (req, res) => {
 
 //Add instrument
 //Adds instrumet(s) to event with associated event_id
+/*
 router.post("/instrument/:id", async (req, res) => {
     try {
         //Get data
@@ -263,7 +269,7 @@ router.post("/instrument/:id", async (req, res) => {
             if (error) 
             {
                 console.log(error);
-                return res.send(error.details);
+                return res.status(403).send(error.details);;
             }
 
             //Add
@@ -283,14 +289,22 @@ router.post("/instrument/:id", async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+*/
 
 /* UPDATE */
 //Can update fields. Only need to send the fields you wish to update
-router.put("/:id", async (req, res) => {
+router.put("/:id", checkUser, async (req, res) => {
     try {
         const data = req.body;
         const id = req.params.id;
-        const event = await db.Event.findOne({where: {event_id: id}, include: [db.Address]});
+        const event = await db.Event.findOne({where: {event_id: id}, include: [{model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}}, db.Address]});
+
+        //Check user
+        if (!(req.user && (req.user.user_id == event?.Users[0].user_id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
+
         if (event)
         {
             //Recalculate Event Time (if needed)
@@ -314,7 +328,7 @@ router.put("/:id", async (req, res) => {
             if (error) 
             {
                 console.log(error);
-                return res.send(error.details);
+                return res.status(403).send(error.details);;
             }
 
             //Set Instruments (if exists)
@@ -366,12 +380,19 @@ router.put("/:id", async (req, res) => {
 });
 
 //Update event user status
-router.put("/users/:event_id/:user_id", async (req, res) => {
+router.put("/users/:event_id/:user_id", checkUser, async (req, res) => {
     try {
         const data = req.body;
         const {event_id, user_id} = req.params;
         const status = await db.UserStatus.findOne({where: {event_id: event_id, user_id: user_id}});
+        const event = await db.Event.findOne({where: {event_id: event_id}, include: [{model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}}]});
         
+        //Check user
+        if (!(req.user && (req.user.user_id == event?.Users[0].user_id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
+
         //Validation (check if ids are valid)
         const validEventId = await checkValidEventId(event_id);
         const validUserId = await checkValidUserId(user_id);
@@ -383,7 +404,7 @@ router.put("/users/:event_id/:user_id", async (req, res) => {
             else
             {
                 console.log(error);
-                return res.send(error.details);
+                return res.status(403).send(error.details);;
             }
         }
         
@@ -407,7 +428,14 @@ router.put("/users/:event_id/:user_id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const event = await db.Event.findOne({where: {event_id: id}});
+        const event = await db.Event.findOne({where: {event_id: id}, include: [{model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}}]});
+
+        //Check user
+        if (!(req.user && (req.user.user_id == event?.Users[0].user_id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
+
         if (event)
         {
             await event.destroy();
@@ -423,10 +451,17 @@ router.delete("/:id", async (req, res) => {
 });
 
 //Delete user
-router.delete("/instrument/:event_id/:user_id", async (req, res) => {
+router.delete("/user/:event_id/:user_id", async (req, res) => {
     try {
         const {event_id, user_id} = req.params;
         const status = await db.UserStatus.findOne({where: {event_id: event_id, user_id: user_id}});
+        const event = await db.Event.findOne({where: {event_id: event_id}, include: [{model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}}]});
+
+        //Check user
+        if (!(req.user && (req.user.user_id == event?.Users[0].user_id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
 
         if (status)
         {
@@ -443,10 +478,17 @@ router.delete("/instrument/:event_id/:user_id", async (req, res) => {
 });
 
 //Delete instrument
-router.delete("/instrument/:user_id/:instrument_id", async (req, res) => {
+router.delete("/instrument/:event_id/:instrument_id", async (req, res) => {
     try {
         const {event_id, instrument_id} = req.params;
         const instrument = await db.EventInstrument.findOne({where: {event_id: event_id, instrument_id: instrument_id}});
+        const event = await db.Event.findOne({where: {event_id: event_id}, include: [{model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}}]});
+
+        //Check user
+        if (!(req.user && (req.user.user_id == event?.Users[0].user_id || req.user.isAdmin == 1)))
+        {
+            throw new Error("Unauthorized access.");
+        }
 
         if (instrument)
         {

@@ -10,7 +10,7 @@ const instrumentSchema = Joi.array().sparse().items(Joi.number().integer().min(0
 //Event Data
 const eventSchema = Joi.object({
     user_id: Joi.number().required(),
-    event_name: Joi.string().pattern(/^[a-zA-Z0-9\s'"]+$/).max(maxEventNameLength).required(),
+    event_name: Joi.string().pattern(/^[a-zA-Z0-9\s'"-]+$/).max(maxEventNameLength).required(),
     start_time: Joi.date().format('YYYY-MM-DD HH:mm:ss').required(),
     end_time: Joi.date().format('YYYY-MM-DD HH:mm:ss').required(),
     pay: Joi.number().min(0).max(9999.99).required(),

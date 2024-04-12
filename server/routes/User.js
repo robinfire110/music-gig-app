@@ -73,7 +73,7 @@ router.post("/", async (req, res) => {
         if (error) 
         {
             console.log(error);
-            return res.send(error.details);
+            return res.status(403).send(error.details);;
         }
 
         //Add to User
@@ -126,7 +126,7 @@ router.post("/instrument/:id", checkUser, async (req, res) => {
             {
                 if (!validUserId) throw new Error("Not valid user id");
                 console.log(error);
-                return res.send(error.details);
+                return res.status(403).send(error.details);;
             }
             
             //Add instrument (adds relation to UserInstrument table)
@@ -178,7 +178,7 @@ router.put("/:id", checkUser, async (req, res) => {
             if (error) 
             {
                 console.log(error);
-                return res.send(error.details);
+                return res.status(403).send(error.details);;
             }
 
             //Update user

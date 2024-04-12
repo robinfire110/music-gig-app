@@ -4,6 +4,7 @@ const axois = require('axios');
 const { faker } = require("@faker-js/faker");
 const moment= require("moment");
 const cheerio = require('cheerio');
+const { where } = require("sequelize");
 require('dotenv').config();
 
 /* Functions */
@@ -13,16 +14,10 @@ function getRandomInt(max) {
 
 //Import Instruments
 async function importInstruments() {
-    const instrumentExists = await db.Instrument.findOne();
-    if (instrumentExists == null) {
-        console.log("Creating instrument list.")
-        instrument.instrumentList.forEach(instrument => {
-            db.Instrument.create({ name: instrument });
-        });
-    }
-    else {
-        console.log("Instrument List exists, skipping inserts.")
-    }
+    console.log("Creating instrument list.")
+    instrument.instrumentList.forEach(instrument => {
+        db.Instrument.findOrCreate({where: { name: instrument }});
+    });
 }
 
 //Get gas prices

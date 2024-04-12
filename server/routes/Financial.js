@@ -104,7 +104,7 @@ router.post("/:id", checkUser, async (req, res) => {
             else
             {
                 console.log(error);
-                return res.send(error.details);
+                return res.status(403).send(error.details);;
             }
         }
 
@@ -135,7 +135,7 @@ router.put("/:id", checkUser, async (req, res) => {
             else
             {
                 console.log(error);
-                return res.send(error.details);
+                return res.status(403).send(error.details);;
             }
         }
 
@@ -143,7 +143,6 @@ router.put("/:id", checkUser, async (req, res) => {
         if (financial)
         {
             //Check User
-            console.log(financial);
             if (!(req.user && (req.user.user_id == financial.Users[0].user_id || req.user.isAdmin == 1)))
             {
                 throw new Error("Unauthorized access.");
