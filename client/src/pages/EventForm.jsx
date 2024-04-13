@@ -12,6 +12,7 @@ import FormNumber from "../components/FormNumber";
 import Select from 'react-select';
 import { toast } from "react-toastify";
 import TooltipButton from "../components/TooltipButton";
+import Head from "../components/Head";
 
 const EventForm = () => {
     const [event, setEvent] = useState({
@@ -330,6 +331,7 @@ const EventForm = () => {
     if ((ownerId === null && userId !== null) || isEventOwner()) {
         return (
             <div>
+                <Head title={id ? "Edit Event" : "List Event"}/>
                 <div className='form'>
                     <h1>{id ? "Edit Event" : "List Event"}</h1>
                     <hr />

@@ -11,6 +11,7 @@ import EditProfile from "./dashboards/EditProfile";
 import Gigs from "./dashboards/Gigs";
 import Financials from "./dashboards/Financials";
 import { getBackendURL } from "../Utils"
+import Head from '../components/Head';
 
 function Account() {
     const navigate = useNavigate();
@@ -105,6 +106,7 @@ function Account() {
 
     return (
         <Container fluid>
+            <Head title={"Account"} />
             <Row>
                 <Col sm={2}>
                     <Sidebar handleLinkClick={handleLinkClick} />

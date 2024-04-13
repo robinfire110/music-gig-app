@@ -5,6 +5,7 @@ import { Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import '../App.css';
 import {getBackendURL} from "../Utils";
+import Head from "../components/Head";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -54,6 +55,7 @@ const Login = () => {
 
     return (
         <div>
+            <Head title="Login"/>
             <div className="login-container">
                 <div className="container-login" style={{ maxWidth: '600px' }}>
                     <h2>Login</h2>

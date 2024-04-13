@@ -10,6 +10,7 @@ import EventCard from "../components/EventCard";
 import {ClipLoader} from 'react-spinners'
 import EventHorizontalScroll from "../components/EventHorizontalScroll";
 import {getBackendURL} from "../Utils"
+import Head from "../components/Head";
 
 const Profile = () => {
     //URL Params
@@ -96,6 +97,7 @@ const Profile = () => {
     {
         return (
             <>
+            <Head title={userData?.f_name && userData?.l_name ? `${capatalize(userData?.f_name)} ${capatalize(userData?.l_name)} Profile` : "Profile"} />
             <br />
                 <Container> 
                     <div style={{textAlign: "left"}}>

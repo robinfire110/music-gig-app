@@ -13,6 +13,7 @@ import {autoSizeColumn, formatCurrency, getCurrentUser, maxFinancialNameLength, 
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
 import {getBackendURL} from "../Utils";
+import Head from "../components/Head";
 
 const Calculator = () => {
     /* Variables */
@@ -680,6 +681,7 @@ const Calculator = () => {
     {
     return (
         <div>
+            <Head title={"Calculator"} />
             <h2>Calculator</h2>
             <hr />
             <Container className="" style={{textAlign: "left"}}>   

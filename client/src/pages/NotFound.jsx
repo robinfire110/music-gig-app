@@ -1,10 +1,12 @@
 import React, {useState} from "react";
 import { Container } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import Head from "../components/Head";
 
 const NotFound = () => {
     return (
         <Container className="text-center">
+            <Head title={"Page Not Found"} />
             <br />
             <h1>Page Not Found</h1>
             <br />

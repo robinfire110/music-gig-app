@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import { Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import {getBackendURL} from "../Utils";
+import Head from "../components/Head";
 
 const Register = () => {
 	const navigate = useNavigate();
@@ -59,6 +60,7 @@ const Register = () => {
 
 	return (
 		<div>
+			<Head title="Register"/>
 			<Header />
 			<div className="container-login">
 				<h2>Register Account</h2>

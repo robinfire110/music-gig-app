@@ -11,6 +11,7 @@ import {createToast, formatCurrency, getEventOwner, sendEmail, toastError, toast
 import {getBackendURL} from "../Utils";
 import { toast } from "react-toastify";
 import TooltipButton from "../components/TooltipButton";
+import Head from "../components/Head";
 
 const IndividualEvent = () => {
     const [event, setEvent] = useState();
@@ -304,6 +305,7 @@ const IndividualEvent = () => {
 
     return (
         <div>
+            <Head title={event?.event_name ? event.event_name : "Event"} />
             <hr />
             <Container> 
                 <div style={{textAlign: "left"}}>

@@ -8,6 +8,7 @@ import { ClipLoader } from "react-spinners";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
 import { getBackendURL, getEventOwner, toastError, toastInfo, toastSuccess } from "../Utils"
+import Head from "../components/Head";
 
 function Landing() {
     //Varaibles
@@ -192,6 +193,7 @@ function Landing() {
     //Loading
     return (
         <div>
+            <Head title="Home"/>
             <Container>
                 <Row>
                     <Col lg={5} className="text-end">
