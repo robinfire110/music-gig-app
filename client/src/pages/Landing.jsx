@@ -193,12 +193,16 @@ function Landing() {
     return (
         <div>
             <Container>
-                <h1>Harmonize</h1>
-                <br />
-                <h3>Connecting musicians and organizers.</h3>
-                <br />
-                <br />
-
+                <Row>
+                    <Col lg={5} className="text-end">
+                        <img src={require('../img/logo-circle.png')} height={200}></img>
+                    </Col>
+                    <Col className="my-auto text-start">
+                        <h1>Harmonize</h1>
+                        <br />
+                        <h3>Connecting musicians and organizers.</h3>
+                    </Col>
+                </Row>
                 {/* 
                 <Carousel interval={1000}>
                     <Carousel.Item>
