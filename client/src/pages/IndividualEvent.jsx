@@ -399,10 +399,10 @@ const IndividualEvent = () => {
                                 </Card.Header>
                                 <Card.Body>
                                     <Row>
-                                        <Col><h5>Posted by - {event.Users && event.Users.length > 0 && (event.Users && <Link to={`/profile/${event.Users[0].user_id}`} style={{ color: "#000" }}>{event.Users[0].f_name} {event.Users[0].l_name}</Link>)}</h5></Col>
+                                        <Col><h5>Posted by - {event.Users && event.Users.length > 0 && (event.Users && <Link to={`/profile/${owner.f_name}`} style={{ color: "#000" }}>{owner.f_name} {owner.l_name}</Link>)}</h5></Col>
                                     </Row>
                                     <Row>
-                                        <Col><h5>Contact - {event.Users[0].email} </h5></Col>
+                                        <Col><h5>Contact - {owner.email} </h5></Col>
                                     </Row>
                                 </Card.Body>
                             </Card>
@@ -445,7 +445,7 @@ const IndividualEvent = () => {
                                         </>
                                     ) : (
                                         accepted.some(user => user.user_id === currentUser.user_id && user.UserStatus.status === 'accept') ? (
-                                            <h3>You've been accepted for this event, get in touch with <Link to={`/profile/${event.Users[0].user_id}`} style={{ color: "#000" }}>{event.Users[0].f_name} {event.Users[0].l_name}</Link> for more details!</h3>
+                                            <h3>You've been accepted for this event, get in touch with <Link to={`/profile/${owner.user_id}`} style={{ color: "#000" }}>{owner.f_name} {owner.l_name}</Link> for more details!</h3>
                                         ) : (
                                             rejected.some(user => user.user_id === currentUser.user_id && user.UserStatus.status === 'reject') ? (
                                                 <h3>You've not been chosen to participate in this event.</h3>

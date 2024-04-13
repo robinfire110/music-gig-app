@@ -7,7 +7,7 @@ import { PaginationControl } from 'react-bootstrap-pagination-control';
 import { ClipLoader } from "react-spinners";
 import EventRow from "../components/EventRow";
 import "../styles/Events.css";
-import { getBackendURL } from "../Utils";
+import { getBackendURL, getEventOwner } from "../Utils";
 import Select from 'react-select';
 import axios from "axios";
 import moment from "moment/moment";
@@ -51,6 +51,7 @@ const Events = () => {
                 });
 
             //Update device type
+            updateDeviceType();
             window.addEventListener("resize", updateDeviceType); 
             });
         } catch (err) {
@@ -61,7 +62,6 @@ const Events = () => {
     const updateDeviceType = () => {
         if (window.innerWidth >= 992) setDeviceType("browser");
         else setDeviceType("mobile");
-        console.log(deviceType, window.innerWidth);
     }
 
     const formatDate = (dateString) => {
@@ -107,9 +107,10 @@ const Events = () => {
     const handleSearch = (event) => {
         event.preventDefault();
         let filteredEvents = events.filter(event => {
+            const owner = getEventOwner(event);
             const eventDate = moment.utc(event.start_time);
             const eventInstruments = event.Instruments ? event.Instruments.map(instrument => instrument.name.toLowerCase()) : [];
-            const containsSearchQuery = !searchQuery || event.event_name.toLowerCase().includes(searchQuery.toLowerCase());
+            const containsSearchQuery = !searchQuery || event.event_name.toLowerCase().includes(searchQuery.toLowerCase()) || owner.f_name.toLowerCase().includes(searchQuery.toLowerCase()) || owner.l_name.toLowerCase().includes(searchQuery.toLowerCase());
             const isInDateRange = startDate ? eventDate.isSameOrAfter(moment.utc(startDate)) && eventDate.isSameOrBefore(moment.utc(endDate)) : true;
             const matchesSelectedInstruments = selectedInstruments.length === 0 || selectedInstruments.some(selected => eventInstruments.includes(selected.value.toLowerCase()))
 

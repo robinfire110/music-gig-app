@@ -22,7 +22,7 @@ const EventRow = ({ event, goToEvent, formatDate, index, deviceType="browser" })
                     <Col lg={2}><div>{event.event_name}</div></Col>
                     <Col lg={1}><div>${event.pay}</div></Col>
                     <Col lg={2}><div>{instrumentNames.length > 0 ? instrumentNames.join(", ") : <div className="text-muted">No instruments provided</div>}</div></Col>
-                    <Col lg={2}><div>{owner?.f_name} {owner?.l_name}</div></Col>
+                    <Col lg={2}><div><Link to={`/profile/${owner.user_id}`} style={{color: "black"}}>{owner?.f_name} {owner?.l_name}</Link></div></Col>
                     <Col lg={3}><div>
                             {event.Address && (
                                 <div>
@@ -44,7 +44,7 @@ const EventRow = ({ event, goToEvent, formatDate, index, deviceType="browser" })
                     </Col>
                     <Col className="mb-2" md={4} sm={4} xs={{order: 6, span: 6}}>
                         <Row><div><b>Organizer </b></div></Row>
-                        <Row><div>{owner?.f_name} {owner?.l_name}</div></Row>
+                        <Row><div><Link to={`/profile/${owner.user_id}`} style={{color: "black"}}>{owner?.f_name} {owner?.l_name}</Link></div></Row>
                     </Col>
                     <Col className="mb-2" md={2} sm={3} xs={{order: 1, span: 6}}>
                         <Row><div><b>Date </b></div></Row>
