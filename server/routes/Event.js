@@ -324,7 +324,7 @@ router.put("/:id", checkUser, async (req, res) => {
             if (data?.Users) delete data.Users; 
             if (data?.Address) delete data.Address; 
             if (data?.Instruments) delete data.Instruments; 
-            const {error} = eventSchema.fork(['user_id'], (schema) => schema.optional()).validate(data)
+            const {error} = eventSchema.fork(['user_id', 'start_time', 'end_time', 'event_name', 'pay', 'description', 'event_hours', 'rehearse_hours', 'mileage_pay', 'is_listed'], (schema) => schema.optional()).validate(data)
             if (error) 
             {
                 console.log(error);

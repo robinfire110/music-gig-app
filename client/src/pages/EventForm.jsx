@@ -90,8 +90,8 @@ const EventForm = () => {
                             setSelectedInstruments(configureInstrumentList(data.Instruments));
         
                             //autofill data start and end times from id
-                            const startTime = moment(data.start_time).local().format("HH:mm");
-                            const endTime = moment(data.end_time).local().format("HH:mm");
+                            const startTime = moment(data.start_time).local().format("HH:mm:ss");
+                            const endTime = moment(data.end_time).local().format("HH:mm:ss");
         
                             setStartTime(startTime);
                             setEndTime(endTime);
@@ -189,7 +189,7 @@ const EventForm = () => {
                 endDateTime.add(1, "hour");
             } 
             setEndDate(endDateTime.format("YYYY-MM-DD"));
-            setEndTime(endDateTime.format("HH:mm"));
+            setEndTime(endDateTime.format("HH:mm:ss"));
             if (name === "end_date")
             {
                 e.target.setCustomValidity("End date must be after start date.");
@@ -294,8 +294,8 @@ const EventForm = () => {
         {
             setIsDeleting(true);
             try {
-                const listingUpdate = { is_listed: 0 }
-                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
+                const listingUpdate = {is_listed : 0};
+                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate, { withCredentials: true })
                 setIsDeleting(false);
                 navigate(`../event/${id}`)
                 toast("Event Unlisted", toastSuccess);
@@ -311,8 +311,8 @@ const EventForm = () => {
         if (!isDeleting)
         {
             try {
-                const listingUpdate = { is_listed: 1 }
-                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
+                const listingUpdate = {is_listed : 1};
+                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate, { withCredentials: true })
                 setIsDeleting(false);
                 navigate(`../event/${id}`)
                 toast("Event Relisted", toastSuccess);

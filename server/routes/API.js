@@ -88,7 +88,7 @@ async function sendEmail()
     {   
         try {
             //Filter data (strip HTML tags)
-            const includeTags = ['br', 'b', 'i', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'a']
+            const includeTags = ['br', 'b', 'i', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'a', 'hr', 'small']
             if (data?.text) data.text = striptags(data.text, includeTags);
             if (data?.html) data.html = striptags(data.html, includeTags);
 
