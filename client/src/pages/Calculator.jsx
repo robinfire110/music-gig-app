@@ -139,7 +139,12 @@ const Calculator = () => {
                 else setIsLoading(false);
             }
         }
-        else setIsLoading(false);
+        else
+        {
+            setIsLoading(false);
+            setParamId(null);
+            navigate("/calculator");
+        } 
     }, [user])
     
     //Runs when any fields related to calculation updates.
