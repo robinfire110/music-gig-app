@@ -75,7 +75,7 @@ router.get("/instrument/:id", checkUserOptional, async (req, res) => {
         //Check user (if owner, give full data)
         if (req.user && ((event?.Users?.length > 0 && req.user.user_id == event?.Users[0].user_id) || req.user.isAdmin == 1))
         {
-            event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, attributes: {exclude: ['password', 'isAdmin']}}]});
+            event = await db.Event.findAll({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, attributes: {exclude: ['password', 'isAdmin']}}]});
         }
         res.json(event);
     } catch (error) {

@@ -67,11 +67,10 @@ function Landing() {
                                     axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${30}`).then(res => {
                                         //Filter out our events
                                         const data = res.data;
-                                        if (data)
+                                        if (data && data?.length > 0)
                                         {
-                                            console.log(data);
-                                            const instrumentEventSearch = data.filter((event) => {
-                                                return getEventOwner(event)?.user_id != userData?.user_id;
+                                            const instrumentEventSearch = data.filter(event => {
+                                                return getEventOwner(event)?.user_id != userData?.user_id
                                             });
                                             
                                             //Get list of locations
