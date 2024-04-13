@@ -17,6 +17,7 @@ import IndividualEvent from "./pages/IndividualEvent";
 import Calculator from "./pages/Calculator";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import NotFound from './pages/NotFound';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
           <Route path="/profile/:id" element={<Profile/>}/>
           <Route path="/event/:id" element={<IndividualEvent/>}/>
           <Route path="/calculator/:id?" element={<Calculator/>}/>
+          <Route path='*' element={<NotFound />}/>
         </Routes>
         <Footer />
       </BrowserRouter>

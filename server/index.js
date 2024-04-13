@@ -52,6 +52,7 @@ app.use(cors({
 app.use(cookieParser());
 
 //Gas price automation
+//Will run at 4am every day.
 const gasPricePull = schedule.scheduleJob('0 0 4 * * *', () => {
     console.log("Getting Gas Price", new Date());
     getGasPrices();

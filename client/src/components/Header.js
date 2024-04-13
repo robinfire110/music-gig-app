@@ -11,8 +11,6 @@ function Header() {
     const [isLoggedIn, setIsLoggedIn] = useState(cookies.jwt)
 
     useEffect(() => {
-      console.log("Logged in", isLoggedIn);
-      console.log("Cookies", cookies.jwt);
       setIsLoggedIn(cookies.jwt);
     }, [cookies])
 
@@ -21,7 +19,9 @@ function Header() {
             <ToastContainer />
             <Navbar bg="light" expand="lg">
                 <Container>
-                    <Navbar.Brand href="/">Harmonize</Navbar.Brand>
+                    <Navbar.Brand href="/">
+                        <img src={require('../img/logo-2.png')} height={50} className="d-inline-block align-top"></img>
+                    </Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="justify-content-end">

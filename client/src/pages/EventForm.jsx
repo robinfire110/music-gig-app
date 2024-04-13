@@ -12,6 +12,7 @@ import FormNumber from "../components/FormNumber";
 import Select from 'react-select';
 import { toast } from "react-toastify";
 import TooltipButton from "../components/TooltipButton";
+import Title from "../components/Title";
 
 const EventForm = () => {
     const [event, setEvent] = useState({
@@ -89,8 +90,8 @@ const EventForm = () => {
                             setSelectedInstruments(configureInstrumentList(data.Instruments));
         
                             //autofill data start and end times from id
-                            const startTime = moment(data.start_time).local().format("HH:mm");
-                            const endTime = moment(data.end_time).local().format("HH:mm");
+                            const startTime = moment(data.start_time).local().format("HH:mm:ss");
+                            const endTime = moment(data.end_time).local().format("HH:mm:ss");
         
                             setStartTime(startTime);
                             setEndTime(endTime);
@@ -188,7 +189,7 @@ const EventForm = () => {
                 endDateTime.add(1, "hour");
             } 
             setEndDate(endDateTime.format("YYYY-MM-DD"));
-            setEndTime(endDateTime.format("HH:mm"));
+            setEndTime(endDateTime.format("HH:mm:ss"));
             if (name === "end_date")
             {
                 e.target.setCustomValidity("End date must be after start date.");
@@ -293,8 +294,8 @@ const EventForm = () => {
         {
             setIsDeleting(true);
             try {
-                const listingUpdate = { is_listed: 0 }
-                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
+                const listingUpdate = {is_listed : 0};
+                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate, { withCredentials: true })
                 setIsDeleting(false);
                 navigate(`../event/${id}`)
                 toast("Event Unlisted", toastSuccess);
@@ -310,8 +311,8 @@ const EventForm = () => {
         if (!isDeleting)
         {
             try {
-                const listingUpdate = { is_listed: 1 }
-                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate)
+                const listingUpdate = {is_listed : 1};
+                const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate, { withCredentials: true })
                 setIsDeleting(false);
                 navigate(`../event/${id}`)
                 toast("Event Relisted", toastSuccess);
@@ -330,6 +331,7 @@ const EventForm = () => {
     if ((ownerId === null && userId !== null) || isEventOwner()) {
         return (
             <div>
+                <Title title={id ? "Edit Event" : "List Event"}/>
                 <div className='form'>
                     <h1>{id ? "Edit Event" : "List Event"}</h1>
                     <hr />
