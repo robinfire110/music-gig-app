@@ -10,7 +10,7 @@ import EventCard from "../components/EventCard";
 import {ClipLoader} from 'react-spinners'
 import EventHorizontalScroll from "../components/EventHorizontalScroll";
 import {getBackendURL} from "../Utils"
-import Head from "../components/Head";
+import Title from "../components/Title";
 
 const Profile = () => {
     //URL Params
@@ -97,7 +97,7 @@ const Profile = () => {
     {
         return (
             <>
-            <Head title={userData?.f_name && userData?.l_name ? `${capatalize(userData?.f_name)} ${capatalize(userData?.l_name)} Profile` : "Profile"} />
+            <Title title={userData?.f_name && userData?.l_name ? `${capatalize(userData?.f_name)} ${capatalize(userData?.l_name)} Profile` : "Profile"} />
             <br />
                 <Container> 
                     <div style={{textAlign: "left"}}>
@@ -124,12 +124,12 @@ const Profile = () => {
                                             </Row>
                                             <Row>
                                                 <Col xs={colSize.xs} sm={colSize.sm} md={colSize.md} lg={colSize.lg} xl={colSize.xl}><h5>Location</h5></Col>
-                                                <Col><p>{userLocation ? userLocation.results[0].formatted_address : userData?.zip}</p></Col>
+                                                <Col><p>{userLocation && userLocation?.results?.length > 0 ? userLocation.results[0].formatted_address : userData?.zip}</p></Col>
                                                 <hr />
                                             </Row>
                                             <Row>
                                                 <Col xs={colSize.xs} sm={colSize.sm} md={colSize.md} lg={colSize.lg} xl={colSize.xl}><h5>Instruments</h5></Col>
-                                                <Col><p>{userData?.Instruments.length > 0 ? userData?.Instruments.map(instrument => instrument.name).join(', ') : "None"}</p></Col>
+                                                <Col><p>{userData?.Instruments?.length > 0 ? userData?.Instruments.map(instrument => instrument.name).join(', ') : "None"}</p></Col>
                                                 <hr />
                                             </Row>
                                         </Col>

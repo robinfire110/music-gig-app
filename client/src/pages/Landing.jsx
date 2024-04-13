@@ -8,7 +8,7 @@ import { ClipLoader } from "react-spinners";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
 import { getBackendURL, getEventOwner, toastError, toastInfo, toastSuccess } from "../Utils"
-import Head from "../components/Head";
+import Title from "../components/Title";
 
 function Landing() {
     //Varaibles
@@ -193,13 +193,13 @@ function Landing() {
     //Loading
     return (
         <div>
-            <Head title="Home"/>
+            <Title title="Home"/>
             <Container>
                 <Row>
-                    <Col lg={5} className="text-end">
+                    <Col xl={5} lg={4} md={4} className={"text-lg-end text-md-end text-sm-center"}>
                         <img src={require('../img/logo-circle.png')} height={200}></img>
                     </Col>
-                    <Col className="my-auto text-start">
+                    <Col className="my-auto text-lg-start text-md-start text-sm-middle">
                         <h1>Harmonize</h1>
                         <br />
                         <h3>Connecting musicians and organizers.</h3>

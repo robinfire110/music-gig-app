@@ -11,7 +11,7 @@ import { getBackendURL } from "../Utils";
 import Select from 'react-select';
 import axios from "axios";
 import moment from "moment/moment";
-import Head from "../components/Head";
+import Title from "../components/Title";
 
 const Events = () => {
 
@@ -124,7 +124,7 @@ const Events = () => {
 
     return (
         <div>
-            <Head title={"Events"} />
+            <Title title={"Events"} />
             <hr />
             <Container style={{ textAlign: "left" }}>
                 <Form onSubmit={handleSearch}>

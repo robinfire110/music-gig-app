@@ -10,6 +10,7 @@ function EventCard({eventId}) {
     const descriptionCharacterLimit = 200;
     const [eventData, setEventData] = useState();
     const [owner, setOwner] = useState()
+    const [deviceType, setDeviceType] = useState("browser");
     
     //Call API
     useEffect(() => {
@@ -20,14 +21,24 @@ function EventCard({eventId}) {
 
             //Get owner
             setOwner(getEventOwner(res.data));
+
+            //Set update style
+            window.addEventListener("resize", updateStyle); 
         }).catch(error => {
             console.log(error);
         });
     }, [])
 
+    //Update style based on width
+    function updateStyle()
+    {
+        if (window.innerWidth >= 992) setDeviceType("browser");
+        else setDeviceType("mobile");
+    }
+
     return (
         <div>
-        <Card className="m-2 shadow-sm" style={{backgroundColor: "#e3e3e3", width: "22rem", height: "28rem", marginLeft: "auto", marginRight: "auto", textAlign: "left"}}>
+        <Card className="m-2 shadow-sm" style={{backgroundColor: "#e3e3e3", width: deviceType == "browser" ? "23rem" : "18rem", height: "28rem", marginLeft: "auto", marginRight: "auto", textAlign: "left"}}>
             <Card.Header>
                 <Card.Title><Link to={`/event/${eventId}`} style={{color: "#000"}}><h4>{eventData && eventData.event_name}</h4></Link></Card.Title>
                 <h6>Posted by:</h6> {owner && <Link to={`/profile/${owner.user_id}`} style={{color: "#000"}}>{owner.f_name} {owner.l_name}</Link>}
