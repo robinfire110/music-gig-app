@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const schedule = require('node-schedule');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
@@ -50,10 +51,18 @@ app.use(cors({
 }));
 app.use(cookieParser());
 
+//Gas price automation
+const gasPricePull = schedule.scheduleJob('0 0 4 * * *', () => {
+    console.log("Getting Gas Price", new Date());
+    getGasPrices();
+});
+
 // Database setup
 app.listen(port, async () => {
     await connectToDatabase();
     await sequelize.sync({ alter: false });
+
+    //Run Scripts
     //importInstruments();
     //fixData();
     console.log(`Server is running at http://localhost:${port}`);
