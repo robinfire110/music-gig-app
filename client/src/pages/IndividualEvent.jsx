@@ -162,7 +162,7 @@ const IndividualEvent = () => {
                     html:
                     `<h2>Application Recieved!</h2>
                     <p><a href="https://harmonize.rocks/profile/${user.user_id}">${user.f_name} ${user.l_name}</a> has submitted an application for your <a href="https://harmonize.rocks/event/${event.event_id}">${event.event_name}</a> event. You can review this, and all current applications, on the event page.</p>
-                    <p>Below is the application information, including a contact email${isMessage ? "and a message from the user." : "."}
+                    <p>Below is the application information, including a contact email${isMessage ? " and a message from the user." : "."}
                     <br>
                     <p><b>Contact Email: </b>${applyModalData.email}</p>
                     ${isMessage ? `<p><b>Message:</b> ${applyModalData.message}</p>` : ""}

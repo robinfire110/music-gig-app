@@ -62,10 +62,20 @@ router.post("/email", checkUser, async (req, res) => {
 
         //Add to queue
         const intialLength = emailQueue.length;
-        emailQueue.push(req.body);
-        //if (intialLength <= 0) sendEmail(); //Uncomment later (emails are currently being blocked, I'm hoping it decides to change it's mind or we make a new address.)
-        console.log(`Email to ${req.body.to} added to queue.`)
-        res.status(200).send(`Email to ${req.body.to} added to queue.`);
+
+        if (!req.body.to.includes("@test.com"))
+        {
+            emailQueue.push(req.body);
+            if (intialLength-1 <= 0) sendEmail();
+            console.log(`Email to ${req.body.to} added to queue.`)
+            res.status(200).send(`Email to ${req.body.to} added to queue.`);
+        }
+        else
+        {
+            console.log(`Testing email detected, not added to queue.`)
+            res.status(200).send(`Testing email detected, not added to queue.`);
+        }
+        
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -78,8 +88,9 @@ async function sendEmail()
     {   
         try {
             //Filter data (strip HTML tags)
-            if (data?.text) data.text = striptags(data.text);
-            if (data?.html) data.html = striptags(data.html);
+            const includeTags = ['br', 'b', 'i', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']
+            if (data?.text) data.text = striptags(data.text, includeTags);
+            if (data?.html) data.html = striptags(data.html, includeTags);
 
             const info = await transporter.sendMail({
                 from: 'Harmonize <harmonizeapp@outlook.com>',
