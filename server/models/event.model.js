@@ -78,5 +78,20 @@ module.exports = (sequelize,Sequelize) => {
     }
   };
 
+  Event.deleteByEventId = async function(eventId) {
+    try {
+      const deletedEvent = await Event.destroy({
+        where: {
+          event_id: eventId
+        }
+      });
+
+      return deletedEvent;
+
+    } catch (error) {
+      throw new Error('Error deleting event by event ID: ' + error.message);
+    }
+  };
+
   return Event;
 };

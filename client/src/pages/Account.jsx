@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -13,6 +13,7 @@ import Financials from "./dashboards/Financials";
 import AdminActions from "./dashboards/AdminActions";
 import { getBackendURL } from "../Utils"
 import Title from '../components/Title';
+import ConfirmationModal from "./dashboards/ConfirmationModal";
 
 
 function Account() {
@@ -26,6 +27,8 @@ function Account() {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedContent, setSelectedContent] = useState('');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [eventToDelete, setEventToDelete] = useState(null);
 
 
     useEffect(() => {
@@ -226,14 +229,44 @@ function Account() {
         // }
     };
 
-    function truncateText(text, maxLength = 75) {
+    const handleDeleteEvent = async (event) => {
+        try {
+            const response = await axios.post(`${getBackendURL()}/delete-event`,
+                event , {
+                    withCredentials: true
+                });
+            if (response.data.success) {
+                toast.success(`Successfully deleted listing ${event.event_name}`, { theme: 'dark' }, { theme: 'dark' });
+                window.location.reload();
+            } else {
+                console.error('Failed to delete listing:', response.data.message);
+            }
+
+        } catch (error) {
+            console.error('Error deleting event:', error);
+            toast.error('Failed to delete event', { theme: 'dark' });
+        } finally {
+            handleCloseDeleteModal();
+        }
+    };
+
+    const handleShowDeleteModal = (event) => {
+        setEventToDelete(event);
+        setShowDeleteModal(true);
+    };
+
+    const handleCloseDeleteModal = () => {
+        setShowDeleteModal(false);
+        setEventToDelete(null);
+    };
+
+    function truncateText(text, maxLength = 50) {
         if (text.length <= maxLength) {
             return text;
         } else {
             return text.substring(0, maxLength) + '...';
         }
     }
-
 
     const renderContent = () => {
         switch(selectedContent) {
@@ -286,22 +319,57 @@ function Account() {
                             </div>
                             <div className="card-container">
                                 {gigs.filter(gig => gig.status === 'owner').slice(0, 4).map((gig) => (
-                                    <a key={gig.event_id} href={`/event/${gig.event_id}`} className="custom-card">
+                                    <div
+                                        key={gig.event_id}
+                                        className="custom-card"
+                                        onClick={() => navigate(`/event/${gig.event_id}`)}
+                                    >
                                         <div className="card-body">
                                             <h5 className="card-title">{gig.event_name}</h5>
                                             <p className="card-text">{truncateText(gig.description)}</p>
+                                            <div className="card-buttons">
+
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    className="edit-button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigate(`/form/${gig.event_id}`);
+                                                    }}
+                                                >
+                                                    Edit
+                                                </Button>
+
+
+                                                <Button
+                                                    variant="danger"
+                                                    className="delete-button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleShowDeleteModal(gig);
+                                                    }}
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </a>
+                                    </div>
                                 ))}
                             </div>
+
                         </div>
                     )}
                     {selectedContent && renderContent()}
                 </div>
             </Container>
+            <ConfirmationModal
+                show={showDeleteModal}
+                handleClose={handleCloseDeleteModal}
+                message="Are you sure you want to delete this event?"
+                onConfirm={() => handleDeleteEvent(eventToDelete)}
+            />
         </div>
     );
-
 }
 
 export default Account;

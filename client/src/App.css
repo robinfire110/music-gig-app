@@ -126,4 +126,18 @@
   color: inherit;
 }
 
+.edit-button {
+  margin-right: 10px;
+  border: none;
+}
+
+.delete-button {
+  border: none;
+}
+.custom-card:hover {
+  cursor: pointer;
+}
+
+
+
 

@@ -321,6 +321,7 @@ module.exports.removeUser = async (req, res, next) => {
 	}
 }
 
+//admin to reset password
 module.exports.resetUserPassword = async (req, res, next) => {
 	try {
 		if (!req.user.isAdmin) {
@@ -337,6 +338,8 @@ module.exports.resetUserPassword = async (req, res, next) => {
 	}
 };
 
+
+//admin to delete user posts
 module.exports.deleteUserPost = async  (req,res,next) => {
 	try {
 		if (!req.user.isAdmin) {
@@ -358,6 +361,23 @@ module.exports.deleteUserPost = async  (req,res,next) => {
 	}
 }
 
+
+//user to delete their own events
+module.exports.deleteEvent = async (req, res, next) => {
+	try {
+		const eventId = req.body.event_id;
+		const result = await db.Event.deleteByEventId(eventId);
+
+		if (result) {
+			res.status(200).json({ success: true, message: "Event deleted successfully" });
+		} else {
+			res.status(404).json({ error: 'Event not found' });
+		}
+	} catch (error) {
+		console.error("Error deleting event:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+}
 
 
 
