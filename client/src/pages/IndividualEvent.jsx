@@ -11,6 +11,7 @@ import {createToast, formatCurrency, getEventOwner, sendEmail, toastError, toast
 import {getBackendURL} from "../Utils";
 import { toast } from "react-toastify";
 import TooltipButton from "../components/TooltipButton";
+import Title from "../components/Title";
 
 const IndividualEvent = () => {
     const [event, setEvent] = useState();
@@ -161,7 +162,7 @@ const IndividualEvent = () => {
                     html:
                     `<h2>Application Recieved!</h2>
                     <p><a href="https://harmonize.rocks/profile/${user.user_id}">${user.f_name} ${user.l_name}</a> has submitted an application for your <a href="https://harmonize.rocks/event/${event.event_id}">${event.event_name}</a> event. You can review this, and all current applications, on the event page.</p>
-                    <p>Below is the application information, including a contact email${isMessage ? "and a message from the user." : "."}
+                    <p>Below is the application information, including a contact email${isMessage ? " and a message from the user." : "."}
                     <br>
                     <p><b>Contact Email: </b>${applyModalData.email}</p>
                     ${isMessage ? `<p><b>Message:</b> ${applyModalData.message}</p>` : ""}
@@ -304,6 +305,7 @@ const IndividualEvent = () => {
 
     return (
         <div>
+            <Title title={event?.event_name ? event.event_name : "Event"} />
             <hr />
             <Container> 
                 <div style={{textAlign: "left"}}>
@@ -397,10 +399,10 @@ const IndividualEvent = () => {
                                 </Card.Header>
                                 <Card.Body>
                                     <Row>
-                                        <Col><h5>Posted by - {event.Users && event.Users.length > 0 && (event.Users && <Link to={`/profile/${event.Users[0].user_id}`} style={{ color: "#000" }}>{event.Users[0].f_name} {event.Users[0].l_name}</Link>)}</h5></Col>
+                                        <Col><h5>Posted by - {event.Users && event.Users.length > 0 && (event.Users && <Link to={`/profile/${owner.f_name}`} style={{ color: "#000" }}>{owner.f_name} {owner.l_name}</Link>)}</h5></Col>
                                     </Row>
                                     <Row>
-                                        <Col><h5>Contact - {event.Users[0].email} </h5></Col>
+                                        <Col><h5>Contact - {owner.email} </h5></Col>
                                     </Row>
                                 </Card.Body>
                             </Card>
@@ -443,7 +445,7 @@ const IndividualEvent = () => {
                                         </>
                                     ) : (
                                         accepted.some(user => user.user_id === currentUser.user_id && user.UserStatus.status === 'accept') ? (
-                                            <h3>You've been accepted for this event, get in touch with <Link to={`/profile/${event.Users[0].user_id}`} style={{ color: "#000" }}>{event.Users[0].f_name} {event.Users[0].l_name}</Link> for more details!</h3>
+                                            <h3>You've been accepted for this event, get in touch with <Link to={`/profile/${owner.user_id}`} style={{ color: "#000" }}>{owner.f_name} {owner.l_name}</Link> for more details!</h3>
                                         ) : (
                                             rejected.some(user => user.user_id === currentUser.user_id && user.UserStatus.status === 'reject') ? (
                                                 <h3>You've not been chosen to participate in this event.</h3>

@@ -8,6 +8,7 @@ import { ClipLoader } from "react-spinners";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
 import { getBackendURL, getEventOwner, toastError, toastInfo, toastSuccess } from "../Utils"
+import Title from "../components/Title";
 
 function Landing() {
     //Varaibles
@@ -65,38 +66,43 @@ function Landing() {
                                 {
                                     axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${30}`).then(res => {
                                         //Filter out our events
-                                        const instrumentEventSearch = res.data.filter((event) => {
-                                            return getEventOwner(event)?.user_id != userData?.user_id;
-                                        });
-                                        
-                                        //Get list of locations
-                                        const zipList = [];
-                                        instrumentEventSearch.forEach(event => {
-                                            zipList.push(event.Address.zip);
-                                        });
-
-                                        //Sort by location
-                                        axios.get(`${getBackendURL()}/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
-                                            const distanceMatrixData = res.data.rows[0].elements;
-                                            //Add to data
-                                            for (let i = 0; i < instrumentEventSearch.length; i++)
-                                            {
-                                                if (distanceMatrixData[i].status == "OK" && distanceMatrixData[i].distance)
-                                                {
-                                                    instrumentEventSearch[i]["distance"] = distanceMatrixData[i].distance.value;
-                                                }
-                                                else 
-                                                {
-                                                    instrumentEventSearch[i]["distance"] = 9999;
-                                                }
-                                            }
+                                        const data = res.data;
+                                        if (data && data?.length > 0)
+                                        {
+                                            const instrumentEventSearch = data.filter(event => {
+                                                return getEventOwner(event)?.user_id != userData?.user_id
+                                            });
                                             
-                                            //Sort
-                                            instrumentEventSearch.sort((a, b) => a.distance - b.distance);
-                                            console.log("Got Relevant");
-                                            setRelevantEvents(instrumentEventSearch.slice(0, Math.min(relevantNum, instrumentEventSearch.length)));
-                                            setIsLoading(false);
-                                        })
+                                            //Get list of locations
+                                            const zipList = [];
+                                            instrumentEventSearch.forEach(event => {
+                                                zipList.push(event.Address.zip);
+                                            });
+
+                                            //Sort by location
+                                            axios.get(`${getBackendURL()}/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
+                                                const distanceMatrixData = res.data.rows[0].elements;
+                                                //Add to data
+                                                for (let i = 0; i < instrumentEventSearch.length; i++)
+                                                {
+                                                    if (distanceMatrixData[i].status == "OK" && distanceMatrixData[i].distance)
+                                                    {
+                                                        instrumentEventSearch[i]["distance"] = distanceMatrixData[i].distance.value;
+                                                    }
+                                                    else 
+                                                    {
+                                                        instrumentEventSearch[i]["distance"] = 9999;
+                                                    }
+                                                }
+                                                
+                                                //Sort
+                                                instrumentEventSearch.sort((a, b) => a.distance - b.distance);
+                                                console.log("Got Relevant");
+                                                setRelevantEvents(instrumentEventSearch.slice(0, Math.min(relevantNum, instrumentEventSearch.length)));
+                                                setIsLoading(false);
+                                            })
+                                        }
+                                        else setGetRecent(true);
                                     })
                                 }
                                 else setGetRecent(true);
@@ -192,13 +198,18 @@ function Landing() {
     //Loading
     return (
         <div>
+            <Title title="Home"/>
             <Container>
-                <h1>Harmonize</h1>
-                <br />
-                <h3>Connecting musicians and organizers.</h3>
-                <br />
-                <br />
-
+                <Row>
+                    <Col xl={5} lg={4} md={4} className={"text-lg-end text-md-end text-sm-center"}>
+                        <img src={require('../img/logo-circle.png')} height={200}></img>
+                    </Col>
+                    <Col className="my-auto text-lg-start text-md-start text-sm-middle">
+                        <h1>Harmonize</h1>
+                        <br />
+                        <h3>Connecting musicians and organizers.</h3>
+                    </Col>
+                </Row>
                 {/* 
                 <Carousel interval={1000}>
                     <Carousel.Item>

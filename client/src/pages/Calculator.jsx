@@ -13,6 +13,7 @@ import {autoSizeColumn, formatCurrency, getCurrentUser, maxFinancialNameLength, 
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
 import {getBackendURL} from "../Utils";
+import Title from "../components/Title";
 
 const Calculator = () => {
     /* Variables */
@@ -138,7 +139,12 @@ const Calculator = () => {
                 else setIsLoading(false);
             }
         }
-        else setIsLoading(false);
+        else
+        {
+            setIsLoading(false);
+            setParamId(null);
+            navigate("/calculator");
+        } 
     }, [user])
     
     //Runs when any fields related to calculation updates.
@@ -369,6 +375,7 @@ const Calculator = () => {
             //Subtract mileage covered
             if (mileageCoveredEnabled && mileageCovered) gasPrice -= parseFloat(mileageCovered);
             gasPrice = parseFloat(totalMileage) * gasPrice;
+            console.log("GasPerMIle", parseFloat(gasPricePerMile), 'MilesCovered', parseFloat(mileageCovered), "Times", parseFloat(totalMileage));
             setTotalGas(gasPrice);
             wage -= gasPrice;
         }
@@ -605,8 +612,8 @@ const Calculator = () => {
 
             //Set formulas
             worksheet.getCell("G2").value = {formula: 'C2*D2'}; //Payment
-            worksheet.getCell("G3").value = {formula: '=G2*(0.01*A14)'}; //Tax Cut
-            worksheet.getCell("G4").value = {formula: 'A8*(C11-C8)'}; //Travel Cost
+            worksheet.getCell("G3").value = {formula: 'G2*(0.01*A14)'}; //Tax Cut
+            worksheet.getCell("G4").value = {formula: 'A8*(ROUND(C11, 2)-C8)'}; //Travel Cost
             worksheet.getCell("G5").value = {formula: 'B14'}; //Other Fees 
             worksheet.getCell("G6").value = {formula: 'G2-G3-G4-G5'}; //Total Income
             worksheet.getCell("G7").value = {formula: '(A5*D2)+B5+C5+B8'}; //Total Hours
@@ -680,6 +687,7 @@ const Calculator = () => {
     {
     return (
         <div>
+            <Title title={"Calculator"} />
             <h2>Calculator</h2>
             <hr />
             <Container className="" style={{textAlign: "left"}}>   
@@ -789,7 +797,7 @@ const Calculator = () => {
                                             <Form.Label>Mileage Covered (in $ per mile)</Form.Label>
                                             <InputGroup>
                                                 <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setMileageCoveredEnabled(!mileageCoveredEnabled)}} checked={mileageCoveredEnabled}></Form.Check>
-                                                <FormNumber id="mileageCovered" maxValue={9.99} value={mileageCovered} placeholder="Ex. 0.21" integer={false} disabled={!mileageCoveredEnabled} onChange={e => setMileageCovered(e.target.value)} />
+                                                <FormNumber id="mileageCovered" maxValue={1} value={mileageCovered} placeholder="Ex. 0.21" integer={false} disabled={!mileageCoveredEnabled} onChange={e => setMileageCovered(e.target.value)} />
                                                 <TooltipButton text="Number of miles that will be covered by organizers. Will subtract from total mileage for final result."/>
                                             </InputGroup>
                                         </Row>

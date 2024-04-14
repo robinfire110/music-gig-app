@@ -7,10 +7,11 @@ import { PaginationControl } from 'react-bootstrap-pagination-control';
 import { ClipLoader } from "react-spinners";
 import EventRow from "../components/EventRow";
 import "../styles/Events.css";
-import { getBackendURL } from "../Utils";
+import { getBackendURL, getEventOwner } from "../Utils";
 import Select from 'react-select';
 import axios from "axios";
 import moment from "moment/moment";
+import Title from "../components/Title";
 
 const Events = () => {
 
@@ -24,6 +25,7 @@ const Events = () => {
     const [selectedInstruments, setSelectedInstruments] = useState([])
     const [currentPage, setCurrentPage] = useState(1);
     const [sort, setSort] = useState("date_posted_asc");
+    const [deviceType, setDeviceType] = useState("browser");
     const countPerPage = 10;
     const navigate = useNavigate();
 
@@ -47,11 +49,20 @@ const Events = () => {
                     //Create instruments
                     setInstruments(configureInstrumentList(data));
                 });
+
+            //Update device type
+            updateDeviceType();
+            window.addEventListener("resize", updateDeviceType); 
             });
         } catch (err) {
             console.log(err)
         }
     }, [])
+
+    const updateDeviceType = () => {
+        if (window.innerWidth >= 992) setDeviceType("browser");
+        else setDeviceType("mobile");
+    }
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -96,9 +107,10 @@ const Events = () => {
     const handleSearch = (event) => {
         event.preventDefault();
         let filteredEvents = events.filter(event => {
+            const owner = getEventOwner(event);
             const eventDate = moment.utc(event.start_time);
             const eventInstruments = event.Instruments ? event.Instruments.map(instrument => instrument.name.toLowerCase()) : [];
-            const containsSearchQuery = !searchQuery || event.event_name.toLowerCase().includes(searchQuery.toLowerCase());
+            const containsSearchQuery = !searchQuery || event.event_name.toLowerCase().includes(searchQuery.toLowerCase()) || owner.f_name.toLowerCase().includes(searchQuery.toLowerCase()) || owner.l_name.toLowerCase().includes(searchQuery.toLowerCase());
             const isInDateRange = startDate ? eventDate.isSameOrAfter(moment.utc(startDate)) && eventDate.isSameOrBefore(moment.utc(endDate)) : true;
             const matchesSelectedInstruments = selectedInstruments.length === 0 || selectedInstruments.some(selected => eventInstruments.includes(selected.value.toLowerCase()))
 
@@ -121,28 +133,55 @@ const Events = () => {
         return instrumentOptionList
     }
 
+    const getHeader = () => {
+        if (deviceType === "browser")
+        {
+            return (
+                <Row>
+                    <Col lg={1}><h5>Date</h5></Col>
+                    <Col lg={2}><h5>Event Name</h5></Col>
+                    <Col lg={1}><h5>Pay</h5></Col>
+                    <Col lg={2}><h5>Instruments</h5></Col>
+                    <Col lg={2}><h5>Organizer</h5></Col>
+                    <Col lg={3}><h5>Address</h5></Col>
+                    <Col lg={1}></Col>
+                </Row>
+            )
+        }
+        else {
+            return (
+                <Row>
+                    <Col><h4>Events</h4></Col>
+                </Row>
+            )
+        }
+    }
+
+
+
     return (
         <div>
+            <Title title={"Events"} />
             <hr />
             <Container style={{ textAlign: "left" }}>
                 <Form onSubmit={handleSearch}>
                     <Row className="mb-3">
-                        <Col lg="2">
+                        <Col lg="2" className="mb-2">
                             <Form.Label>Search by name</Form.Label>
                             <Form.Control type="text" placeholder="Ex. Bar Gig" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                         </Col>
-                        <Col lg="3">
+                        <Col lg="3" className="mb-2">
                             <Form.Label>Search by Instrument</Form.Label>
                             <Select placeholder="Ex. Piano" options={instruments} isMulti onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} required={false}></Select>
                         </Col>
-                        <Col lg="4">
+                        <Col lg="4" className="mb-2">
                             <Form.Label>Date Range</Form.Label>
                             <Row>
-                                <Col className="m-0" lg="6"><Form.Control type="date" placeholder="Start Date" value={startDate} onChange={(e) => setDate(e)} /></Col>
-                                <Col className="m-0" lg="6"><Form.Control type="date" placeholder="End Date" value={endDate} onChange={(e) => setEndDate(e.target.value)} min={startDate}/></Col>
+                                <Col lg="6" sm={6} xs={6}><Form.Control type="date" placeholder="Start Date" value={startDate} onChange={(e) => setDate(e)} /></Col>
+                                <Col lg="6" sm={6} xs={6}><Form.Control type="date" placeholder="End Date" value={endDate} onChange={(e) => setEndDate(e.target.value)} min={startDate}/></Col>
                             </Row>
                         </Col>
-                        <Col lg="2">
+                        <Col lg="2" className="mb-2">
                             <Form.Label>Sort By</Form.Label>
                             <Form.Select value={sort} onChange={(e) => {setSort(e.target.value)}}>
                                 <option value={"date_posted_asc"}>Date Posted (↓)</option>
@@ -166,19 +205,9 @@ const Events = () => {
                 ) : (
                     <Card>
                         <Col>
-                            <Card.Header>
-                                <Row>
-                                    <Col lg={1}><h5>Date</h5></Col>
-                                    <Col lg={2}><h5>Event Name</h5></Col>
-                                    <Col lg={1}><h5>Pay</h5></Col>
-                                    <Col lg={2}><h5>Instruments</h5></Col>
-                                    <Col lg={2}><h5>Organizer</h5></Col>
-                                    <Col lg={3}><h5>Address</h5></Col>
-                                    <Col lg={1}></Col>
-                                </Row>
-                            </Card.Header>
+                            <Card.Header>{getHeader()}</Card.Header>
                             {filteredEvents.slice((currentPage-1)*countPerPage, (currentPage-1)*countPerPage+countPerPage).map((event, index) => (
-                                <EventRow key={event.event_id} index={index} event={event} goToEvent={goToEvent} formatDate={formatDate} />
+                                <EventRow key={event.event_id} index={index} event={event} goToEvent={goToEvent} formatDate={formatDate} deviceType={deviceType}/>
                             ))}
                             {filteredEvents.length <= 0 && <Row className="my-4" style={{textAlign: "center"}}><h4>No events found.</h4></Row>}
                         </Col>

@@ -12,6 +12,7 @@ import Gigs from "./dashboards/Gigs";
 import Financials from "./dashboards/Financials";
 import AdminActions from "./dashboards/AdminActions";
 import { getBackendURL } from "../Utils"
+import Title from '../components/Title';
 
 
 function Account() {
