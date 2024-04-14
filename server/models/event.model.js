@@ -47,17 +47,36 @@ module.exports = (sequelize,Sequelize) => {
     }
   });
 
-  Event.findByEventIds = async function(eventIds) {
+  Event.findByEventIds = async function(eventIds, userStatuses) {
     try {
-      return await Event.findAll({
+      const events = await Event.findAll({
         where: {
           event_id: eventIds
-        }
+        },
+        raw: true
       });
+
+      const formattedEvents = events.map(event => ({
+        ...event,
+        date_posted: new Date(event.date_posted).toLocaleDateString(),
+        start_time: new Date(event.start_time).toLocaleDateString(),
+        end_time: new Date(event.end_time).toLocaleDateString()
+      }));
+
+      //sort by descending so most recent at top
+      formattedEvents.sort((a, b) => new Date(b.date_posted) - new Date(a.date_posted));
+
+      const eventsWithStatus = formattedEvents.map(event => {
+        const status = userStatuses.find(status => status.event_id === event.event_id);
+        return { ...event, status: status ? status.status : null };
+      });
+
+      return eventsWithStatus;
+
     } catch (error) {
       throw new Error('Error retrieving events by event_ids: ' + error.message);
     }
   };
-  
+
   return Event;
 };

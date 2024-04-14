@@ -38,13 +38,13 @@ module.exports = (sequelize, Sequelize, User, Event) => {
   UserStatus.findByUserId = async function(userId) {
     try {
       const userStatuses = await UserStatus.findAll({
-        attributes: ['event_id'],
+        attributes: ['event_id', 'status'],
         where: {
           user_id: userId
         },
         raw: true
       });
-      return userStatuses.map(status => status.event_id);
+      return userStatuses;
     } catch (error) {
       throw new Error('Error retrieving events by user_id: ' + error.message);
     }

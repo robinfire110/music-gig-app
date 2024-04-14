@@ -188,20 +188,21 @@ module.exports.update_user = async (req, res, next) => {
 	}
 };
 
-
+//Events to specific user
 module.exports.getUserEvents = async (req, res, next) => {
 	try {
 		const userId = req.user.user_id;
-		const eventIds = await db.UserStatus.findByUserId(userId);
-		const events = await db.Event.findByEventIds(eventIds);
-		const cleanedEvents = events.map(event => event.dataValues);
+		const userStatuses = await db.UserStatus.findByUserId(userId);
+		const eventIds = userStatuses.map(status => status.event_id);
+		const events = await db.Event.findByEventIds(eventIds, userStatuses);
 
-		res.status(200).json({ userGigs: cleanedEvents });
+		res.status(200).json({ userGigs: events });
 	} catch (error) {
 		console.error('Error fetching user events:', error);
 		throw new Error('Failed to fetch user events');
 	}
 }
+
 
 
 module.exports.getUserFinancials = async (req,res, next) => {
@@ -218,6 +219,7 @@ module.exports.getUserFinancials = async (req,res, next) => {
 	}
 }
 
+//Admin func to get all users
 module.exports.getUsers = async (req,res,next) => {
 	try{
 		if (req.user.isAdmin) {
@@ -232,6 +234,7 @@ module.exports.getUsers = async (req,res,next) => {
 	}
 }
 
+//Admin func to get all events
 module.exports.getEvents = async (req, res, next) => {
 	try {
 		if (req.user.isAdmin) {

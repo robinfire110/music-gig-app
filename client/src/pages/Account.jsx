@@ -5,7 +5,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import Sidebar from './dashboards/Sidebar';
 import Spinner from 'react-bootstrap/Spinner';
-import {Card, Col, Container, Row} from "react-bootstrap";
+import {Button, Card, Col, Container, Row} from "react-bootstrap";
 import "../App.css";
 import EditProfile from "./dashboards/EditProfile";
 import Gigs from "./dashboards/Gigs";
@@ -37,6 +37,7 @@ function Account() {
                     const { data } = await axios.get(`${getBackendURL()}/account`, { withCredentials: true });
                     setUserData(data.user);
                     setIsAdmin(data.user.isAdmin);
+                    console.log(data.user)
                     toast(`hi ${data.user.f_name}`, { theme: 'dark' });
                 } catch (error) {
                     removeCookie('jwt');
@@ -55,6 +56,7 @@ function Account() {
             try {
                 const { data } = await axios.get(`${getBackendURL()}/user-gigs`, { withCredentials: true });
                 setGigs(data.userGigs);
+                console.log(data.userGigs)
             } catch (error) {
                 console.error('Error fetching user gigs:', error);
             }
@@ -224,6 +226,15 @@ function Account() {
         // }
     };
 
+    function truncateText(text, maxLength = 75) {
+        if (text.length <= maxLength) {
+            return text;
+        } else {
+            return text.substring(0, maxLength) + '...';
+        }
+    }
+
+
     const renderContent = () => {
         switch(selectedContent) {
             case 'dashboard':
@@ -265,24 +276,22 @@ function Account() {
                 </div>
             </Container>
             <Container>
+                <Title title={"Account"} />
                 <div className="content">
                     {selectedContent === '' && (
                         <div>
                             <h2 style={{ marginBottom: '20px', display: 'block' }}>{dashboardTitle}</h2>
-                            <button
-                                style={{ marginTop: '20px', marginBottom: '20px', display: 'block', background: 'none', border: 'none', cursor: 'pointer' }}
-
-                            >
-                                <h4>Gigs</h4>
-                            </button>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
-                                {gigs.slice(0, 3).map((gig) => (
-                                    <Card key={gig.event_id} style={{ width: 'calc(33.33% - 20px)' }}>
-                                        <Card.Body>
-                                            <Card.Title>{gig.event_name}</Card.Title>
-                                            <Card.Text>{gig.description}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
+                            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h4>Your Recent Listings</h4>
+                            </div>
+                            <div className="card-container">
+                                {gigs.filter(gig => gig.status === 'owner').slice(0, 4).map((gig) => (
+                                    <a key={gig.event_id} href={`/event/${gig.event_id}`} className="custom-card">
+                                        <div className="card-body">
+                                            <h5 className="card-title">{gig.event_name}</h5>
+                                            <p className="card-text">{truncateText(gig.description)}</p>
+                                        </div>
+                                    </a>
                                 ))}
                             </div>
                         </div>
@@ -292,6 +301,7 @@ function Account() {
             </Container>
         </div>
     );
+
 }
 
 export default Account;
