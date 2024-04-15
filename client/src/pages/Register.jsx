@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from 'react-router-dom';
 import {toast, ToastContainer} from 'react-toastify';
 import { Button, Form } from 'react-bootstrap';
@@ -9,6 +9,8 @@ import { getBackendURL } from "../Utils"
 
 const Register = () => {
 	const navigate = useNavigate();
+	const [instruments, setInstruments] = useState([])
+	const [selectedInstruments, setSelectedInstruments] = useState([])
 	const [values, setValues] = useState({
 		email: '',
 		password: '',
@@ -18,6 +20,16 @@ const Register = () => {
 		instruments: '',
 		bio: ''
 	});
+
+	useEffect(() => {
+		axios.get(`${getBackendURL()}/instrument/`).then(async (res) => {
+			//Create instruments
+			setInstruments(res.data);
+			console.log(res.data)
+		}).catch(error => {
+			console.log(error);
+		});
+	}, []);
 
 	const generateError = (err) => toast.error(err, {
 		position: "bottom-right",
@@ -124,15 +136,22 @@ const Register = () => {
 					</Form.Group>
 
 					<Form.Group className="mb-3" controlId="formBasicInstruments">
-						<Form.Label>Instruments</Form.Label>
-						<Form.Control
-							type="text"
-							placeholder="Enter instruments you play"
+						<Form.Label>Instruments (select multiple)</Form.Label>
+						<Form.Select
 							name="instruments"
-							value={values.instruments}
-							onChange={handleChange}
-						/>
+							value={selectedInstruments}
+							onChange={(e) => setSelectedInstruments(Array.from(e.target.selectedOptions, option => option.value))}
+							multiple
+							required
+						>
+							{instruments.map(instrument => (
+								<option key={instrument.instrument_id} value={instrument.instrument_id}>
+									{instrument.name}
+								</option>
+							))}
+						</Form.Select>
 					</Form.Group>
+
 
 					<Form.Group className="mb-3" controlId="formBasicBio">
 						<Form.Label>Bio</Form.Label>
