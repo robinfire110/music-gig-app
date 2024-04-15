@@ -60,6 +60,7 @@ const EventForm = () => {
             setInstruments(configureInstrumentList(res.data));
         }).catch(error => {
             console.log(error);
+            setLoading(false);
         });
 
         //get user
@@ -102,6 +103,7 @@ const EventForm = () => {
         
                             setStartDate(startDate);
                             setEndDate(endDate);
+                            setLoading(false);
                         }
                         else
                         {
@@ -115,14 +117,17 @@ const EventForm = () => {
                     });
                 } else {
                     setOwnerId(null);
+                    setLoading(false);
                 }
 
+            }).catch(error => {
+                setLoading(false);
             })
-            setLoading(false);
         }
         else
         {
             setUserLoggedIn(false);
+            setLoading(false);
         }
         
     }, [cookies.jwt]);
@@ -221,7 +226,7 @@ const EventForm = () => {
     const configureInstrumentList = (data) => {
         const instrumentOptionList = []
         data.forEach(instrument => {
-            instrumentOptionList.push({value: instrument.name, label: instrument.name});
+            instrumentOptionList.push({value: instrument.instrument_id, label: instrument.name});
         });
         return instrumentOptionList
     }
@@ -264,6 +269,8 @@ const EventForm = () => {
 
                 //prepare data to be sent to database with event details
                 const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, is_listed: isListed };
+                console.log(eventData);
+                console.log("Instruments", instrumentsList);
 
                 //if an id is present, that means the event already exists and we need to put
                 if (id) {
@@ -274,7 +281,7 @@ const EventForm = () => {
                 } else {
                     //event does not exist, so make a post
                     setIsSubmitting(false);
-                    const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, is_listed: isListed };
+                    const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, is_listed: isListed };
                     const response = await axios.post(`${getBackendURL()}/event/`, eventData, { withCredentials: true })
                     const newEventId = response.data.newEvent.event_id;
                     navigate(`../event/${newEventId}`);
