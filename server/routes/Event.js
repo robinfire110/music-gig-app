@@ -150,6 +150,7 @@ router.post("/", checkUser, async (req, res) => {
         //Get data
         const data = req.body;
         const addressData = data.address;
+        console.log(data);
 
         //Check user
         if (!(req.user && (req.user.user_id == data.user_id || req.user.isAdmin == 1)))
