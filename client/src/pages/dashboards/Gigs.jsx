@@ -128,6 +128,7 @@ function Gigs({ userData, gigs, onDeleteEvent }) {
 				</Tab>
 
 				<Tab eventKey="applied" title="Active">
+					<h2 className="current-listings-header">All your current Listings</h2>
 					<div className="listings-card-container">
 						{gigs
 							.filter(gig => gig.is_listed && gig.status === 'owner')
@@ -176,6 +177,28 @@ function Gigs({ userData, gigs, onDeleteEvent }) {
 													</Button>
 												</>
 											)}
+										</div>
+									</div>
+								</div>
+							))}
+					</div>
+
+					<h2 className="current-listings-header">Your upcoming Events</h2>
+					<div className="listings-card-container">
+						{gigs
+							.filter(gig => gig.status === 'accept')
+							.map((gig) => (
+								<div
+									key={gig.event_id}
+									className="listings-custom-card"
+									onClick={() => navigate(`/event/${gig.event_id}`)}
+								>
+									<div className="card-body">
+										<h5 className="card-title">{gig.event_name}</h5>
+										<p className="card-text">{truncateText(gig.description)}</p>
+										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+										<div className="card-buttons">
+											{/* Buttons for upcoming events */}
 										</div>
 									</div>
 								</div>
