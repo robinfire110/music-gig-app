@@ -355,7 +355,7 @@ function Account() {
                                 <h4>Your Recent Listings</h4>
                             </div>
                             <div className="card-container">
-                                {gigs.filter(gig => gig.status === 'owner').slice(0, 4).map((gig) => (
+                                {gigs.filter(gig => gig.status === 'owner' && gig.is_listed === 1).slice(0, 4).map((gig) => (
                                     <div
                                         key={gig.event_id}
                                         className="custom-card"

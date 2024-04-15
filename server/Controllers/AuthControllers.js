@@ -396,8 +396,10 @@ module.exports.deleteEvent = async (req, res, next) => {
 //owner can also unlist their own events
 module.exports.unlistEvent = async (req, res, next) => {
 	try {
+		console.log("make it to unlistEvent")
+
 		const eventId = req.body.event_id;
-		const userId = req.user.id;
+		const userId = req.user.user_id;
 
 		const userStatus = await db.UserStatus.findOne({
 			where: {

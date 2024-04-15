@@ -64,7 +64,18 @@ function Gigs({ userData, gigs, onDeleteEvent }) {
 									<p className="card-text">{truncateText(gig.description)}</p>
 									<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 									<div className="card-buttons">
-										{gig.status === 'owner' ? (
+										{gig.status === 'owner' && gig.is_listed === 0 ? (
+											<Button
+												variant="danger"
+												className="delete-button"
+												onClick={(e) => {
+													e.stopPropagation();
+													handleDeleteEvent(gig);
+												}}
+											>
+												Delete
+											</Button>
+										) : gig.status === 'owner' ? (
 											<>
 												<Button
 													variant="outline-secondary"
@@ -115,6 +126,7 @@ function Gigs({ userData, gigs, onDeleteEvent }) {
 						))}
 					</div>
 				</Tab>
+
 				<Tab eventKey="applied" title="Active">
 					<div className="listings-card-container">
 						{gigs
@@ -251,40 +263,19 @@ function Gigs({ userData, gigs, onDeleteEvent }) {
 										<p className="card-text">{truncateText(gig.description)}</p>
 										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 										<div className="card-buttons">
-											{gig.status === 'owner' ? (
-												<>
-													<Button
-														variant="outline-secondary"
-														className="edit-button"
-														onClick={(e) => {
-															e.stopPropagation();
-															navigate(`/form/${gig.event_id}`);
-														}}
-													>
-														Edit
-													</Button>
-													<Button
-														variant="outline-danger"
-														className="unlist-button"
-														onClick={(e) => {
-															e.stopPropagation();
-															handleUnlistEvent(gig);
-														}}
-													>
-														Unlist
-													</Button>
-													<Button
-														variant="danger"
-														className="delete-button"
-														onClick={(e) => {
-															e.stopPropagation();
-															handleDeleteEvent(gig);
-														}}
-													>
-														Delete
-													</Button>
-												</>
-											) : gig.status === 'applied' ? (
+											{gig.status === 'owner' && (
+												<Button
+													variant="danger"
+													className="delete-button"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleDeleteEvent(gig);
+													}}
+												>
+													Delete
+												</Button>
+											)}
+											{gig.status === 'applied' && (
 												<Button
 													variant="outline-danger"
 													className="withdraw-button"
@@ -295,13 +286,14 @@ function Gigs({ userData, gigs, onDeleteEvent }) {
 												>
 													Withdraw
 												</Button>
-											) : null}
+											)}
 										</div>
 									</div>
 								</div>
 							))}
 					</div>
 				</Tab>
+
 
 
 			</Tabs>
