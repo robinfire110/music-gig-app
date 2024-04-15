@@ -366,6 +366,20 @@ module.exports.deleteUserPost = async  (req,res,next) => {
 module.exports.deleteEvent = async (req, res, next) => {
 	try {
 		const eventId = req.body.event_id;
+		const userId = req.user.id;
+
+		// Make sure it is their event to delete
+		const userStatus = await db.UserStatus.findOne({
+			where: {
+				user_id: userId,
+				event_id: eventId
+			}
+		});
+
+		if (!userStatus || userStatus.status !== 'owner') {
+			return res.status(403).json({ error: 'Forbidden: You are not authorized to delete this event' });
+		}
+
 		const result = await db.Event.deleteByEventId(eventId);
 
 		if (result) {
@@ -378,6 +392,37 @@ module.exports.deleteEvent = async (req, res, next) => {
 		res.status(500).json({ error: "Internal server error" });
 	}
 }
+
+//owner can also unlist their own events
+module.exports.unlistEvent = async (req, res, next) => {
+	try {
+		const eventId = req.body.event_id;
+		const userId = req.user.id;
+
+		const userStatus = await db.UserStatus.findOne({
+			where: {
+				user_id: userId,
+				event_id: eventId
+			}
+		});
+
+		if (!userStatus || userStatus.status !== 'owner') {
+			return res.status(403).json({ error: 'Forbidden: You are not authorized to unlist this event' });
+		}
+
+		const result = await db.Event.unlistByEventId(eventId);
+
+		if (result) {
+			res.status(200).json({ success: true, message: "Event unlisted successfully" });
+		} else {
+			res.status(404).json({ error: 'Event not found' });
+		}
+	} catch (error) {
+		console.error("Error unlisting event:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
 
 
 

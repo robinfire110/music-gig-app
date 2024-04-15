@@ -93,5 +93,21 @@ module.exports = (sequelize,Sequelize) => {
     }
   };
 
+  Event.unlistByEventId = async function (eventId) {
+    try {
+      const updatedEvent = await Event.update({ is_listed: false }, {
+        where: {
+          event_id: eventId
+        }
+      });
+
+      return updatedEvent;
+
+    } catch (error) {
+      throw new Error('Error unlisting event by event ID: ' + error.message);
+    }
+  };
+
+
   return Event;
 };

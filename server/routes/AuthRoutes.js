@@ -20,5 +20,6 @@ router.post("/remove-user", checkUser, removeUser)
 router.post("/reset-user-password", checkUser, resetUserPassword)
 router.post("/remove-user-post", checkUser, deleteUserPost)
 router.post("/delete-event", checkUser, deleteEvent)
+router.post("/unlist-event", checkUser, deleteEvent)
 
 module.exports = {router};

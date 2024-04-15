@@ -29,6 +29,9 @@ function Account() {
     const [selectedContent, setSelectedContent] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [eventToDelete, setEventToDelete] = useState(null);
+    const [showUnlistModal, setShowUnlistModal] = useState(false);
+    const [eventToUnlist, setEventToUnlist] = useState(null);
+
 
 
     useEffect(() => {
@@ -250,6 +253,39 @@ function Account() {
         }
     };
 
+    const handleUnlistEvent = async (event) => {
+        try {
+            const response = await axios.post(`${getBackendURL()}/unlist-event`,
+                event , {
+                    withCredentials: true
+                });
+            if (response.data.success) {
+                toast.success(`Successfully unlisted event ${event.event_name}`, { theme: 'dark' });
+                // Perform any additional actions after unlisting the event if needed
+            } else {
+                console.error('Failed to unlist event:', response.data.message);
+            }
+
+        } catch (error) {
+            console.error('Error unlisting event:', error);
+            toast.error('Failed to unlist event', { theme: 'dark' });
+        } finally {
+            handleCloseUnlistModal();
+        }
+    };
+
+
+    const handleShowUnlistModal = (event) => {
+        setEventToUnlist(event);
+        setShowUnlistModal(true);
+    }
+
+    const handleCloseUnlistModal = () => {
+        setShowUnlistModal(false);
+        setEventToUnlist(null);
+    };
+
+
     const handleShowDeleteModal = (event) => {
         setEventToDelete(event);
         setShowDeleteModal(true);
@@ -274,7 +310,8 @@ function Account() {
                 window.location.reload();
                 return null;
             case 'editProfile':
-                return <EditProfile userData={userData} />;
+                return <EditProfile userData={userData}
+                                    onDeleteEvent={handleDeleteEvent}/>;
             case 'gigs':
                 return <Gigs userData={userData} gigs={gigs} />;
             case 'financials':
@@ -339,6 +376,16 @@ function Account() {
                                                 >
                                                     Edit
                                                 </Button>
+                                                <Button
+                                                    variant="outline-danger"
+                                                    className="unlist-button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleShowUnlistModal(gig);
+                                                    }}
+                                                >
+                                                    Unlist
+                                                </Button>
 
 
                                                 <Button
@@ -367,6 +414,12 @@ function Account() {
                 handleClose={handleCloseDeleteModal}
                 message="Are you sure you want to delete this event?"
                 onConfirm={() => handleDeleteEvent(eventToDelete)}
+            />
+            <ConfirmationModal
+                show={showUnlistModal}
+                handleClose={handleCloseUnlistModal}
+                message="Are you sure you want to unlist this event?"
+                onConfirm={() => handleUnlistEvent(eventToUnlist)}
             />
         </div>
     );
