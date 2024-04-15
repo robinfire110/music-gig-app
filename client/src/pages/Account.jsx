@@ -353,7 +353,7 @@ function Account() {
                         <div>
                             <h2 style={{ marginBottom: '20px', display: 'block' }}>{dashboardTitle}</h2>
                             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h4>Your Recent Listings</h4>
+                                <h4>Recent Activity</h4>
                             </div>
                             <div className="card-container">
                                 {gigs.filter(gig => gig.status === 'owner' && gig.is_listed === 1).slice(0, 4).map((gig) => (

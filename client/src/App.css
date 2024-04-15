@@ -167,3 +167,10 @@
   display: flex;
   margin-top: 20px;
 }
+
+.button-container {
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+

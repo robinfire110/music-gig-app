@@ -66,9 +66,17 @@ function Financials({ financials, onDeleteFinancial }) {
 			<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 				<h2>Financials</h2>
 				<div>
-					<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewCalc}>Calculate New Wage </Button>
-					<Button variant="success"  onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export All to Spread Sheet</Button>
-					<Button variant="success"  onClick={handleExportToSpreadsheet} disabled={selectedRows.length === 0}>Export Individual Spread Sheet</Button>
+					<div className="button-container">
+						<Button className="btn btn-dark mr-2" variant="primary" onClick={handleCreateNewCalc}>Calculate New Wage </Button>
+					</div>
+					<div className="button-container">
+						<Button variant="success mr-2"  onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export All to Spread Sheet</Button>
+					</div>
+					<div className="button-container">
+						<Button variant="success mr-2"  onClick={handleExportToSpreadsheet} disabled={selectedRows.length === 0}>Export Individual Spread Sheet</Button>
+					</div>
+
+
 				</div>
 			</div>
 			<Table striped bordered hover>
