@@ -68,6 +68,7 @@ const IndividualEvent = () => {
         axios.get(`${getBackendURL()}/event/id/${id}`, { withCredentials: true }).then((res) => {
             const data = res.data;
             const eventOwner = getEventOwner(data);
+            console.log(data);
             if (id != "" && data && (data.is_listed || (currentUser?.user_id == eventOwner?.user_id)))
             {
                 setEvent(data)
@@ -445,10 +446,10 @@ const IndividualEvent = () => {
                                         </>
                                     ) : (
                                         accepted.some(user => user.user_id === currentUser.user_id && user.UserStatus.status === 'accept') ? (
-                                            <h3>You've been accepted for this event, get in touch with <Link to={`/profile/${owner.user_id}`} style={{ color: "#000" }}>{owner.f_name} {owner.l_name}</Link> for more details!</h3>
+                                            <h5><span style={{color: "green"}}><b>Congratulations!</b></span><br />You've been accepted for this event, get in touch with <Link to={`/profile/${owner.user_id}`} style={{ color: "#000" }}>{owner.f_name} {owner.l_name}</Link> for more details!</h5>
                                         ) : (
                                             rejected.some(user => user.user_id === currentUser.user_id && user.UserStatus.status === 'reject') ? (
-                                                <h3>You've not been chosen to participate in this event.</h3>
+                                                <h5><span style={{color: "red"}}><b>We're sorry.</b></span><br />You've not been chosen to participate in this event.</h5>
                                             ) : (
                                                 <>
                                                 <Button className="applyButton" onClick={() => setApplyModalOpen(true)}>Apply to Event</Button>
