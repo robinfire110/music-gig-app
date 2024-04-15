@@ -31,7 +31,7 @@ router.get("/", async (req, res) => {
 router.get("/id/:id", checkUserOptional, async (req, res) => {
     try {
         const id = req.params.id;
-        let event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}}]});
+        let event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, where: {[Op.or]: [{$status$: "owner"}]}, attributes: {exclude: ['password', 'isAdmin']}}]});
         
         //No Owner fix (some of the faker data doesn't have owners, so we need to query again in that case)
         if (!event)
@@ -40,10 +40,18 @@ router.get("/id/:id", checkUserOptional, async (req, res) => {
         }
 
         //Check user (if owner, give full data)
-        if (req.user && ((event?.Users.length > 0 && req.user.user_id == event?.Users[0].user_id) || req.user.isAdmin == 1))
+        if (req.user)
         {
-            
-            event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, attributes: {exclude: ['password', 'isAdmin']}}]});
+            //If owner
+            if ((event?.Users.length > 0 && req.user.user_id == event?.Users[0].user_id) || req.user.isAdmin == 1)
+            {
+                event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, attributes: {exclude: ['password', 'isAdmin']}}]});
+            }   
+            else
+            {
+                //If associated, but not owner, return that users data as well.
+                event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, where: {[Op.or]: [{$status$: "owner"}, {user_id: req.user.user_id}]}, attributes: {exclude: ['password', 'isAdmin']}}]});//If associated  
+            }            
         }
 
         res.json(event);
@@ -150,6 +158,7 @@ router.post("/", checkUser, async (req, res) => {
         //Get data
         const data = req.body;
         const addressData = data.address;
+        console.log(data);
 
         //Check user
         if (!(req.user && (req.user.user_id == data.user_id || req.user.isAdmin == 1)))
@@ -159,11 +168,9 @@ router.post("/", checkUser, async (req, res) => {
 
         //Set data values
         //Get calculated values
-        let event_hours = 0;
-        if (data.start_time && data.end_time)
+        if (data.start_time || data.end_time)
         {
-            //Convert from milliseconds to hours
-            data.event_hours = getEventHours(data.start_time, data.end_time);
+            data.event_hours = getEventHours(data.start_time ? data.start_time : event.start_time, data.end_time ? data.end_time : event.end_time);
         }
 
         //Convert instrument to only ids (if used names)
@@ -183,7 +190,7 @@ router.post("/", checkUser, async (req, res) => {
         }
 
         //Add to event & address
-        const newEvent = await db.Event.create({event_name: data?.event_name, start_time: data?.start_time, end_time: data?.end_time, pay: data?.pay, address: data?.address, event_hours: event_hours, description: data?.description, rehearse_hours: data?.rehearse_hours, mileage_pay: data?.mileage_pay});
+        const newEvent = await db.Event.create({event_name: data?.event_name, start_time: data?.start_time, end_time: data?.end_time, pay: data?.pay, address: data?.address, event_hours: data?.event_hours, description: data?.description, rehearse_hours: data?.rehearse_hours, mileage_pay: data?.mileage_pay});
         const newAddress = await db.Address.create({event_id: newEvent.event_id, street: addressData?.street, city: addressData?.city, zip: addressData?.zip, state: addressData?.state});
         const newStatus = await db.UserStatus.create({user_id: data?.user_id, event_id: newEvent.event_id, status: "owner"});
 
@@ -388,7 +395,7 @@ router.put("/users/:event_id/:user_id", checkUser, async (req, res) => {
         const event = await db.Event.findOne({where: {event_id: event_id}, include: [{model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}}]});
         
         //Check user
-        if (!(req.user && (req.user.user_id == event?.Users[0].user_id || req.user.isAdmin == 1)))
+        if (!(req.user && (req.user.user_id == user_id || req.user.user_id == event?.Users[0].user_id || req.user.isAdmin == 1)))
         {
             throw new Error("Unauthorized access.");
         }

@@ -60,6 +60,7 @@ const EventForm = () => {
             setInstruments(configureInstrumentList(res.data));
         }).catch(error => {
             console.log(error);
+            setLoading(false);
         });
 
         //get user
@@ -102,6 +103,7 @@ const EventForm = () => {
         
                             setStartDate(startDate);
                             setEndDate(endDate);
+                            setLoading(false);
                         }
                         else
                         {
@@ -115,23 +117,27 @@ const EventForm = () => {
                     });
                 } else {
                     setOwnerId(null);
+                    setLoading(false);
                 }
 
+            }).catch(error => {
+                setLoading(false);
             })
-            setLoading(false);
         }
         else
         {
             setUserLoggedIn(false);
+            setLoading(false);
         }
         
     }, [cookies.jwt]);
 
     //Update total event hours
     useEffect(() => {
-        const eventHours = moment(`${endDate} ${endTime}`).diff(moment(`${startDate} ${startTime}`), "hours");
+        const eventHours = moment(`${endDate} ${endTime}`).diff(moment(`${startDate} ${startTime}`), "hours", true);
         const rehearsalHours = parseFloatZero(event.rehearse_hours);
-        setTotalEventHours(eventHours+rehearsalHours > 0 ? eventHours+rehearsalHours : 0);
+        console.log(eventHours);
+        setTotalEventHours(eventHours+rehearsalHours > 0 ? (eventHours+rehearsalHours) % 1 != 0 ? (eventHours+rehearsalHours).toFixed(2): eventHours+rehearsalHours : 0);
     }, [startDate, startTime, endDate, endTime, event.rehearse_hours])
 
     //Update description length
@@ -221,7 +227,7 @@ const EventForm = () => {
     const configureInstrumentList = (data) => {
         const instrumentOptionList = []
         data.forEach(instrument => {
-            instrumentOptionList.push({value: instrument.name, label: instrument.name});
+            instrumentOptionList.push({value: instrument.instrument_id, label: instrument.name});
         });
         return instrumentOptionList
     }
@@ -264,6 +270,8 @@ const EventForm = () => {
 
                 //prepare data to be sent to database with event details
                 const eventData = { ...event, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, is_listed: isListed };
+                console.log(eventData);
+                console.log("Instruments", instrumentsList);
 
                 //if an id is present, that means the event already exists and we need to put
                 if (id) {
@@ -274,7 +282,7 @@ const EventForm = () => {
                 } else {
                     //event does not exist, so make a post
                     setIsSubmitting(false);
-                    const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: selectedInstruments, address, is_listed: isListed };
+                    const eventData = { ...event, user_id: userId.user_id, start_time: startDateTime, end_time: endDateTime, instruments: instrumentsList, address, is_listed: isListed };
                     const response = await axios.post(`${getBackendURL()}/event/`, eventData, { withCredentials: true })
                     const newEventId = response.data.newEvent.event_id;
                     navigate(`../event/${newEventId}`);
@@ -358,7 +366,7 @@ const EventForm = () => {
                                     </Row>
                                     <Row className="mb-3">
                                         <Form.Label>Instruments</Form.Label>
-                                        <Select options={instruments} isMulti onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} ></Select>
+                                        <div name="instruments"><Select options={instruments} name={"instruments"} isMulti onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)} value={selectedInstruments} ></Select></div>
                                     </Row>
                                     <Row className="mb-3">
                                         <Col>
@@ -369,7 +377,7 @@ const EventForm = () => {
                                                 </Row>
                                             </Form.Label>
                                             <InputGroup>
-                                                <Form.Control as="textarea" id="eventDescription" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
+                                                <Form.Control as="textarea" id="eventDescription" name="description" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
                                             </InputGroup>
                                         </Col>
                                     </Row>
@@ -378,7 +386,7 @@ const EventForm = () => {
                                     <Row className="mb-3">
                                         <Form.Label>Start Time<span style={{color: "red"}}>*</span></Form.Label>
                                         <Col>
-                                            <Form.Control type="date" value={moment(startDate).format("YYYY-MM-DD")} onChange={(e) => handleDateTimeChange('start_date', e)} required={true}></Form.Control>
+                                            <Form.Control name="start_date" type="date" value={moment(startDate).format("YYYY-MM-DD")} onChange={(e) => handleDateTimeChange('start_date', e)} required={true}></Form.Control>
                                         </Col>
                                         <Col>
                                             <Form.Control type="time" value={startTime} onChange={(e) => handleDateTimeChange("start_time", e)} required={true}></Form.Control>
@@ -387,7 +395,7 @@ const EventForm = () => {
                                     <Row className="mb-3 align-items-center">
                                         <Form.Label>End Time<span style={{color: "red"}}>*</span></Form.Label>
                                         <Col>
-                                            <Form.Control type="date" min={startDate} value={moment(endDate).format("YYYY-MM-DD")} onChange={(e) => handleDateTimeChange('end_date', e)} required={true}></Form.Control>
+                                            <Form.Control name="end_date" type="date" min={startDate} value={moment(endDate).format("YYYY-MM-DD")} onChange={(e) => handleDateTimeChange('end_date', e)} required={true}></Form.Control>
                                         </Col>
                                         <Col>
                                             <Form.Control type="time" min={startTime} value={endTime} onChange={(e) => handleDateTimeChange("end_time", e)} required={true}></Form.Control>
@@ -397,7 +405,7 @@ const EventForm = () => {
                                         <Col>
                                             <Form.Label>Rehearsal Hours</Form.Label>
                                             <InputGroup>
-                                                <FormNumber maxValue={100} integer={false} placeholder='Ex. 3' value={event.rehearse_hours} onChange={(e) => {handleChange(e)}} name="rehearse_hours" />
+                                                <FormNumber maxValue={100} name="rehearse_hours" integer={false} placeholder='Ex. 3' value={event.rehearse_hours} onChange={(e) => {handleChange(e)}} name="rehearse_hours" />
                                                 <TooltipButton text="How many hours of rehearsal expected from musicians (optional)." />
                                             </InputGroup>
                                             
@@ -423,7 +431,7 @@ const EventForm = () => {
                                             <Row className="mb-3">
                                                 <Col lg={9}>
                                                     <Form.Label>Street<span style={{color: "red"}}>*</span></Form.Label>
-                                                    <Form.Control type="text" placeholder='Ex. 1234 Road St.' value={address.street} onChange={(e) => handleAddressChange("street", e.target.value)} pattern="[a-zA-Z0-9\s']+" required={true}/>
+                                                    <Form.Control name="street" type="text" placeholder='Ex. 1234 Road St.' value={address.street} onChange={(e) => handleAddressChange("street", e.target.value)} pattern="[a-zA-Z0-9\s']+" required={true}/>
                                                 </Col>
                                                 <Col>
                                                     <Form.Label>State<span style={{color: "red"}}>*</span></Form.Label>
@@ -435,12 +443,12 @@ const EventForm = () => {
                                             <Row className="mb-3">
                                                 <Col lg={9}>
                                                     <Form.Label>City<span style={{color: "red"}}>*</span></Form.Label>
-                                                    <Form.Control type="text" placeholder='Ex. Boston' value={address.city} onChange={(e) => handleAddressChange("city", e.target.value)} pattern="[a-zA-Z\s.,']+" required={true}/>
+                                                    <Form.Control name="city" type="text" placeholder='Ex. Boston' value={address.city} onChange={(e) => handleAddressChange("city", e.target.value)} pattern="[a-zA-Z\s.,']+" required={true}/>
                                                 </Col>
                                                 
                                                 <Col>
                                                     <Form.Label>Zip Code<span style={{color: "red"}}>*</span></Form.Label>
-                                                    <FormNumber placeholder='Ex. 27413' value={address.zip} onChange={(e) => {handleAddressChange("zip", e.target.value); e.target.setCustomValidity("")}} max={5} min={5} required={true} customValidity={"Zip codes must be 5 characters (#####)."}/>
+                                                    <FormNumber name="zip" placeholder='Ex. 27413' value={address.zip} onChange={(e) => {handleAddressChange("zip", e.target.value); e.target.setCustomValidity("")}} max={5} min={5} required={true} customValidity={"Zip codes must be 5 characters (#####)."}/>
                                                 </Col>
                                             </Row>
                                         </Row>
@@ -453,7 +461,7 @@ const EventForm = () => {
                                             <Col>
                                                 <InputGroup>
                                                     <InputGroup.Text>$</InputGroup.Text>
-                                                    <FormNumber maxValue={9999.99} value={event.pay} placeholder="Ex. $150.00" required={true} integer={false} onChange={handleChange} name="pay"/>
+                                                    <FormNumber name="pay" maxValue={9999.99} value={event.pay} placeholder="Ex. $150.00" required={true} integer={false} onChange={handleChange} name="pay"/>
                                                     <TooltipButton text="How much musician will be paid for this event." />
                                                 </InputGroup>
                                             </Col>
@@ -463,7 +471,7 @@ const EventForm = () => {
                                             <Col>
                                                 <InputGroup>
                                                     <InputGroup.Text>$</InputGroup.Text>
-                                                    <FormNumber maxValue={1.00} placeholder='Ex. $0.17' value={event.mileage_pay} integer={false} onChange={handleChange} name="mileage_pay" />
+                                                    <FormNumber name="mileage_pay" maxValue={1.00} placeholder='Ex. $0.17' value={event.mileage_pay} integer={false} onChange={handleChange} name="mileage_pay" />
                                                     <TooltipButton text="How much mileage pay is provided, in $/mile (optional)."/>
                                                 </InputGroup>
                                             </Col>

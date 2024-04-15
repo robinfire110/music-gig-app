@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams} from "react-router-dom";
-import { Container, Form, Col, Row, InputGroup, Button, Modal, Alert, OverlayTrigger } from "react-bootstrap";
+import { Container, Form, Col, Row, InputGroup, Button, Modal, Alert, OverlayTrigger, Tooltip, Popover } from "react-bootstrap";
 import moment from "moment";
 import TooltipButton from "../components/TooltipButton";
 import FormNumber from "../components/FormNumber";
@@ -142,8 +142,12 @@ const Calculator = () => {
         else
         {
             setIsLoading(false);
-            setParamId(null);
-            navigate("/calculator");
+            if (paramId)
+            {
+                loadEventData(true)
+            }
+            //setParamId(null);
+            //navigate("/calculator");
         } 
     }, [user])
     
@@ -974,8 +978,10 @@ const Calculator = () => {
                         </Row>
                         <br />
                         <Row>
-                            <Row>
-                                <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={!user}>{saveStatus ? <BarLoader color="#FFFFFF" height={4} width={50} /> : (!isEvent && paramId) || (isEvent && !isNewEvent) ? "Update" : "Save"}</Button></Col> 
+                        <Row>
+
+                                {user && <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={!user}>{saveStatus ? <BarLoader color="#FFFFFF" height={4} width={50} /> : user && ((!isEvent && paramId) || (isEvent && !isNewEvent)) ? "Update" : "Save"}</Button></Col>}
+                                {!user && <Col lg={3} md={2} sm={3} xs={3}><OverlayTrigger placement="bottom" overlay={<Popover id="popover-trigger-hover-focus" title="Tool Tip" style={{padding: "10px"}}><div dangerouslySetInnerHTML={{__html: "You must be logged in to save."}}/></Popover>}><div><Button type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={!user}>Save</Button></div></OverlayTrigger></Col>}
                                 <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="secondary" onClick={() => {saveFinancial(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Export</Button></Col>
                                 {isEvent ? <Col lg={5} md={5} sm={5} xs={5}><Button variant="secondary" onClick={() => {loadEventData(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Reload Data</Button></Col> : ""}
                             </Row>
