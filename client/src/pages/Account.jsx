@@ -213,23 +213,23 @@ function Account() {
     };
 
     const handleDeleteFinancial = async (financial) => {
-        // try {
-            console.log('delete financial record')
-            console.log(financial)
-        // }
-        //     const response = await axios.post(`${getBackendURL()}`,
-        //         financial , {
-        //             withCredentials: true
-        //         });
-        //     if (response.data.success) {
-        //         toast.success(`Successfully deleted financial record`, { theme: 'dark' });
-        //
-        //     } else {
-        //         console.error('Failed to delete financial record:', response.data.message);
-        //     }
-        // } catch (error) {
-        //     console.error('Error deleting financial record:', error);
-        // }
+        try {
+            const response = await axios.post(`${getBackendURL()}/delete-financial`,
+                financial , {
+                    withCredentials: true
+                });
+            if (response.data.success) {
+                toast.success(`Successfully deleted ${financial.fin_name}`, { theme: 'dark' });
+            } else {
+                console.error('Failed to delete financial:', response.data.message);
+            }
+
+        } catch (error) {
+            console.error('Error deleting financial record:', error);
+            toast.error('Failed to delete financial record', { theme: 'dark' });
+        } finally {
+            handleCloseUnlistModal();
+        }
     };
 
     const handleDeleteEvent = async (event) => {
@@ -273,6 +273,7 @@ function Account() {
             handleCloseUnlistModal();
         }
     };
+
 
 
     const handleShowUnlistModal = (event) => {

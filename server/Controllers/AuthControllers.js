@@ -425,6 +425,36 @@ module.exports.unlistEvent = async (req, res, next) => {
 	}
 };
 
+module.exports.deleteFinancial = async (req, res, next) => {
+	try {
+		const finId = req.body.fin_id;
+		const userId = req.user.user_id;
+
+		const finStatus = await db.FinStatus.findOne({
+			where: {
+				user_id: userId,
+				fin_id: finId
+			}
+		});
+
+		if (!finStatus) {
+			return res.status(403).json({ error: 'Forbidden: You are not authorized to delete this financial object' });
+		}
+
+		const result = await db.Financial.deleteFinancialByFinId(finId);
+
+		if (result) {
+			res.status(200).json({ success: true, message: "Financial object deleted successfully" });
+		} else {
+			res.status(404).json({ error: 'Financial object not found' });
+		}
+	} catch (error) {
+		console.error("Error deleting financial object:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
+
 
 
 

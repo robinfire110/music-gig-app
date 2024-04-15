@@ -1,6 +1,6 @@
 const { register, login, account, update_user, getUserEvents, getUserFinancials, getUsers,
 	giveUserAdmin, giveUserUser, removeUser, resetUserPassword, getEvents, deleteUserPost,
-	deleteEvent, unlistEvent
+	deleteEvent, unlistEvent, deleteFinancial
 } = require("../Controllers/AuthControllers")
 const {checkUser} = require("../Middleware/AuthMiddleWare");
 const router = require("express").Router();
@@ -22,5 +22,6 @@ router.post("/reset-user-password", checkUser, resetUserPassword)
 router.post("/remove-user-post", checkUser, deleteUserPost)
 router.post("/delete-event", checkUser, deleteEvent)
 router.post("/unlist-event", checkUser, unlistEvent)
+router.post("/delete-financial", checkUser, deleteFinancial)
 
 module.exports = {router};

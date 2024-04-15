@@ -97,5 +97,19 @@ module.exports = (sequelize, Sequelize, Event) => {
     }
   };
 
+  Financial.deleteFinancialByFinId = async (finId) => {
+    try {
+      const deletedFinancial = await Financial.destroy({
+        where: {
+          fin_id: finId
+        }
+      });
+      return deletedFinancial;
+    } catch (error) {
+      console.error('Error deleting financial:', error);
+      throw error;
+    }
+  };
+
   return Financial;
 };
