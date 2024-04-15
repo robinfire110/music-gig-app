@@ -168,11 +168,9 @@ router.post("/", checkUser, async (req, res) => {
 
         //Set data values
         //Get calculated values
-        let event_hours = 0;
-        if (data.start_time && data.end_time)
+        if (data.start_time || data.end_time)
         {
-            //Convert from milliseconds to hours
-            data.event_hours = getEventHours(data.start_time, data.end_time);
+            data.event_hours = getEventHours(data.start_time ? data.start_time : event.start_time, data.end_time ? data.end_time : event.end_time);
         }
 
         //Convert instrument to only ids (if used names)
@@ -192,7 +190,7 @@ router.post("/", checkUser, async (req, res) => {
         }
 
         //Add to event & address
-        const newEvent = await db.Event.create({event_name: data?.event_name, start_time: data?.start_time, end_time: data?.end_time, pay: data?.pay, address: data?.address, event_hours: event_hours, description: data?.description, rehearse_hours: data?.rehearse_hours, mileage_pay: data?.mileage_pay});
+        const newEvent = await db.Event.create({event_name: data?.event_name, start_time: data?.start_time, end_time: data?.end_time, pay: data?.pay, address: data?.address, event_hours: data?.event_hours, description: data?.description, rehearse_hours: data?.rehearse_hours, mileage_pay: data?.mileage_pay});
         const newAddress = await db.Address.create({event_id: newEvent.event_id, street: addressData?.street, city: addressData?.city, zip: addressData?.zip, state: addressData?.state});
         const newStatus = await db.UserStatus.create({user_id: data?.user_id, event_id: newEvent.event_id, status: "owner"});
 
