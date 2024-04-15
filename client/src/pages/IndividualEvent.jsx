@@ -367,17 +367,17 @@ const IndividualEvent = () => {
                                                 </Row>
                                                 <Row>
                                                     <Col size="auto"><h5>Event Hours</h5></Col>
-                                                    <Col><p>{event.event_hours}</p></Col>
+                                                    <Col><p>{event.event_hours > 0 ? event.event_hours % 1 != 0 ? event.event_hours.toFixed(2): event.event_hours : 0}</p></Col>
                                                 </Row>
                                                 <Row>
                                                     <Col size="auto"><h5>Rehearsal Hours</h5></Col>
-                                                    <Col><p>{event.rehearse_hours}</p></Col>
+                                                    <Col><p>{event.rehearse_hours > 0 ? event.rehearse_hours % 1 != 0 ? event.rehearse_hours.toFixed(2): event.rehearse_hours : 0}</p></Col>
                                                 </Row>
                                                 <Row><hr style={{width: "75%"}}/></Row>
                                                 <Row>
                                                     
                                                     <Col size="auto"><h5>Total Hours</h5></Col>
-                                                    <Col><p>{event.rehearse_hours + event.event_hours}</p></Col>
+                                                    <Col><p>{event.rehearse_hours + event.event_hours > 0 ? (event.rehearse_hours+event.event_hours) % 1 != 0 ? (event.rehearse_hours + event.event_hours).toFixed(2): event.rehearse_hours + event.event_hours : 0}</p></Col>
                                                 </Row>
                                             </Col>
                                             <hr />
