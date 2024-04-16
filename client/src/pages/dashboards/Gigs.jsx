@@ -1,75 +1,332 @@
-import React, {useEffect} from 'react';
-import {Card, Container, Row, Col, Button} from 'react-bootstrap';
+import React, {useEffect, useState} from 'react';
+import {Card, Container, Row, Col, Button, Tab, Tabs, Table} from 'react-bootstrap';
 import {useNavigate} from "react-router-dom";
+import ConfirmationModal from "./ConfirmationModal";
 
-function Gigs({ userData, gigs }) {
+function Gigs({ userData, gigs, onDeleteEvent }) {
 	const navigate = useNavigate();
+	const [showDeleteModal, setShowDeleteModal] = useState(false);
+	const [eventToDelete, setEventToDelete] = useState(null);
+	const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+	const [confirmationMessage, setConfirmationMessage] = useState('');
 
-	const handleCardClick = (eventId) => {
-		navigate(`../event/${eventId}`);
-	};
 	const handleCreateNewListing = () => {
 		navigate('/form');
 	};
-	const handleGoBackToDashboard = () => {
-		window.location.reload();
-	};
 
-	const isInPast = (dateString) => {
-		const eventDate = new Date(dateString);
-		const currentDate = new Date();
-		return eventDate < currentDate;
-	};
+	const handleDeleteEvent = (event) => {
+		setEventToDelete(event);
+		setConfirmationMessage(`Are you sure you want to delete ${event.event_name}?`);
+		setShowConfirmationModal(true);
+	}
 
-	const pastEvents = gigs.filter((gig) => isInPast(gig.end_time) || !gig.is_listed);
-	const currentUserEvents = gigs.filter(gig => gig.is_listed);
+	const handleUnlistEvent = () => {
+	console.log("unlisting event")
+	}
 
-	const renderGigsAsCards = (gigs) => {
-		return (
-			<Container>
-				<Row xs={1} md={2} lg={3}>
-					{gigs.map((gig) => (
-						<Col key={gig.event_id}>
-							<Card onClick={() => handleCardClick(gig.event_id)} style={{ cursor: 'pointer' }}>
-								<Card.Body>
-									<Card.Title>{gig.event_name}</Card.Title>
-									<Card.Text>{gig.description}</Card.Text>
-								</Card.Body>
-							</Card>
-						</Col>
-					))}
-				</Row>
-			</Container>
-		);
-	};
+	const handleWithdrawEvent = () => {
+		console.log("withdraw from event")
+	}
+
+	const handleDeleteEventConfirmation = (event) => {
+		onDeleteEvent(event);
+		setShowConfirmationModal(false);
+	}
+
+	function truncateText(text, maxLength = 50) {
+		if (text.length <= maxLength) {
+			return text;
+		} else {
+			return text.substring(0, maxLength) + '...';
+		}
+	}
+
 
 	return (
-		<div>
+		<>
 			<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-				<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column' }}>
-					<Button variant="link" onClick={handleGoBackToDashboard} style={{ textDecoration: 'underline' }}>Go back to Dashboard</Button>
-					<h2>Listings</h2>
-				</div>
-
-				<div>
-					<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewListing}>Create New Listing</Button>
-				</div>
-			</div>
-			<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-				<h3>Your Current Listings</h3>
-				{renderGigsAsCards(gigs.filter((gig) => gig.is_listed))}
-			</div>
-			<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-				<h3>Past Listings</h3>
-				{renderGigsAsCards(
-					gigs.filter((gig) => new Date(gig.end_time) < new Date() || !gig.is_listed)
-				)}
-			</div>
-
-			<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-				<h3>Listings you've applied to</h3>
+			<h2>Listings</h2>
+			<div>
+				<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewListing}>Create New Listing</Button>
 			</div>
 		</div>
+			<Tabs defaultActiveKey="allListings" id="listings-tabs">
+				<Tab eventKey="allListings" title="Listings">
+					<div className="listings-card-container">
+						{gigs.map((gig) => (
+							<div
+								key={gig.event_id}
+								className="listings-custom-card"
+								onClick={() => navigate(`/event/${gig.event_id}`)}
+							>
+								<div className="card-body">
+									<h5 className="card-title">{gig.event_name}</h5>
+									<p className="card-text">{truncateText(gig.description)}</p>
+									<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+									<div className="card-buttons">
+										{gig.status === 'owner' && gig.is_listed === 0 ? (
+											<Button
+												variant="danger"
+												className="delete-button"
+												onClick={(e) => {
+													e.stopPropagation();
+													handleDeleteEvent(gig);
+												}}
+											>
+												Delete
+											</Button>
+										) : gig.status === 'owner' ? (
+											<>
+												<Button
+													variant="outline-secondary"
+													className="edit-button"
+													onClick={(e) => {
+														e.stopPropagation();
+														navigate(`/form/${gig.event_id}`);
+													}}
+												>
+													Edit
+												</Button>
+												<Button
+													variant="outline-danger"
+													className="unlist-button"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleUnlistEvent(gig);
+													}}
+												>
+													Unlist
+												</Button>
+												<Button
+													variant="danger"
+													className="delete-button"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleDeleteEvent(gig);
+													}}
+												>
+													Delete
+												</Button>
+											</>
+										) : gig.status === 'applied' ? (
+											<Button
+												variant="outline-danger"
+												className="withdraw-button"
+												onClick={(e) => {
+													e.stopPropagation();
+													handleWithdrawEvent(gig);
+												}}
+											>
+												Withdraw
+											</Button>
+										) : null}
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				</Tab>
+
+				<Tab eventKey="applied" title="Active">
+					<h2 className="current-listings-header">All your current Listings</h2>
+					<div className="listings-card-container">
+						{gigs
+							.filter(gig => gig.is_listed && gig.status === 'owner')
+							.map((gig) => (
+								<div
+									key={gig.event_id}
+									className="listings-custom-card"
+									onClick={() => navigate(`/event/${gig.event_id}`)}
+								>
+									<div className="card-body">
+										<h5 className="card-title">{gig.event_name}</h5>
+										<p className="card-text">{truncateText(gig.description)}</p>
+										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+										<div className="card-buttons">
+											<Button
+												variant="outline-secondary"
+												className="edit-button"
+												onClick={(e) => {
+													e.stopPropagation();
+													navigate(`/form/${gig.event_id}`);
+												}}
+											>
+												Edit
+											</Button>
+											{gig.status === 'owner' && (
+												<>
+													<Button
+														variant="outline-danger"
+														className="unlist-button"
+														onClick={(e) => {
+															e.stopPropagation();
+															handleUnlistEvent(gig);
+														}}
+													>
+														Unlist
+													</Button>
+													<Button
+														variant="danger"
+														className="delete-button"
+														onClick={(e) => {
+															e.stopPropagation();
+															handleDeleteEvent(gig);
+														}}
+													>
+														Delete
+													</Button>
+												</>
+											)}
+										</div>
+									</div>
+								</div>
+							))}
+					</div>
+
+					<h2 className="current-listings-header">Your upcoming Events</h2>
+					<div className="listings-card-container">
+						{gigs
+							.filter(gig => gig.status === 'accept')
+							.map((gig) => (
+								<div
+									key={gig.event_id}
+									className="listings-custom-card"
+									onClick={() => navigate(`/event/${gig.event_id}`)}
+								>
+									<div className="card-body">
+										<h5 className="card-title">{gig.event_name}</h5>
+										<p className="card-text">{truncateText(gig.description)}</p>
+										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+										<div className="card-buttons">
+											{/* Buttons for upcoming events */}
+										</div>
+									</div>
+								</div>
+							))}
+					</div>
+				</Tab>
+				<Tab eventKey="pending" title="Pending">
+					<div className="listings-card-container">
+						{gigs
+							.filter(gig => gig.status === 'applied' && gig.is_listed)
+							.map((gig) => (
+								<div
+									key={gig.event_id}
+									className="listings-custom-card"
+									onClick={() => navigate(`/event/${gig.event_id}`)}
+								>
+									<div className="card-body">
+										<h5 className="card-title">{gig.event_name}</h5>
+										<p className="card-text">{truncateText(gig.description)}</p>
+										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+										<div className="card-buttons">
+											{gig.status === 'owner' ? (
+												<>
+													<Button
+														variant="outline-secondary"
+														className="edit-button"
+														onClick={(e) => {
+															e.stopPropagation();
+															navigate(`/form/${gig.event_id}`);
+														}}
+													>
+														Edit
+													</Button>
+													<Button
+														variant="outline-danger"
+														className="unlist-button"
+														onClick={(e) => {
+															e.stopPropagation();
+															handleUnlistEvent(gig);
+														}}
+													>
+														Unlist
+													</Button>
+													<Button
+														variant="danger"
+														className="delete-button"
+														onClick={(e) => {
+															e.stopPropagation();
+															handleDeleteEvent(gig);
+														}}
+													>
+														Delete
+													</Button>
+												</>
+											) : gig.status === 'applied' ? (
+												<Button
+													variant="outline-danger"
+													className="withdraw-button"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleWithdrawEvent(gig);
+													}}
+												>
+													Withdraw
+												</Button>
+											) : null}
+										</div>
+									</div>
+								</div>
+							))}
+					</div>
+				</Tab>
+				<Tab eventKey="closed" title="Closed">
+					<div className="listings-card-container">
+						{gigs
+							.filter(gig => gig.status === 'withdraw' || gig.status === 'rejected' || !gig.is_listed)
+							.map((gig) => (
+								<div
+									key={gig.event_id}
+									className="listings-custom-card"
+									onClick={() => navigate(`/event/${gig.event_id}`)}
+								>
+									<div className="card-body">
+										<h5 className="card-title">{gig.event_name}</h5>
+										<p className="card-text">{truncateText(gig.description)}</p>
+										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+										<div className="card-buttons">
+											{gig.status === 'owner' && (
+												<Button
+													variant="danger"
+													className="delete-button"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleDeleteEvent(gig);
+													}}
+												>
+													Delete
+												</Button>
+											)}
+											{gig.status === 'applied' && (
+												<Button
+													variant="outline-danger"
+													className="withdraw-button"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleWithdrawEvent(gig);
+													}}
+												>
+													Withdraw
+												</Button>
+											)}
+										</div>
+									</div>
+								</div>
+							))}
+					</div>
+				</Tab>
+
+
+
+			</Tabs>
+			<ConfirmationModal
+				show={showConfirmationModal}
+				handleClose={() => setShowConfirmationModal(false)}
+				message={confirmationMessage}
+				onConfirm={handleDeleteEventConfirmation}
+			/>
+		</>
 	);
 }
 

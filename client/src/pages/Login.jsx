@@ -34,7 +34,7 @@ const Login = () => {
             }, {
                 withCredentials:true,
             });
-            console.log(data)
+
             if(data){
                 if(data.errors){
                     const {email,password} = data.errors;
@@ -51,7 +51,6 @@ const Login = () => {
             console.log(err);
         }
     };
-
 
     return (
         <div>
