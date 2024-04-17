@@ -43,7 +43,6 @@ function Account() {
                     const { data } = await axios.get(`${getBackendURL()}/account`, { withCredentials: true });
                     setUserData(data.user);
                     setIsAdmin(data.user.isAdmin);
-                    console.log(data.user)
                     toast(`hi ${data.user.f_name}`, { theme: 'dark' });
                 } catch (error) {
                     removeCookie('jwt');
@@ -61,7 +60,8 @@ function Account() {
         const fetchUserGigs = async () => {
             try {
                 const { data } = await axios.get(`${getBackendURL()}/account/user-gigs`, { withCredentials: true });
-                setGigs(data.userGigs);
+                console.log(data.userEvents)
+                setGigs(data.userEvents);
             } catch (error) {
                 console.error('Error fetching user gigs:', error);
             }
@@ -96,7 +96,6 @@ function Account() {
             try {
                 if(isAdmin){
                     const { data } = await axios.get(`${getBackendURL()}/account/admin/all-users`, { withCredentials: true });
-                    // console.log(data.users)
                     setUsers(data.users);
                 }
 
@@ -265,7 +264,6 @@ function Account() {
 
     const handleUnlistEvent = async (event) => {
         try {
-            console.log("is handle unlist called in front")
             const response = await axios.put(`${getBackendURL()}/account/unlist-event/${event.event_id}`,
                 null , {
                     withCredentials: true
@@ -374,7 +372,18 @@ function Account() {
                                     >
                                         <div className="card-body">
                                             <h5 className="card-title">{gig.event_name}</h5>
+                                            <p>{gig.date_posted}</p>
                                             <p className="card-text">{truncateText(gig.description)}</p>
+                                            {gig.addresses && gig.addresses.length > 0 && (
+                                                <div>
+                                                    <h6>Address:</h6>
+                                                    {gig.addresses.map((address, index) => (
+                                                        <div key={index}>
+                                                            <p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                             <div className="card-buttons">
 
                                                 <Button

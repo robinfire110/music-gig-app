@@ -71,7 +71,18 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 							>
 								<div className="card-body">
 									<h5 className="card-title">{gig.event_name}</h5>
+									<p>{gig.date_posted}</p>
 									<p className="card-text">{truncateText(gig.description)}</p>
+									{gig.addresses && gig.addresses.length > 0 && (
+										<div>
+											<h6>Address:</h6>
+											{gig.addresses.map((address, index) => (
+												<div key={index}>
+													<p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+												</div>
+											))}
+										</div>
+									)}
 									<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 									<div className="card-buttons">
 										{gig.status === 'owner' && gig.is_listed === 0 ? (
@@ -150,7 +161,18 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 								>
 									<div className="card-body">
 										<h5 className="card-title">{gig.event_name}</h5>
+										<p>{gig.date_posted}</p>
 										<p className="card-text">{truncateText(gig.description)}</p>
+										{gig.addresses && gig.addresses.length > 0 && (
+											<div>
+												<h6>Address:</h6>
+												{gig.addresses.map((address, index) => (
+													<div key={index}>
+														<p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+													</div>
+												))}
+											</div>
+										)}
 										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 										<div className="card-buttons">
 											<Button
@@ -205,7 +227,18 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 								>
 									<div className="card-body">
 										<h5 className="card-title">{gig.event_name}</h5>
+										<p>{gig.date_posted}</p>
 										<p className="card-text">{truncateText(gig.description)}</p>
+										{gig.addresses && gig.addresses.length > 0 && (
+											<div>
+												<h6>Address:</h6>
+												{gig.addresses.map((address, index) => (
+													<div key={index}>
+														<p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+													</div>
+												))}
+											</div>
+										)}
 										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 										<div className="card-buttons">
 										</div>
@@ -226,7 +259,18 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 								>
 									<div className="card-body">
 										<h5 className="card-title">{gig.event_name}</h5>
+										<p>{gig.date_posted}</p>
 										<p className="card-text">{truncateText(gig.description)}</p>
+										{gig.addresses && gig.addresses.length > 0 && (
+											<div>
+												<h6>Address:</h6>
+												{gig.addresses.map((address, index) => (
+													<div key={index}>
+														<p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+													</div>
+												))}
+											</div>
+										)}
 										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 										<div className="card-buttons">
 											{gig.status === 'owner' ? (
@@ -292,7 +336,18 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 								>
 									<div className="card-body">
 										<h5 className="card-title">{gig.event_name}</h5>
+										<p>{gig.date_posted}</p>
 										<p className="card-text">{truncateText(gig.description)}</p>
+										{gig.addresses && gig.addresses.length > 0 && (
+											<div>
+												<h6>Address:</h6>
+												{gig.addresses.map((address, index) => (
+													<div key={index}>
+														<p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+													</div>
+												))}
+											</div>
+										)}
 										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 										<div className="card-buttons">
 											{gig.status === 'owner' && (

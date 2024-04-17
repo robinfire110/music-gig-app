@@ -196,12 +196,24 @@ module.exports.getUserEvents = async (req, res, next) => {
 		const eventIds = userStatuses.map(status => status.event_id);
 		const events = await db.Event.findByEventIds(eventIds, userStatuses);
 
-		res.status(200).json({ userGigs: events });
+		const addresses = await db.Address.findAll({
+			where: {
+				event_id: eventIds
+			},
+			raw: true
+		});
+
+		const eventsWithAddresses = events.map(event => {
+			const eventAddresses = addresses.filter(address => address.event_id === event.event_id);
+			return { ...event, addresses: eventAddresses };
+		});
+
+		res.status(200).json({ userEvents: eventsWithAddresses });
 	} catch (error) {
 		console.error('Error fetching user events:', error);
 		throw new Error('Failed to fetch user events');
 	}
-}
+};
 
 
 
