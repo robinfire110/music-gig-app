@@ -199,6 +199,11 @@ const Calculator = () => {
         if (data?.rehearse_hours > 0) setRehearsalHours(data.rehearse_hours); 
         if (data?.tax > 0) setTax(data.tax); 
         if (data?.fees > 0) setOtherFees(data.fees);
+        if (data?.round_trip != undefined) setIsRoundTrip(data.round_trip);
+        if (data?.multiply_travel != undefined) setMultiplyTravel(data.multiply_travel);
+        if (data?.multiply_practice != undefined) setMultiplyPracticeHours(data.multiply_practice);
+        if (data?.multiply_rehearsal != undefined) setMultiplyRehearsalHours(data.multiply_rehearsal);
+        if (data?.multiply_other != undefined) setMultiplyOtherFees(data.multiply_other);
 
         //Set switches
         setGigNumEnabled(data?.event_num > 0);
@@ -487,6 +492,11 @@ const Calculator = () => {
                 mpg: parseFloatZero(vehicleMPG),
                 tax: parseFloatZero(tax),
                 fees: parseFloatZero(otherFees),
+                round_trip: isRoundTrip,
+                multiply_travel: multiplyTravel,
+                multiply_practice: multiplyPracticeHours,
+                multiply_rehearsal: multiplyRehearsalHours,
+                multiply_other: multiplyOtherFees
             }
             if (isNewEvent && isEvent) data["event_id"] = paramId;
             

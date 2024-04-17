@@ -69,7 +69,27 @@ module.exports = (sequelize, Sequelize, Event) => {
     fees: {
       type: Sequelize.FLOAT,
       defaultValue: 0.0
-    }
+    },
+    round_trip: {
+      type: Sequelize.FLOAT,
+      defaultValue: true
+    },
+    multiply_travel: {
+      type: Sequelize.FLOAT,
+      defaultValue: true
+    },
+    multiply_practice: {
+      type: Sequelize.FLOAT,
+      defaultValue: false
+    },
+    multiply_rehearsal: {
+      type: Sequelize.FLOAT,
+      defaultValue: false
+    },
+    multiply_other: {
+      type: Sequelize.FLOAT,
+      defaultValue: false
+    },
   });
 
   /* Financial with Event */
