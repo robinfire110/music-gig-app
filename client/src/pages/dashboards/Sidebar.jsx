@@ -11,13 +11,13 @@ function Sidebar({ handleLinkClick, isAdmin }) {
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto sidebar-vertical">
                         <Nav.Link
-                            onClick={() => handleLinkClick('dashboard')}
+                            onClick={() => handleLinkClick('listings')}
                             href="#"
-                        >Dashboard</Nav.Link>
+                        >Listings</Nav.Link>
                         <Nav.Link
                             onClick={() => handleLinkClick('gigs')}
                             href="#"
-                            >Listings</Nav.Link>
+                        >Gigs</Nav.Link>
                         <Nav.Link
                             onClick={() => handleLinkClick('financials')}
                             href="#">Financials</Nav.Link>
@@ -25,13 +25,13 @@ function Sidebar({ handleLinkClick, isAdmin }) {
                             onClick={() => handleLinkClick('editProfile')}
                             href="#">Profile</Nav.Link>
                         {isAdmin && (
-                             <Nav.Link
-                                 onClick={() => handleLinkClick('adminActions')}
-                                 href="#"
-                                 className="custom-link"
-                             >
-                                 Admin
-                             </Nav.Link>
+                            <Nav.Link
+                                onClick={() => handleLinkClick('adminActions')}
+                                href="#"
+                                className="custom-link"
+                            >
+                                Admin
+                            </Nav.Link>
                         )}
                     </Nav>
                 </Navbar.Collapse>

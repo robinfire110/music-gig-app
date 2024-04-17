@@ -194,6 +194,26 @@ module.exports.getUserEvents = async (req, res, next) => {
 		const userId = req.user.user_id;
 		const userStatuses = await db.UserStatus.findByUserId(userId);
 		const eventIds = userStatuses.map(status => status.event_id);
+
+		const ownerEventIds = userStatuses
+			.filter(status => status.status === 'owner')
+			.map(status => status.event_id);
+
+		const userIds = await db.UserStatus.findUserIdsByEventIdsAndStatuses(ownerEventIds);
+		const userIdArray = userIds.map(user => user.user_id);
+		const users = await db.User.findApplicantsByUserIds(userIdArray);
+
+		const usersWithStatus = users.map(user => {
+			const userStatus = userIds.find(status => status.user_id === user.user_id);
+			return {
+				...user,
+				status: userStatus ? userStatus.status : null,
+				event_id: userStatus ? userStatus.event_id : null
+			};
+		});
+		console.log("users with statusses");
+		console.log(usersWithStatus);
+
 		const events = await db.Event.findByEventIds(eventIds, userStatuses);
 
 		const addresses = await db.Address.findAll({
@@ -205,7 +225,9 @@ module.exports.getUserEvents = async (req, res, next) => {
 
 		const eventsWithAddresses = events.map(event => {
 			const eventAddresses = addresses.filter(address => address.event_id === event.event_id);
-			return { ...event, addresses: eventAddresses };
+			const eventUsers = usersWithStatus.filter(user => user.event_id === event.event_id);
+			const eventWithApplicants = { ...event, addresses: eventAddresses, Applicants: eventUsers };
+			return eventWithApplicants;
 		});
 
 		res.status(200).json({ userEvents: eventsWithAddresses });
@@ -214,6 +236,7 @@ module.exports.getUserEvents = async (req, res, next) => {
 		throw new Error('Failed to fetch user events');
 	}
 };
+
 
 
 

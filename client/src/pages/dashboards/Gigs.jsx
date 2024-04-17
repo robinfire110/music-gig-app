@@ -58,9 +58,9 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 	return (
 		<>
 			<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-			<h2>Listings</h2>
+			<h2>Your Gigs</h2>
 			<div>
-				<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewListing}>Create New Listing</Button>
+				<Button className="btn btn-dark" variant="primary" onClick={() => navigate(`/eventsearch`)}>Apply to more Gigs!</Button>
 			</div>
 		</div>
 			<Tabs defaultActiveKey="allListings" id="listings-tabs">
@@ -87,7 +87,7 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 									<p className="card-text">
 										<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
 									</p>
-									<p className="card-text">{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+									<p className="card-text">Status: ${gig.status}</p>
 									<div className="card-buttons">
 										{gig.status === 'owner' && gig.is_listed === 0 ? (
 											<Button

@@ -5,7 +5,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import Sidebar from './dashboards/Sidebar';
 import Spinner from 'react-bootstrap/Spinner';
-import {Button, Card, Col, Container, Row} from "react-bootstrap";
+import {Button, Card, Col, Container, Row, Tab, Tabs} from "react-bootstrap";
 import "../App.css";
 import EditProfile from "./dashboards/EditProfile";
 import Gigs from "./dashboards/Gigs";
@@ -314,9 +314,16 @@ function Account() {
         navigate(`/event/${gig.event_id}`);
     }
 
+    const handleWithdrawEvent = (event) => {
+        navigate(`/event/${event.event_id}`);
+    }
+    const handleCreateNewListing = () => {
+        navigate('/form');
+    };
+
     const renderContent = () => {
         switch(selectedContent) {
-            case 'dashboard':
+            case 'listings':
                 window.location.reload();
                 return null;
             case 'editProfile':
@@ -359,76 +366,317 @@ function Account() {
             </Container>
             <Container>
                 <Title title={"Account"} />
+
                 <div className="content">
-                    {selectedContent === '' && (
-                        <div>
-                            <h2 style={{ marginBottom: '20px', display: 'block' }}>{dashboardTitle}</h2>
+                    <div>
+                        {selectedContent === '' && (
                             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h4>Recent Activity</h4>
+                                <h2>Your Listings</h2>
+                                <div>
+                                    <Button className="btn btn-dark" variant="primary" onClick={handleCreateNewListing}>Create New Listing</Button>
+                                </div>
                             </div>
-                            <div className="card-container">
-                                {gigs.filter(gig => gig.status === 'owner' && gig.is_listed === 1).slice(0, 4).map((gig) => (
-                                    <div
-                                        key={gig.event_id}
-                                        className="custom-card"
-                                        onClick={() => navigate(`/event/${gig.event_id}`)}
-                                    >
-                                        <div className="card-body">
-                                            <h5 className="card-title">{gig.event_name}</h5>
-                                            <p className="card-text">Event Date: {gig.start_time}</p>
-                                            {gig.addresses && gig.addresses.length > 0 && (
-                                                <div>
-                                                    {gig.addresses.map((address, index) => (
-                                                        <div key={index}>
-                                                            <p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
+                        )}
+                        {selectedContent === '' && (
+                            <Tabs defaultActiveKey="allListings" id="listings-tabs">
+                                <Tab eventKey="allListings" title="All Listings">
+                                    <h2 className="current-listings-header">All Your Listings</h2>
+                                    <div className="listings-card-container">
+                                        {gigs
+                                            .filter(gig => gig.status === 'owner')
+                                            .map((gig) => (
+                                                <div
+                                                    key={gig.event_id}
+                                                    className="listings-custom-card"
+                                                    onClick={() => navigate(`/event/${gig.event_id}`)}
+                                                >
+                                                    <div className="card-body">
+                                                        <h5 className="card-title">{gig.event_name}</h5>
+                                                        <p className="card-text">Event Date: {gig.start_time}</p>
+                                                        {gig.addresses && gig.addresses.length > 0 && (
+                                                            <div>
+                                                                {gig.addresses.map((address, index) => (
+                                                                    <div key={index}>
+                                                                        <p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        <p className="card-text">
+                                                            <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+                                                        </p>
+                                                        <p>{gig.status === 'owner' && gig.is_listed === 0 ? 'Status: Closed' : `Status: Open`}</p>
+                                                        <div className="card-buttons">
+                                                            {gig.status === 'owner' && gig.is_listed === 0 ? (
+                                                                <Button
+                                                                    variant="danger"
+                                                                    className="delete-button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteEvent(gig);
+                                                                    }}
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            ) : gig.status === 'owner' ? (
+                                                                <>
+                                                                    <Button
+                                                                        variant="outline-secondary"
+                                                                        className="edit-button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            navigate(`/form/${gig.event_id}`);
+                                                                        }}
+                                                                    >
+                                                                        Edit
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline-danger"
+                                                                        className="unlist-button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleUnlistEvent(gig);
+                                                                        }}
+                                                                    >
+                                                                        Unlist
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="danger"
+                                                                        className="delete-button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDeleteEvent(gig);
+                                                                        }}
+                                                                    >
+                                                                        Delete
+                                                                    </Button>
+                                                                </>
+                                                            ) : gig.status === 'applied' ? (
+                                                                <Button
+                                                                    variant="outline-danger"
+                                                                    className="withdraw-button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleWithdrawEvent(gig);
+                                                                    }}
+                                                                >
+                                                                    Withdraw
+                                                                </Button>
+                                                            ) : null}
                                                         </div>
-                                                    ))}
+                                                    </div>
                                                 </div>
-                                            )}
-                                            <p className="card-text">
-                                                <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
-                                            </p>
-                                            <div className="card-buttons">
-                                                <Button
-                                                    variant="outline-secondary"
-                                                    className="edit-button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        navigate(`/form/${gig.event_id}`);
-                                                    }}
-                                                >
-                                                    Edit
-                                                </Button>
-                                                <Button
-                                                    variant="outline-danger"
-                                                    className="unlist-button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleShowUnlistModal(gig);
-                                                    }}
-                                                >
-                                                    Unlist
-                                                </Button>
-
-
-                                                <Button
-                                                    variant="danger"
-                                                    className="delete-button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleShowDeleteModal(gig);
-                                                    }}
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </div>
-                                        </div>
+                                            ))}
                                     </div>
-                                ))}
-                            </div>
+                                </Tab>
 
-                        </div>
-                    )}
+                                <Tab eventKey="applied" title="Active">
+                                    <h2 className="current-listings-header">All Your Active Listings</h2>
+                                    <div className="listings-card-container">
+                                        {gigs
+                                            .filter(gig => gig.is_listed && gig.status === 'owner')
+                                            .map((gig) => (
+                                                <div
+                                                    key={gig.event_id}
+                                                    className="listings-custom-card"
+                                                    onClick={() => navigate(`/event/${gig.event_id}`)}
+                                                >
+                                                    <div className="card-body">
+                                                        <h5 className="card-title">{gig.event_name}</h5>
+                                                        <p className="card-text">Event Date: {gig.start_time}</p>
+                                                        {gig.addresses && gig.addresses.length > 0 && (
+                                                            <div>
+                                                                {gig.addresses.map((address, index) => (
+                                                                    <div key={index}>
+                                                                        <p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        <p className="card-text">
+                                                            <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+                                                        </p>
+                                                        <p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+                                                        <div className="card-buttons">
+                                                            <Button
+                                                                variant="outline-secondary"
+                                                                className="edit-button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    navigate(`/form/${gig.event_id}`);
+                                                                }}
+                                                            >
+                                                                Edit
+                                                            </Button>
+                                                            {gig.status === 'owner' && (
+                                                                <>
+                                                                    <Button
+                                                                        variant="outline-danger"
+                                                                        className="unlist-button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleUnlistEvent(gig);
+                                                                        }}
+                                                                    >
+                                                                        Unlist
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="danger"
+                                                                        className="delete-button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDeleteEvent(gig);
+                                                                        }}
+                                                                    >
+                                                                        Delete
+                                                                    </Button>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </Tab>
+                                <Tab eventKey="pending" title="Pending">
+                                    <div className="listings-card-container">
+                                        {gigs
+                                            .filter(gig => gig.status === 'applied' && gig.is_listed)
+                                            .map((gig) => (
+                                                <div
+                                                    key={gig.event_id}
+                                                    className="listings-custom-card"
+                                                    onClick={() => navigate(`/event/${gig.event_id}`)}
+                                                >
+                                                    <div className="card-body">
+                                                        <h5 className="card-title">{gig.event_name}</h5>
+                                                        <p className="card-text">Event Date: {gig.start_time}</p>
+                                                        {gig.addresses && gig.addresses.length > 0 && (
+                                                            <div>
+                                                                {gig.addresses.map((address, index) => (
+                                                                    <div key={index}>
+                                                                        <p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        <p className="card-text">
+                                                            <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+                                                        </p>
+                                                        <p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+                                                        <div className="card-buttons">
+                                                            {gig.status === 'owner' ? (
+                                                                <>
+                                                                    <Button
+                                                                        variant="outline-secondary"
+                                                                        className="edit-button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            navigate(`/form/${gig.event_id}`);
+                                                                        }}
+                                                                    >
+                                                                        Edit
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline-danger"
+                                                                        className="unlist-button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleUnlistEvent(gig);
+                                                                        }}
+                                                                    >
+                                                                        Unlist
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="danger"
+                                                                        className="delete-button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDeleteEvent(gig);
+                                                                        }}
+                                                                    >
+                                                                        Delete
+                                                                    </Button>
+                                                                </>
+                                                            ) : gig.status === 'applied' ? (
+                                                                <Button
+                                                                    variant="outline-danger"
+                                                                    className="withdraw-button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleWithdrawEvent(gig);
+                                                                    }}
+                                                                >
+                                                                    Withdraw
+                                                                </Button>
+                                                            ) : null}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </Tab>
+                                <Tab eventKey="closed" title="Closed">
+                                    <div className="listings-card-container">
+                                        {gigs
+                                            .filter(gig => gig.status === 'withdraw' || gig.status === 'rejected' || !gig.is_listed)
+                                            .map((gig) => (
+                                                <div
+                                                    key={gig.event_id}
+                                                    className="listings-custom-card"
+                                                    onClick={() => navigate(`/event/${gig.event_id}`)}
+                                                >
+                                                    <div className="card-body">
+                                                        <h5 className="card-title">{gig.event_name}</h5>
+                                                        <p className="card-text">Event Date: {gig.start_time}</p>
+                                                        {gig.addresses && gig.addresses.length > 0 && (
+                                                            <div>
+                                                                {gig.addresses.map((address, index) => (
+                                                                    <div key={index}>
+                                                                        <p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        <p className="card-text">
+                                                            <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+                                                        </p>
+                                                        <p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+                                                        <div className="card-buttons">
+                                                            {gig.status === 'owner' && (
+                                                                <Button
+                                                                    variant="danger"
+                                                                    className="delete-button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteEvent(gig);
+                                                                    }}
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            )}
+                                                            {gig.status === 'applied' && (
+                                                                <Button
+                                                                    variant="outline-danger"
+                                                                    className="withdraw-button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleWithdrawEvent(gig);
+                                                                    }}
+                                                                >
+                                                                    Withdraw
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </Tab>
+                            </Tabs>
+                        )}
+                    </div>
+
                     {selectedContent && renderContent()}
                 </div>
             </Container>
