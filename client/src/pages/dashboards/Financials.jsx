@@ -25,6 +25,7 @@ function Financials({ financials, onDeleteFinancial }) {
 	};
 
 	const handleExportAllToSpreadsheet = () => {
+		console.log("is export all to spreadsheet working?")
 		const selectedData = financials.filter((financial, index) => selectedRows.includes(index));
 		if(selectedData.length > 0) {
 			saveSpreadsheetAll(selectedData);
@@ -34,6 +35,7 @@ function Financials({ financials, onDeleteFinancial }) {
 	};
 
 	const handleExportToSpreadsheet = () => {
+		console.log("is export to spreadsheet working?")
 		selectedRows.forEach(index => {
 			const selectedData = [financials[index]];
 			saveSpreadsheetAll(selectedData, selectedData[0].fin_name );
