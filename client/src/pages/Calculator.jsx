@@ -654,7 +654,7 @@ const Calculator = () => {
             //Options
             const enabledDataValidation = {
                 type: "list",
-                allowBlank: "false",
+                allowBlank: false,
                 formulae: ['"Enabled,Disabled"']
             }
             worksheet.getCell("F11").value = "Multiply Travel";
@@ -676,6 +676,9 @@ const Calculator = () => {
                 allowBlank: false,
                 operator: "greaterThan",
                 formulae: [0],
+                showErrorMessage: true,
+                errorStyle: 'error',
+                errorTitle: 'Invalid Value',
                 error: "This value must be at least 1"
             }
 
