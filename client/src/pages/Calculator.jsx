@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams} from "react-router-dom";
-import { Container, Form, Col, Row, InputGroup, Button, Modal, Alert, OverlayTrigger, Tooltip, Popover } from "react-bootstrap";
+import { Container, Form, Col, Row, InputGroup, Button, Modal, Alert, OverlayTrigger, Tooltip, Popover, Card } from "react-bootstrap";
 import moment from "moment";
 import TooltipButton from "../components/TooltipButton";
 import FormNumber from "../components/FormNumber";
@@ -34,6 +34,7 @@ const Calculator = () => {
     const [currentVehicle, setCurrentVehicle] = useState("average_mpg");
     const [locationModalOpen, setLocationModalOpen] = useState(false);
     const [gasModalOpen, setGasModalOpen] = useState(false);
+    const [gigNumModalOpen, setGigNumModalOpen] = useState(false);
 
     //Search parameters
     const [searchParams] = useSearchParams();
@@ -48,6 +49,10 @@ const Calculator = () => {
     const [gigPay, setGigPay] = useState();
     const [gigHours, setGigHours] = useState();
     const [gigNum, setGigNum] = useState();
+    const [multiplyTravel, setMultiplyTravel] = useState(true);
+    const [multiplyRehearsalHours, setMultiplyRehearsalHours] = useState(true);
+    const [multiplyPracticeHours, setMultiplyPracticeHours] = useState(true);
+    const [multiplyOtherFees, setMultiplyOtherFees] = useState(true);
     const [totalMileage, setTotalMileage] = useState();
     const [mileageCovered, setMileageCovered] = useState();
     const [travelHours, setTravelHours] = useState();
@@ -58,6 +63,7 @@ const Calculator = () => {
     const [rehearsalHours, setRehearsalHours] = useState();
     const [tax, setTax] = useState();
     const [otherFees, setOtherFees] = useState();
+    const [totalOtherFees, setTotalOtherFees] = useState();
     const [totalGas, setTotalGas] = useState(0.0); 
     const [totalTax, setTotalTax] = useState(0.0); 
     const [totalHours, setTotalHours] = useState(0.0);
@@ -155,7 +161,8 @@ const Calculator = () => {
     useEffect(() => {
       calculateHourlyWage();
     }, [gigPay, gigHours, gigNum, totalMileage, mileageCovered, gasPricePerMile, travelHours, practiceHours, rehearsalHours, tax, otherFees,
-        gigNumEnabled, totalMileageEnabled, mileageCoveredEnabled, travelHoursEnabled, practiceHoursEnabled, rehearsalHoursEnabled, taxEnabled, otherFeesEnabled])
+        gigNumEnabled, totalMileageEnabled, mileageCoveredEnabled, travelHoursEnabled, practiceHoursEnabled, rehearsalHoursEnabled, taxEnabled, otherFeesEnabled,
+        multiplyTravel, multiplyPracticeHours, multiplyRehearsalHours, multiplyOtherFees])
 
     //Runs when any fields related to gas price calcuation updates.
     useEffect(() => {
@@ -368,9 +375,25 @@ const Calculator = () => {
         let wage = 0;
         let finalPay = 0;
 
+        //Set multiples
+        let gigHoursNum = gigNumEnabled && gigNum? parseFloat(gigNum) : 1;
+        let practiceHoursNum = gigNumEnabled && gigNum && multiplyPracticeHours? parseFloat(gigNum) : 1;
+        let rehearsalHoursNum = gigNumEnabled && gigNum && multiplyRehearsalHours? parseFloat(gigNum) : 1;
+        let travelNum = gigNumEnabled && gigNum && multiplyTravel? parseFloat(gigNum) : 1;
+        let otherFeesNum = gigNumEnabled && gigNum && multiplyOtherFees? parseFloat(gigNum) : 1;
+
         //Calculate possible income
         if (gigPay) wage = parseFloat(gigPay);
         if (gigNumEnabled && gigNum) wage *= parseInt(gigNum);
+
+        //Calculate tax (if needed)
+        if (taxEnabled)
+        {  
+            let currentTax = 0;
+            if (tax) currentTax = wage * (parseFloat(tax)/100);
+            setTotalTax(currentTax);
+            wage -= currentTax;
+        } 
 
         //Calculate mileage pay
         if (totalMileageEnabled && totalMileage && gasPricePerMile)
@@ -378,31 +401,26 @@ const Calculator = () => {
             let gasPrice = parseFloat(gasPricePerMile);
             //Subtract mileage covered
             if (mileageCoveredEnabled && mileageCovered) gasPrice -= parseFloat(mileageCovered);
-            gasPrice = parseFloat(totalMileage) * gasPrice;
-            console.log("GasPerMIle", parseFloat(gasPricePerMile), 'MilesCovered', parseFloat(mileageCovered), "Times", parseFloat(totalMileage));
+            gasPrice = parseFloat(totalMileage) * travelNum * gasPrice;
             setTotalGas(gasPrice);
             wage -= gasPrice;
         }
 
-        //Calculate tax (if needed)
-        if (taxEnabled)
-        {  
-            let currentTax = 0;
-            if (tax) currentTax = parseFloat(gigPay) * (parseFloat(tax)/100);
-            setTotalTax(currentTax);
-            wage -= currentTax;
-        } 
-
         //Other fees (if needed)
-        if (otherFeesEnabled && otherFees) wage -= parseFloat(otherFees);
+        if (otherFeesEnabled && otherFees)
+        {
+            let fees = parseFloat(otherFees) * (otherFeesNum);
+            setTotalOtherFees(fees)
+            wage -= fees;
+        } 
 
         //Calculate hours
         let hours = 0;
-        if (gigHours) hours = parseFloat(gigHours);
-        if (gigNumEnabled && gigNum) hours *= parseFloat(gigNum);
-        if (practiceHoursEnabled && practiceHours) hours += parseFloat(practiceHours);
-        if (rehearsalHoursEnabled && rehearsalHours) hours += parseFloat(rehearsalHours);
-        if (travelHoursEnabled && travelHours) hours += parseFloat(travelHours);
+        
+        if (gigHours) hours = parseFloat(gigHours) * gigHoursNum;
+        if (practiceHoursEnabled && practiceHours) hours += parseFloat(practiceHours) * practiceHoursNum;
+        if (rehearsalHoursEnabled && rehearsalHours) hours += parseFloat(rehearsalHours) * rehearsalHoursNum;
+        if (travelHoursEnabled && travelHours) hours += parseFloat(travelHours) * travelNum;
         setTotalHours(hours.toFixed(2));
 
         //Final division
@@ -569,7 +587,7 @@ const Calculator = () => {
 
             //Set Rows
             const rows = [];
-            rows.push(worksheet.addRow(["Name", "Date", "Total Wage", "Number of Gigs"]));
+            rows.push(worksheet.addRow(["Name", "Date", "Total Wage", "Number of gigs"]));
             rows.push(worksheet.addRow([calcName, calcDate, parseFloatZero(gigPay), parseIntZero(gigNum) == 0 ? 1 : parseIntZero(gigNum), "", "Payment", parseFloatZero(gigPay)]));
             rows[1].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
             rows.push(worksheet.addRow(["", "", "", "", "", "Tax Cut", parseFloatZero(totalTax)])); //Results row
@@ -731,20 +749,56 @@ const Calculator = () => {
                                                 <TooltipButton text="Payment for gig."/>
                                             </InputGroup>
                                         </Col>
-                                        <Col>
+                                        <Col lg={3}>
                                             <Form.Label>Hours per gig<span style={{color: "red"}}>*</span></Form.Label>
                                             <InputGroup>
                                                 <FormNumber id="gigHours" maxValue={100} value={gigHours} placeholder="Ex. 3" required={true} integer={false} onChange={e => setGigHours(e.target.value)}/>
                                                 <TooltipButton text="Number of hours for event. Does not include rehearsal or practice hours."/>
                                             </InputGroup>
                                         </Col>
-                                        <Col>
+                                        <Col lg={5}>
                                             <Form.Label>Number of gigs</Form.Label>
                                             <InputGroup>
                                                 <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setGigNumEnabled(!gigNumEnabled)}} checked={gigNumEnabled}></Form.Check>
                                                 <FormNumber id="gigNum" max={2} value={gigNum || ""} placeholder="Ex. 1" disabled={!gigNumEnabled} onChange={e => setGigNum(e.target.value)} />
-                                                <TooltipButton text='Number of gigs. Used if you have multiple of the same gig at the same time (i.e. back-to-back performances). Will multiply gig pay and hours but only add travel, additional hours and other expenses once.'/>
+                                                <Button variant='light' disabled={!gigNumEnabled} onClick={() => {setGigNumModalOpen(!gigNumModalOpen)}}>Options</Button>
+                                                <TooltipButton text='Number of gigs. Used if you have multiple of the same gig or service. Will multiply <i>Pay per gig</i>, <i>Hours per gig</i> and any activated fields in the options.'/>
                                             </InputGroup>
+                                            <Modal show={gigNumModalOpen} onHide={() => {setGigNumModalOpen(false); setZipCodeError(false)}} centered={true}>
+                                                    <Modal.Header closeButton>
+                                                        <Modal.Title>Number of Services Options</Modal.Title>
+                                                    </Modal.Header>
+                                                    <Modal.Body>
+                                                        <p>
+                                                            Choose which attributes get multiplied by number of gigs.
+                                                        </p>
+                                                            <Card style={{display:'flex'}}>
+                                                                <Container>
+                                                                    <Col>
+                                                                        <Row className="py-2 align-items-center" style={{backgroundColor: "rgba(100, 100, 100, .05)"}}>
+                                                                            <Col lg={2} xs={2} className="text-end"><Form.Check type="switch" onChange={() => {setMultiplyTravel(!multiplyTravel)}} checked={multiplyTravel}></Form.Check></Col>
+                                                                            <Col><div>Multiply Travel</div></Col>
+                                                                        </Row>
+                                                                        <Row className="py-2 align-items-center" style={{backgroundColor: "rgba(100, 100, 100, .15)"}}>
+                                                                            <Col lg={2} xs={2} className="text-end"><Form.Check type="switch" onChange={() => {setMultiplyPracticeHours(!multiplyPracticeHours)}} checked={multiplyPracticeHours}></Form.Check></Col>
+                                                                            <Col><div>Multiply Practice Hours</div></Col>
+                                                                        </Row>
+                                                                        <Row className="py-2 align-items-center" style={{backgroundColor: "rgba(100, 100, 100, .05)"}}>
+                                                                            <Col lg={2} xs={2} className="text-end"><Form.Check type="switch" onChange={() => {setMultiplyRehearsalHours(!multiplyRehearsalHours)}} checked={multiplyRehearsalHours}></Form.Check></Col>
+                                                                            <Col><div>Multiply Rehearsal Hours</div></Col>  
+                                                                        </Row>
+                                                                        <Row className="py-2 align-items-center" style={{backgroundColor: "rgba(100, 100, 100, .15)"}}>
+                                                                            <Col lg={2} xs={2} className="text-end"><Form.Check type="switch" onChange={() => {setMultiplyOtherFees(!multiplyOtherFees)}} checked={multiplyOtherFees}></Form.Check></Col>
+                                                                            <Col><div>Multiply Other Fees</div></Col>  
+                                                                        </Row>
+                                                                    </Col>
+                                                                </Container>
+                                                            </Card>
+                                                    </Modal.Body>
+                                                    <Modal.Footer>
+                                                    <Button variant="primary" onClick={() => {setGigNumModalOpen(false)}}>Close</Button>
+                                                    </Modal.Footer>
+                                            </Modal>
                                         </Col>
                                     </Row>
                             </Form.Group>
@@ -962,7 +1016,7 @@ const Calculator = () => {
                                             <div style={{whiteSpace: "pre-wrap", textAlign: "right", display: "block"}}>
                                                 {taxEnabled ? <h5 style={{display: "block"}}>{formatCurrency(totalTax)}</h5> : ""}
                                                 {totalMileageEnabled ? <h5 style={{display: "block"}}>{totalMileage ? formatCurrency(totalGas) : formatCurrency(0)}</h5> : ""}
-                                                {otherFeesEnabled ? <h5 style={{display: "block"}}>{formatCurrency(otherFees)}</h5> : ""}
+                                                {otherFeesEnabled ? <h5 style={{display: "block"}}>{formatCurrency(totalOtherFees)}</h5> : ""}
                                                 <hr style={{margin: "0px ", textAlign: "right"}}/>
                                                 <h5 style={{display: "block"}}>{formatCurrency(totalPay)}</h5>
                                                 <h5 style={{display: "block"}}>{totalHours}</h5>
