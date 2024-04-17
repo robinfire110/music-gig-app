@@ -606,7 +606,7 @@ const Calculator = () => {
             rows.push(worksheet.addRow(["Event Hours", "Individual Practice Hours", "Rehearsal Hours", "", "", "Travel Cost", parseFloatZero(totalGas)]));
             rows.push(worksheet.addRow([parseFloatZero(gigHours), parseFloatZero(practiceHours), parseFloatZero(rehearsalHours), "", "", "Other Fees", parseFloatZero(otherFees)]));
             rows.push(worksheet.addRow([""])); //Results row
-            rows.push(worksheet.addRow(["Total Mileage", "Travel Hours", "Mileage Covered", "", "", "Total Hours", parseFloatZero(totalHours)]));
+            rows.push(worksheet.addRow(["Total Mileage", "Travel Hours", "Mileage Covered", "Trip Type", "", "Total Hours", parseFloatZero(totalHours)]));
             rows.push(worksheet.addRow([parseFloatZero(totalMileage), parseFloatZero(travelHours), parseFloatZero(mileageCovered), "", "", "Total Hourly Wage", parseFloatZero(hourlyWage)]));
             rows[7].getCell(3).numFmt = '$#,##0.00'; //Format cell as currency
             rows.push(worksheet.addRow([""])); //Results row
@@ -633,10 +633,41 @@ const Calculator = () => {
             worksheet.getCell('F1').value = 'Results';
             worksheet.getCell('F1').alignment = {horizontal: "center"};
             worksheet.getCell('F1').font = {bold: true};
+            worksheet.mergeCells("F10:G10");
+            worksheet.getCell('F10').value = 'Options';
+            worksheet.getCell('F10').alignment = {horizontal: "center"};
+            worksheet.getCell('F10').font = {bold: true};
             
             //Format
             worksheet.getColumn("G").numFmt = '$#,##0.00';
             worksheet.getCell('G7').numFmt = "0.00";
+
+            //Trip Type Select
+            worksheet.getCell('D8').dataValidation = {
+                type: "list",
+                allowBlank: "false",
+                formulae: ['"One-Way,Round Trip"']
+            }
+            worksheet.getCell('D8').value = isRoundTrip == 1 ? "Round Trip" : "One-Way";
+
+            //Options
+            const enabledDataValidation = {
+                type: "list",
+                allowBlank: "false",
+                formulae: ['"Enabled,Disabled"']
+            }
+            worksheet.getCell("F11").value = "Multiply Travel";
+            worksheet.getCell("G11").dataValidation = enabledDataValidation;
+            worksheet.getCell("G11").value = multiplyTravel == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F12").value = "Multiply Practice";
+            worksheet.getCell("G12").dataValidation = enabledDataValidation;
+            worksheet.getCell("G12").value = multiplyPracticeHours == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F13").value = "Multiply Rehearsal";
+            worksheet.getCell("G13").dataValidation = enabledDataValidation;
+            worksheet.getCell("G13").value = multiplyRehearsalHours == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F14").value = "Multiply Other Fees";
+            worksheet.getCell("G14").dataValidation = enabledDataValidation;
+            worksheet.getCell("G14").value = multiplyOtherFees == 1 ? "Enabled" : "Disabled";
 
             //Borders
             worksheet.getCell("F5").border = {bottom: {style: "thin"}};
@@ -647,10 +678,10 @@ const Calculator = () => {
             //Set formulas
             worksheet.getCell("G2").value = {formula: 'C2*D2'}; //Payment
             worksheet.getCell("G3").value = {formula: 'G2*(0.01*A14)'}; //Tax Cut
-            worksheet.getCell("G4").value = {formula: 'A8*(ROUND(C11, 2)-C8)'}; //Travel Cost
-            worksheet.getCell("G5").value = {formula: 'B14'}; //Other Fees 
+            worksheet.getCell("G4").value = {formula: '(A8*IF(D8="Round Trip", 2, 1)*(ROUND(C11, 2)-C8))*IF(G11="Enabled", D2, 1)'}; //Travel Cost
+            worksheet.getCell("G5").value = {formula: 'B14*IF(G14="Enabled", D2, 1)'}; //Other Fees 
             worksheet.getCell("G6").value = {formula: 'G2-G3-G4-G5'}; //Total Income
-            worksheet.getCell("G7").value = {formula: '(A5*D2)+B5+C5+B8'}; //Total Hours
+            worksheet.getCell("G7").value = {formula: '(A5*D2)+(B5*IF(G12="Enabled", D2, 1))+(C5*IF(G13="Enabled", D2, 1))+(B8*IF(G11="Enabled", D2, 1))'}; //Total Hours
             worksheet.getCell("G8").value = {formula: 'IFERROR(G6/G7, 0)'}; //Total Hourly Wage
             worksheet.getCell("C11").value = {formula: 'IFERROR(A11/B11, 0)'}; //Gas Price per Mile
 
