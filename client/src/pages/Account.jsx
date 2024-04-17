@@ -310,6 +310,9 @@ function Account() {
             return text.substring(0, maxLength) + '...';
         }
     }
+    const handleSeeMoreClick = (gig) => {
+        navigate(`/event/${gig.event_id}`);
+    }
 
     const renderContent = () => {
         switch(selectedContent) {
@@ -372,20 +375,20 @@ function Account() {
                                     >
                                         <div className="card-body">
                                             <h5 className="card-title">{gig.event_name}</h5>
-                                            <p>{gig.date_posted}</p>
-                                            <p className="card-text">{truncateText(gig.description)}</p>
+                                            <p className="card-text">Event Date: {gig.start_time}</p>
                                             {gig.addresses && gig.addresses.length > 0 && (
                                                 <div>
-                                                    <h6>Address:</h6>
                                                     {gig.addresses.map((address, index) => (
                                                         <div key={index}>
-                                                            <p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+                                                            <p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
                                                         </div>
                                                     ))}
                                                 </div>
                                             )}
+                                            <p className="card-text">
+                                                <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+                                            </p>
                                             <div className="card-buttons">
-
                                                 <Button
                                                     variant="outline-secondary"
                                                     className="edit-button"

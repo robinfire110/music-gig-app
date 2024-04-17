@@ -42,6 +42,9 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 		setShowConfirmationModal(false);
 	};
 
+	const handleSeeMoreClick = (gig) => {
+		navigate(`/event/${gig.event_id}`);
+	}
 
 	function truncateText(text, maxLength = 50) {
 		if (text.length <= maxLength) {
@@ -71,19 +74,20 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 							>
 								<div className="card-body">
 									<h5 className="card-title">{gig.event_name}</h5>
-									<p>{gig.date_posted}</p>
-									<p className="card-text">{truncateText(gig.description)}</p>
+									<p className="card-text">Event Date: {gig.start_time}</p>
 									{gig.addresses && gig.addresses.length > 0 && (
 										<div>
-											<h6>Address:</h6>
 											{gig.addresses.map((address, index) => (
 												<div key={index}>
-													<p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+													<p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
 												</div>
 											))}
 										</div>
 									)}
-									<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+									<p className="card-text">
+										<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+									</p>
+									<p className="card-text">{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 									<div className="card-buttons">
 										{gig.status === 'owner' && gig.is_listed === 0 ? (
 											<Button
@@ -161,18 +165,19 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 								>
 									<div className="card-body">
 										<h5 className="card-title">{gig.event_name}</h5>
-										<p>{gig.date_posted}</p>
-										<p className="card-text">{truncateText(gig.description)}</p>
+										<p className="card-text">Event Date: {gig.start_time}</p>
 										{gig.addresses && gig.addresses.length > 0 && (
 											<div>
-												<h6>Address:</h6>
 												{gig.addresses.map((address, index) => (
 													<div key={index}>
-														<p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+														<p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
 													</div>
 												))}
 											</div>
 										)}
+										<p className="card-text">
+										<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+									</p>
 										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 										<div className="card-buttons">
 											<Button
@@ -227,18 +232,19 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 								>
 									<div className="card-body">
 										<h5 className="card-title">{gig.event_name}</h5>
-										<p>{gig.date_posted}</p>
-										<p className="card-text">{truncateText(gig.description)}</p>
+										<p className="card-text">Event Date: {gig.start_time}</p>
 										{gig.addresses && gig.addresses.length > 0 && (
 											<div>
-												<h6>Address:</h6>
 												{gig.addresses.map((address, index) => (
 													<div key={index}>
-														<p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+														<p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
 													</div>
 												))}
 											</div>
 										)}
+										<p className="card-text">
+											<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+										</p>
 										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 										<div className="card-buttons">
 										</div>
@@ -259,18 +265,19 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 								>
 									<div className="card-body">
 										<h5 className="card-title">{gig.event_name}</h5>
-										<p>{gig.date_posted}</p>
-										<p className="card-text">{truncateText(gig.description)}</p>
+										<p className="card-text">Event Date: {gig.start_time}</p>
 										{gig.addresses && gig.addresses.length > 0 && (
 											<div>
-												<h6>Address:</h6>
 												{gig.addresses.map((address, index) => (
 													<div key={index}>
-														<p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+														<p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
 													</div>
 												))}
 											</div>
 										)}
+										<p className="card-text">
+											<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+										</p>
 										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 										<div className="card-buttons">
 											{gig.status === 'owner' ? (
@@ -336,18 +343,19 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 								>
 									<div className="card-body">
 										<h5 className="card-title">{gig.event_name}</h5>
-										<p>{gig.date_posted}</p>
-										<p className="card-text">{truncateText(gig.description)}</p>
+										<p className="card-text">Event Date: {gig.start_time}</p>
 										{gig.addresses && gig.addresses.length > 0 && (
 											<div>
-												<h6>Address:</h6>
 												{gig.addresses.map((address, index) => (
 													<div key={index}>
-														<p>{address.street}, {address.city}, {address.state}, {address.zip}</p>
+														<p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
 													</div>
 												))}
 											</div>
 										)}
+										<p className="card-text">
+											<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+										</p>
 										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 										<div className="card-buttons">
 											{gig.status === 'owner' && (
