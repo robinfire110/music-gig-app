@@ -214,6 +214,7 @@ const Calculator = () => {
         setRehearsalHoursEnabled(data?.rehearse_hours > 0);
         setTaxEnabled(data?.tax > 0);
         setOtherFeesEnabled(data?.fees > 0);
+        if (data?.zip) setModalDestinationZip(data?.zip);
     }
 
     //Load from database (both fin_id and event_id)
@@ -288,7 +289,6 @@ const Calculator = () => {
                 };
 
                 setEventData(eventData);
-                setModalDestinationZip(eventData?.zip);
                 if (fillFields)
                 {   
                     if (currentUser?.zip && eventData?.zip) await calculateBasedOnLocation(currentUser?.zip?.slice(0, 5), eventData.zip?.slice(0, 5));
@@ -487,7 +487,7 @@ const Calculator = () => {
                 travel_hours: parseFloatZero(travelHours),
                 total_mileage: parseFloatZero(totalMileage),
                 mileage_pay: parseFloatZero(mileageCovered),
-                zip: parseStringUndefined(zip),
+                zip: isEvent ? parseStringUndefined(zip) : parseStringUndefined(modalDestinationZip),
                 gas_price: parseFloatZero(gasPricePerGallon),
                 mpg: parseFloatZero(vehicleMPG),
                 tax: parseFloatZero(tax),
@@ -499,6 +499,7 @@ const Calculator = () => {
                 multiply_other: multiplyOtherFees
             }
             if (isNewEvent && isEvent) data["event_id"] = paramId;
+            console.log(data.zip);
             
             //Check validity (will return false if not valid, HTML will take care of the rest).
             const inputs = document.getElementById("calculatorForm").elements;
@@ -807,7 +808,7 @@ const Calculator = () => {
                                                 <Button variant='light' disabled={!gigNumEnabled} onClick={() => {setGigNumModalOpen(!gigNumModalOpen)}}>Options</Button>
                                                 <TooltipButton text='Number of gigs. Used if you have multiple of the same gig or service. Will multiply <i>Pay per gig</i>, <i>Hours per gig</i> and any activated fields in the options.'/>
                                             </InputGroup>
-                                            <Modal show={gigNumModalOpen} onHide={() => {setGigNumModalOpen(false); setZipCodeError(false)}} centered={true}>
+                                            <Modal show={gigNumModalOpen} onHide={() => {setGigNumModalOpen(false);}} centered={true}>
                                                     <Modal.Header closeButton>
                                                         <Modal.Title>Number of Services Options</Modal.Title>
                                                     </Modal.Header>
