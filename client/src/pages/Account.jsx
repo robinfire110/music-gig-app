@@ -60,9 +60,8 @@ function Account() {
     useEffect(() => {
         const fetchUserGigs = async () => {
             try {
-                const { data } = await axios.get(`${getBackendURL()}/user-gigs`, { withCredentials: true });
+                const { data } = await axios.get(`${getBackendURL()}/account/user-gigs`, { withCredentials: true });
                 setGigs(data.userGigs);
-                console.log(data.userGigs)
             } catch (error) {
                 console.error('Error fetching user gigs:', error);
             }
@@ -80,7 +79,7 @@ function Account() {
                     console.error('User data or user_id is not available');
                     return;
                 }
-                const { data } = await axios.get(`${getBackendURL()}/user-financials`, { withCredentials: true });
+                const { data } = await axios.get(`${getBackendURL()}/account/user-financials`, { withCredentials: true });
                 setFinancials(data.userFinancials);
             } catch (error) {
                 console.error('Error fetching user financials:', error);
@@ -96,7 +95,7 @@ function Account() {
         const fetchUsers = async () => {
             try {
                 if(isAdmin){
-                    const { data } = await axios.get(`${getBackendURL()}/all-users`, { withCredentials: true });
+                    const { data } = await axios.get(`${getBackendURL()}/account/admin/all-users`, { withCredentials: true });
                     // console.log(data.users)
                     setUsers(data.users);
                 }
@@ -113,7 +112,7 @@ function Account() {
         const fetchPosts = async () => {
             try {
                 if(isAdmin){
-                    const { data } = await axios.get(`${getBackendURL()}/all-events`, { withCredentials: true });
+                    const { data } = await axios.get(`${getBackendURL()}/account/admin/all-events`, { withCredentials: true });
                     setPosts(data.events);
                 }
             } catch (error) {
@@ -130,14 +129,16 @@ function Account() {
 
     const handlePasswordReset = async (user, newPassword) => {
         try {
-            const response = await axios.post(`${getBackendURL()}/reset-user-password`,
-                { user, newPassword }, {
-                    withCredentials: true
-                });
-            if (response.data.success) {
-                toast.success("Password reset successfully", { theme: 'dark' });
-            } else {
-                console.error('Failed to reset password:', response.data.message);
+            if(isAdmin){
+                const response = await axios.post(`${getBackendURL()}/account/admin/reset-user-password`,
+                    { user, newPassword }, {
+                        withCredentials: true
+                    });
+                if (response.data.success) {
+                    toast.success("Password reset successfully", { theme: 'dark' });
+                } else {
+                    console.error('Failed to reset password:', response.data.message);
+                }
             }
         } catch (error) {
             console.error('Error resetting password:', error);
@@ -146,14 +147,17 @@ function Account() {
 
     const handlePromoteUser = async (user) => {
         try {
-            const response = await axios.post(`${getBackendURL()}/promote-user`,
-                user , {
-                    withCredentials: true
-                });
-            if (response.data.success) {
-                toast.success(`Successfully promoted ${user.email} to Admin`, { theme: 'dark' });
-            } else {
-                console.error('Failed to promote user:', response.data.message);
+            if(isAdmin){
+                const response = await axios.put(`${getBackendURL()}/account/admin/promote-user/${user.user_id}`,
+                    null,
+                    {
+                        withCredentials: true
+                    });
+                if (response.data.success) {
+                    toast.success(`Successfully promoted ${user.email} to Admin`, { theme: 'dark' });
+                } else {
+                    console.error('Failed to promote user:', response.data.message);
+                }
             }
         } catch (error) {
             console.error('Error promoting user:', error);
@@ -163,16 +167,20 @@ function Account() {
 
     const handleDemoteUser = async (user) => {
         try {
-            const response = await axios.post(`${getBackendURL()}/demote-user`,
-                user , {
-                    withCredentials: true
-                });
-            if (response.data.success) {
-                toast.success(`Successfully demoted ${user.email} to user`, { theme: 'dark' });
+            if(isAdmin){
+                const response = await axios.put(`${getBackendURL()}/account/admin/demote-user/${user.user_id}`,
+                    null ,
+                    {
+                        withCredentials: true
+                    });
+                if (response.data.success) {
+                    toast.success(`Successfully demoted ${user.email} to user`, { theme: 'dark' });
 
-            } else {
-                console.error('Failed to demote user:', response.data.message);
+                } else {
+                    console.error('Failed to demote user:', response.data.message);
+                }
             }
+
         } catch (error) {
             console.error('Error demote user:', error);
         }
@@ -180,15 +188,17 @@ function Account() {
 
     const handleDeleteUser = async (user) => {
         try {
-            const response = await axios.post(`${getBackendURL()}/remove-user`,
-                user , {
-                    withCredentials: true
-                });
-            if (response.data.success) {
-                toast.success(`Successfully deleted user ${user.email}`, { theme: 'dark' });
+            if(isAdmin){
+                const response = await axios.delete(`${getBackendURL()}/account/admin/remove-user/${user.user_id}`
+                    , {
+                        withCredentials: true
+                    });
+                if (response.data.success) {
+                    toast.success(`Successfully deleted user ${user.email}`, { theme: 'dark' });
 
-            } else {
-                console.error('Failed to delete user:', response.data.message);
+                } else {
+                    console.error('Failed to delete user:', response.data.message);
+                }
             }
         } catch (error) {
             console.error('Error deleting user:', error);
@@ -197,8 +207,8 @@ function Account() {
 
     const handleDeletePost = async (post) => {
         try {
-            const response = await axios.post(`${getBackendURL()}/remove-user-post`,
-                post , {
+            const response = await axios.delete(`${getBackendURL()}/account/admin/remove-user-post/${post.event_id}`
+                , {
                     withCredentials: true
                 });
             if (response.data.success) {
@@ -214,8 +224,8 @@ function Account() {
 
     const handleDeleteFinancial = async (financial) => {
         try {
-            const response = await axios.post(`${getBackendURL()}/delete-financial`,
-                financial , {
+            const response = await axios.delete(`${getBackendURL()}/account/delete-financial/${financial.fin_id}`
+                , {
                     withCredentials: true
                 });
             if (response.data.success) {
@@ -234,8 +244,8 @@ function Account() {
 
     const handleDeleteEvent = async (event) => {
         try {
-            const response = await axios.post(`${getBackendURL()}/delete-event`,
-                event , {
+            const response = await axios.delete(`${getBackendURL()}/account/delete-event/${event.event_id}`,
+                {
                     withCredentials: true
                 });
             if (response.data.success) {
@@ -255,13 +265,13 @@ function Account() {
 
     const handleUnlistEvent = async (event) => {
         try {
-            const response = await axios.post(`${getBackendURL()}/unlist-event`,
-                event , {
+            console.log("is handle unlist called in front")
+            const response = await axios.put(`${getBackendURL()}/account/unlist-event/${event.event_id}`,
+                null , {
                     withCredentials: true
                 });
             if (response.data.success) {
                 toast.success(`Successfully unlisted event ${event.event_name}`, { theme: 'dark' });
-                // Perform any additional actions after unlisting the event if needed
             } else {
                 console.error('Failed to unlist event:', response.data.message);
             }
@@ -273,8 +283,6 @@ function Account() {
             handleCloseUnlistModal();
         }
     };
-
-
 
     const handleShowUnlistModal = (event) => {
         setEventToUnlist(event);
@@ -312,9 +320,11 @@ function Account() {
                 return null;
             case 'editProfile':
                 return <EditProfile userData={userData}
-                                    onDeleteEvent={handleDeleteEvent}/>;
+                                    />;
             case 'gigs':
-                return <Gigs userData={userData} gigs={gigs} />;
+                return <Gigs userData={userData} gigs={gigs}
+                             onDeleteEvent={handleDeleteEvent}
+                             onUnlistEvent={handleUnlistEvent}/>;
             case 'financials':
                 return <Financials userData={userData}
                                    financials={financials}

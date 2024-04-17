@@ -3,12 +3,14 @@ import {Card, Container, Row, Col, Button, Tab, Tabs, Table} from 'react-bootstr
 import {useNavigate} from "react-router-dom";
 import ConfirmationModal from "./ConfirmationModal";
 
-function Gigs({ userData, gigs, onDeleteEvent }) {
+function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 	const navigate = useNavigate();
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const [eventToDelete, setEventToDelete] = useState(null);
+	const [eventToUnlist, setEventToUnlist] = useState(null);
 	const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 	const [confirmationMessage, setConfirmationMessage] = useState('');
+	const [actionToConfirm, setActionToConfirm] = useState(null);
 
 	const handleCreateNewListing = () => {
 		navigate('/form');
@@ -16,22 +18,30 @@ function Gigs({ userData, gigs, onDeleteEvent }) {
 
 	const handleDeleteEvent = (event) => {
 		setEventToDelete(event);
+		setActionToConfirm(() => () => onDeleteEvent(event));
 		setConfirmationMessage(`Are you sure you want to delete ${event.event_name}?`);
 		setShowConfirmationModal(true);
 	}
 
-	const handleUnlistEvent = () => {
-	console.log("unlisting event")
+	const handleUnlistEvent = (event) => {
+		setEventToUnlist(event);
+		setActionToConfirm(() => () => onUnlistEvent(event));
+		setConfirmationMessage(`Are you sure you want to unlist ${event.event_name}?`);
+		setShowConfirmationModal(true);
 	}
 
-	const handleWithdrawEvent = () => {
-		console.log("withdraw from event")
+	const handleWithdrawEvent = (event) => {
+		navigate(`/event/${event.event_id}`);
 	}
 
-	const handleDeleteEventConfirmation = (event) => {
-		onDeleteEvent(event);
+	const handleConfirmation = () => {
+		if (actionToConfirm) {
+			actionToConfirm();
+			setActionToConfirm(null);
+		}
 		setShowConfirmationModal(false);
-	}
+	};
+
 
 	function truncateText(text, maxLength = 50) {
 		if (text.length <= maxLength) {
@@ -198,7 +208,6 @@ function Gigs({ userData, gigs, onDeleteEvent }) {
 										<p className="card-text">{truncateText(gig.description)}</p>
 										<p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
 										<div className="card-buttons">
-											{/* Buttons for upcoming events */}
 										</div>
 									</div>
 								</div>
@@ -316,15 +325,12 @@ function Gigs({ userData, gigs, onDeleteEvent }) {
 							))}
 					</div>
 				</Tab>
-
-
-
 			</Tabs>
 			<ConfirmationModal
 				show={showConfirmationModal}
 				handleClose={() => setShowConfirmationModal(false)}
 				message={confirmationMessage}
-				onConfirm={handleDeleteEventConfirmation}
+				onConfirm={handleConfirmation}
 			/>
 		</>
 	);

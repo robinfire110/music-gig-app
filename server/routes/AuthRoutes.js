@@ -8,20 +8,23 @@ const router = require("express").Router();
 router.post("/register", register)
 router.post("/login", login)
 
-
+//user
 router.get("/account",checkUser, account);
-router.post("/update_user", checkUser, update_user)
-router.get("/user-gigs", checkUser, getUserEvents)
-router.get("/user-financials", checkUser, getUserFinancials)
-router.get("/all-users", checkUser, getUsers)
-router.get("/all-events", checkUser, getEvents)
-router.post("/promote-user", checkUser, giveUserAdmin)
-router.post("/demote-user", checkUser, giveUserUser)
-router.post("/remove-user", checkUser, removeUser)
-router.post("/reset-user-password", checkUser, resetUserPassword)
-router.post("/remove-user-post", checkUser, deleteUserPost)
-router.post("/delete-event", checkUser, deleteEvent)
-router.post("/unlist-event", checkUser, unlistEvent)
-router.post("/delete-financial", checkUser, deleteFinancial)
+router.post("/account/update_user", checkUser, update_user)
+router.get("/account/user-gigs", checkUser, getUserEvents)
+router.get("/account/user-financials", checkUser, getUserFinancials)
+router.put("/account/unlist-event/:eventId", checkUser, unlistEvent)
+router.delete("/account/delete-financial/:finId", checkUser, deleteFinancial)
+router.delete("/account/delete-event/:eventId", checkUser, deleteEvent)
+
+
+//admin
+router.get("/account/admin/all-users", checkUser, getUsers)
+router.get("/account/admin/all-events", checkUser, getEvents)
+router.put("/account/admin/promote-user/:userId", checkUser, giveUserAdmin)
+router.put("/account/admin/demote-user/:userId", checkUser, giveUserUser)
+router.delete("/account/admin/remove-user/:userId", checkUser, removeUser)
+router.delete("/account/admin/remove-user-post/:eventId", checkUser, deleteUserPost)
+router.post("/account/admin/reset-user-password", checkUser, resetUserPassword)
 
 module.exports = {router};

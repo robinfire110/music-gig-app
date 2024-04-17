@@ -269,7 +269,7 @@ module.exports.getEvents = async (req, res, next) => {
 
 module.exports.giveUserAdmin = async (req, res, next) => {
 	try {
-		const userIdToUpdate = req.body.user_id;
+		const userIdToUpdate = req.params.userId;
 
 		await updateUserToAdmin(userIdToUpdate);
 
@@ -287,7 +287,7 @@ module.exports.giveUserAdmin = async (req, res, next) => {
 
 module.exports.giveUserUser = async (req, res, next) => {
 	try {
-		const userIdToUpdate = req.body.user_id;
+		const userIdToUpdate = req.params.userId;
 
 		await demoteUserFromAdmin(userIdToUpdate);
 
@@ -306,7 +306,7 @@ module.exports.giveUserUser = async (req, res, next) => {
 
 module.exports.removeUser = async (req, res, next) => {
 	try {
-		const userIdToRemove = req.body.user_id;
+		const userIdToRemove = req.params.userId;
 		await removeUser(userIdToRemove);
 
 		const userExists = await db.User.findByPk(userIdToRemove);
@@ -345,7 +345,7 @@ module.exports.deleteUserPost = async  (req,res,next) => {
 		if (!req.user.isAdmin) {
 			return res.status(403).json({ error: "Access denied. Only admins can reset passwords." });
 		}
-		const eventId = req.body.event_id;
+		const eventId = req.params.eventId;
 		const result = await deletePost(eventId);
 
 		const eventExists = await db.Event.findOne({where: {event_id: eventId}});
@@ -365,8 +365,8 @@ module.exports.deleteUserPost = async  (req,res,next) => {
 //user to delete their own events
 module.exports.deleteEvent = async (req, res, next) => {
 	try {
-		const eventId = req.body.event_id;
-		const userId = req.user.id;
+		const eventId = req.params.eventId;
+		const userId = req.user.user_id;
 
 		// Make sure it is their event to delete
 		const userStatus = await db.UserStatus.findOne({
@@ -396,9 +396,8 @@ module.exports.deleteEvent = async (req, res, next) => {
 //owner can also unlist their own events
 module.exports.unlistEvent = async (req, res, next) => {
 	try {
-		console.log("make it to unlistEvent")
-
-		const eventId = req.body.event_id;
+		console.log("is this function being called to unlist")
+		const eventId = req.params.eventId;
 		const userId = req.user.user_id;
 
 		const userStatus = await db.UserStatus.findOne({

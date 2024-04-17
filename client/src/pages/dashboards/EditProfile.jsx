@@ -44,14 +44,13 @@ function EditProfile({ userData }) {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			const response = await axios.post(`${getBackendURL()}/update_user`, formData, {
+			const response = await axios.post(`${getBackendURL()}/account/update_user`, formData, {
 				withCredentials: true
 			});
 			if (response.data.success) {
-				toast.success('Profile updated successfully');
-				window.location.reload()
+				toast.success('Profile updated successfully' , { theme: 'dark' });
 			} else {
-				toast.error('Failed to update profile');
+				toast.error('Failed to update profile', { theme: 'dark' });
 			}
 		} catch (error) {
 			console.error('Error updating profile:', error);
