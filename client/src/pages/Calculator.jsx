@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams} from "react-router-dom";
-import { Container, Form, Col, Row, InputGroup, Button, Modal, Alert, OverlayTrigger, Tooltip, Popover, Card } from "react-bootstrap";
+import { Container, Form, Col, Row, InputGroup, Button, Modal, Alert, OverlayTrigger, Tooltip, Popover, Card, ButtonGroup, ToggleButton } from "react-bootstrap";
 import moment from "moment";
 import TooltipButton from "../components/TooltipButton";
 import FormNumber from "../components/FormNumber";
@@ -50,12 +50,13 @@ const Calculator = () => {
     const [gigHours, setGigHours] = useState();
     const [gigNum, setGigNum] = useState();
     const [multiplyTravel, setMultiplyTravel] = useState(true);
-    const [multiplyRehearsalHours, setMultiplyRehearsalHours] = useState(true);
-    const [multiplyPracticeHours, setMultiplyPracticeHours] = useState(true);
-    const [multiplyOtherFees, setMultiplyOtherFees] = useState(true);
+    const [multiplyRehearsalHours, setMultiplyRehearsalHours] = useState(false);
+    const [multiplyPracticeHours, setMultiplyPracticeHours] = useState(false);
+    const [multiplyOtherFees, setMultiplyOtherFees] = useState(false);
     const [totalMileage, setTotalMileage] = useState();
     const [mileageCovered, setMileageCovered] = useState();
     const [travelHours, setTravelHours] = useState();
+    const [isRoundTrip, setIsRoundTrip] = useState(1);
     const [gasPricePerMile, setGasPricePerMile] = useState();
     const [gasPricePerGallon, setGasPricePerGallon] = useState();
     const [vehicleMPG, setVehicleMPG] = useState();
@@ -162,7 +163,7 @@ const Calculator = () => {
       calculateHourlyWage();
     }, [gigPay, gigHours, gigNum, totalMileage, mileageCovered, gasPricePerMile, travelHours, practiceHours, rehearsalHours, tax, otherFees,
         gigNumEnabled, totalMileageEnabled, mileageCoveredEnabled, travelHoursEnabled, practiceHoursEnabled, rehearsalHoursEnabled, taxEnabled, otherFeesEnabled,
-        multiplyTravel, multiplyPracticeHours, multiplyRehearsalHours, multiplyOtherFees])
+        isRoundTrip, multiplyTravel, multiplyPracticeHours, multiplyRehearsalHours, multiplyOtherFees])
 
     //Runs when any fields related to gas price calcuation updates.
     useEffect(() => {
@@ -381,6 +382,7 @@ const Calculator = () => {
         let rehearsalHoursNum = gigNumEnabled && gigNum && multiplyRehearsalHours? parseFloat(gigNum) : 1;
         let travelNum = gigNumEnabled && gigNum && multiplyTravel? parseFloat(gigNum) : 1;
         let otherFeesNum = gigNumEnabled && gigNum && multiplyOtherFees? parseFloat(gigNum) : 1;
+        let roundTrip = isRoundTrip == 1 ? 2 : 1;
 
         //Calculate possible income
         if (gigPay) wage = parseFloat(gigPay);
@@ -401,7 +403,7 @@ const Calculator = () => {
             let gasPrice = parseFloat(gasPricePerMile);
             //Subtract mileage covered
             if (mileageCoveredEnabled && mileageCovered) gasPrice -= parseFloat(mileageCovered);
-            gasPrice = parseFloat(totalMileage) * travelNum * gasPrice;
+            gasPrice = parseFloat(totalMileage) * roundTrip * travelNum * gasPrice;
             setTotalGas(gasPrice);
             wage -= gasPrice;
         }
@@ -420,7 +422,7 @@ const Calculator = () => {
         if (gigHours) hours = parseFloat(gigHours) * gigHoursNum;
         if (practiceHoursEnabled && practiceHours) hours += parseFloat(practiceHours) * practiceHoursNum;
         if (rehearsalHoursEnabled && rehearsalHours) hours += parseFloat(rehearsalHours) * rehearsalHoursNum;
-        if (travelHoursEnabled && travelHours) hours += parseFloat(travelHours) * travelNum;
+        if (travelHoursEnabled && travelHours) hours += parseFloat(travelHours) * travelNum * roundTrip;
         setTotalHours(hours.toFixed(2));
 
         //Final division
@@ -771,6 +773,8 @@ const Calculator = () => {
                                                     <Modal.Body>
                                                         <p>
                                                             Choose which attributes get multiplied by number of gigs.
+                                                            <br />
+                                                            <small>Note - If all options are enabled, number of gigs will make no difference because all fields are multiplied by the same amount.</small>
                                                         </p>
                                                             <Card style={{display:'flex'}}>
                                                                 <Container>
@@ -781,7 +785,7 @@ const Calculator = () => {
                                                                         </Row>
                                                                         <Row className="py-2 align-items-center" style={{backgroundColor: "rgba(100, 100, 100, .15)"}}>
                                                                             <Col lg={2} xs={2} className="text-end"><Form.Check type="switch" onChange={() => {setMultiplyPracticeHours(!multiplyPracticeHours)}} checked={multiplyPracticeHours}></Form.Check></Col>
-                                                                            <Col><div>Multiply Practice Hours</div></Col>
+                                                                            <Col><div>Multiply Individual Practice Hours</div></Col>
                                                                         </Row>
                                                                         <Row className="py-2 align-items-center" style={{backgroundColor: "rgba(100, 100, 100, .05)"}}>
                                                                             <Col lg={2} xs={2} className="text-end"><Form.Check type="switch" onChange={() => {setMultiplyRehearsalHours(!multiplyRehearsalHours)}} checked={multiplyRehearsalHours}></Form.Check></Col>
@@ -852,12 +856,13 @@ const Calculator = () => {
                                             </InputGroup>
                                         </Row>
                                         <Row className="mb-3">
-                                            <Form.Label>Mileage Covered (in $ per mile)</Form.Label>
-                                            <InputGroup>
-                                                <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setMileageCoveredEnabled(!mileageCoveredEnabled)}} checked={mileageCoveredEnabled}></Form.Check>
-                                                <FormNumber id="mileageCovered" maxValue={1} value={mileageCovered} placeholder="Ex. 0.21" integer={false} disabled={!mileageCoveredEnabled} onChange={e => setMileageCovered(e.target.value)} />
-                                                <TooltipButton text="Number of miles that will be covered by organizers. Will subtract from total mileage for final result."/>
-                                            </InputGroup>
+                                            <Form.Label>Trip Type</Form.Label>
+                                                <ButtonGroup>
+                                                    <ToggleButton type="radio" variant="outline-dark" value={0} checked={isRoundTrip === 0} onClick={(e) => setIsRoundTrip(0)}>One-Way</ToggleButton>
+                                                    <ToggleButton type="radio"variant="outline-dark" value={1} checked={isRoundTrip === 1} onClick={(e) => setIsRoundTrip(1)}>Round Trip</ToggleButton>
+                                                    <TooltipButton text="Detemines whether mileage is counted as one-way or a round trip. Selecting round trip will muliply travel hours and cost by 2."/>
+                                                </ButtonGroup>
+                                                
                                         </Row>
                                     </Col>
                                     <Col>
@@ -906,7 +911,7 @@ const Calculator = () => {
 
                                         </InputGroup>
                                         <Col md={{offset: 1}}>
-                                            <Row >
+                                            <Row>
                                                 <InputGroup>    
                                                     <InputGroup.Text>Gas $/Gallon</InputGroup.Text>
                                                     <FormNumber id="gasPricePerGallon" maxValue={9.99} value={gasPricePerGallon} placeholder="Ex. 2.80" integer={false} disabled={!totalMileageEnabled} onChange={e => setGasPricePerGallon(e.target.value)} />
@@ -921,6 +926,15 @@ const Calculator = () => {
                                                 </InputGroup>
                                             </Row>
                                         </Col>
+
+                                        <Row className="mt-3">
+                                        <Form.Label>Mileage Covered (in $ per mile)</Form.Label>
+                                                <InputGroup>
+                                                    <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setMileageCoveredEnabled(!mileageCoveredEnabled)}} checked={mileageCoveredEnabled}></Form.Check>
+                                                    <FormNumber id="mileageCovered" maxValue={1} value={mileageCovered} placeholder="Ex. 0.21" integer={false} disabled={!mileageCoveredEnabled} onChange={e => setMileageCovered(e.target.value)} />
+                                                    <TooltipButton text="Number of miles that will be covered by organizers. Will subtract from total mileage for final result."/>
+                                                </InputGroup>
+                                        </Row>
                                         
                                     </Col>
                                 </Row>
