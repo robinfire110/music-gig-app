@@ -380,7 +380,7 @@ function Account() {
                         {selectedContent === '' && (
                             <Tabs defaultActiveKey="events" id="listings-tabs">
                                 <Tab eventKey="events" title="Events">
-                                    <h2 className="current-listings-header">All Your Upcoming Events</h2>
+                                    <h2 className="current-listings-header">Your Upcoming Events</h2>
                                     <div className="listings-card-container">
                                         {gigs
                                             .filter(gig => gig.is_listed && gig.status === 'owner')
@@ -439,7 +439,7 @@ function Account() {
                                                                         className="unlist-button"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handleUnlistEvent(gig);
+                                                                            handleShowUnlistModal(gig);
                                                                         }}
                                                                     >
                                                                         Unlist
@@ -449,7 +449,7 @@ function Account() {
                                                                         className="delete-button"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handleDeleteEvent(gig);
+                                                                            handleShowDeleteModal(gig);
                                                                         }}
                                                                     >
                                                                         Delete
@@ -505,7 +505,6 @@ function Account() {
                                                             )}
                                                         </p>
                                                         <div className="card-buttons">
-                                                            {gig.status === 'owner' ? (
                                                                 <>
                                                                     <Button
                                                                         variant="outline-secondary"
@@ -522,7 +521,7 @@ function Account() {
                                                                         className="unlist-button"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handleUnlistEvent(gig);
+                                                                            handleShowUnlistModal(gig);
                                                                         }}
                                                                     >
                                                                         Unlist
@@ -532,24 +531,12 @@ function Account() {
                                                                         className="delete-button"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handleDeleteEvent(gig);
+                                                                            handleShowDeleteModal(gig);
                                                                         }}
                                                                     >
                                                                         Delete
                                                                     </Button>
                                                                 </>
-                                                            ) : gig.status === 'applied' ? (
-                                                                <Button
-                                                                    variant="outline-danger"
-                                                                    className="withdraw-button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleWithdrawEvent(gig);
-                                                                    }}
-                                                                >
-                                                                    Withdraw
-                                                                </Button>
-                                                            ) : null}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -557,6 +544,7 @@ function Account() {
                                     </div>
                                 </Tab>
                                 <Tab eventKey="closed" title="Closed">
+                                    <h2 className="current-listings-header">Closed Listings</h2>
                                     <div className="listings-card-container">
                                         {gigs
                                             .filter(gig => gig.status === 'owner' && !gig.is_listed)
@@ -582,30 +570,16 @@ function Account() {
                                                             <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
                                                         </p>
                                                         <div className="card-buttons">
-                                                            {gig.status === 'owner' && (
                                                                 <Button
                                                                     variant="danger"
                                                                     className="delete-button"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        handleDeleteEvent(gig);
+                                                                        handleShowDeleteModal(gig);
                                                                     }}
                                                                 >
                                                                     Delete
                                                                 </Button>
-                                                            )}
-                                                            {gig.status === 'applied' && (
-                                                                <Button
-                                                                    variant="outline-danger"
-                                                                    className="withdraw-button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleWithdrawEvent(gig);
-                                                                    }}
-                                                                >
-                                                                    Withdraw
-                                                                </Button>
-                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
