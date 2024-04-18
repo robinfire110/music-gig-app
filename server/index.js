@@ -53,7 +53,7 @@ app.use(cookieParser());
 
 //Gas price automation
 //Will run at 4am every day.
-const gasPricePull = schedule.scheduleJob('1 4 * * *', () => {
+const gasPricePull = schedule.scheduleJob({tz: "America/New_York", hour: 4, minute: 0, second: 0}, () => {
     console.log("Getting Gas Price", new Date());
     getGasPrices();
 });
