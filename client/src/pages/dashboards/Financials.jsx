@@ -79,6 +79,7 @@ function Financials({ financials, onDeleteFinancial }) {
 		<div>
 			<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 				<h2>Financials</h2>
+				<h5>Select records to export</h5>
 				<div>
 					<div className="button-container">
 						<Button className="btn btn-dark mr-2" variant="primary" onClick={handleCreateNewCalc}>Calculate New Wage</Button>
