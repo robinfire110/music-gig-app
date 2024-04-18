@@ -378,100 +378,9 @@ function Account() {
                             </div>
                         )}
                         {selectedContent === '' && (
-                            <Tabs defaultActiveKey="allListings" id="listings-tabs">
-                                <Tab eventKey="allListings" title="All Listings">
-                                    <h2 className="current-listings-header">All Your Listings</h2>
-                                    <div className="listings-card-container">
-                                        {gigs
-                                            .filter(gig => gig.status === 'owner')
-                                            .map((gig) => (
-                                                <div
-                                                    key={gig.event_id}
-                                                    className="listings-custom-card"
-                                                    onClick={() => navigate(`/event/${gig.event_id}`)}
-                                                >
-                                                    <div className="card-body">
-                                                        <h5 className="card-title">{gig.event_name}</h5>
-                                                        <p className="card-text">Event Date: {gig.start_time}</p>
-                                                        {gig.addresses && gig.addresses.length > 0 && (
-                                                            <div>
-                                                                {gig.addresses.map((address, index) => (
-                                                                    <div key={index}>
-                                                                        <p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                        <p className="card-text">
-                                                            <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
-                                                        </p>
-                                                        <p>{gig.status === 'owner' && gig.is_listed === 0 ? 'Status: Closed' : `Status: Open`}</p>
-                                                        <div className="card-buttons">
-                                                            {gig.status === 'owner' && gig.is_listed === 0 ? (
-                                                                <Button
-                                                                    variant="danger"
-                                                                    className="delete-button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDeleteEvent(gig);
-                                                                    }}
-                                                                >
-                                                                    Delete
-                                                                </Button>
-                                                            ) : gig.status === 'owner' ? (
-                                                                <>
-                                                                    <Button
-                                                                        variant="outline-secondary"
-                                                                        className="edit-button"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            navigate(`/form/${gig.event_id}`);
-                                                                        }}
-                                                                    >
-                                                                        Edit
-                                                                    </Button>
-                                                                    <Button
-                                                                        variant="outline-danger"
-                                                                        className="unlist-button"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleUnlistEvent(gig);
-                                                                        }}
-                                                                    >
-                                                                        Unlist
-                                                                    </Button>
-                                                                    <Button
-                                                                        variant="danger"
-                                                                        className="delete-button"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleDeleteEvent(gig);
-                                                                        }}
-                                                                    >
-                                                                        Delete
-                                                                    </Button>
-                                                                </>
-                                                            ) : gig.status === 'applied' ? (
-                                                                <Button
-                                                                    variant="outline-danger"
-                                                                    className="withdraw-button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleWithdrawEvent(gig);
-                                                                    }}
-                                                                >
-                                                                    Withdraw
-                                                                </Button>
-                                                            ) : null}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                    </div>
-                                </Tab>
-
-                                <Tab eventKey="applied" title="Active">
-                                    <h2 className="current-listings-header">All Your Active Listings</h2>
+                            <Tabs defaultActiveKey="events" id="listings-tabs">
+                                <Tab eventKey="events" title="Events">
+                                    <h2 className="current-listings-header">All Your Upcoming Events</h2>
                                     <div className="listings-card-container">
                                         {gigs
                                             .filter(gig => gig.is_listed && gig.status === 'owner')
@@ -496,7 +405,22 @@ function Account() {
                                                         <p className="card-text">
                                                             <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
                                                         </p>
-                                                        <p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+                                                        <p>
+                                                            {gig.Applicants.length > 0 ? (
+                                                                gig.Applicants.some(applicant => applicant.status === 'applied') ? (
+                                                                    'Status: See Pending'
+                                                                ) : (
+                                                                    gig.Applicants.some(applicant => applicant.status === 'accept') ? (
+                                                                        'Status: Applicant Hired'
+                                                                    ) : (
+                                                                        'Status: Applicant Required'
+                                                                    )
+                                                                )
+                                                            ) : (
+                                                                'Status: Applicant Required'
+                                                            )}
+                                                        </p>
+
                                                         <div className="card-buttons">
                                                             <Button
                                                                 variant="outline-secondary"
@@ -541,7 +465,9 @@ function Account() {
                                 <Tab eventKey="pending" title="Pending">
                                     <div className="listings-card-container">
                                         {gigs
-                                            .filter(gig => gig.status === 'applied' && gig.is_listed)
+                                            .filter(gig => gig.status === 'owner' && gig.is_listed &&
+                                                (!gig.Applicants || !gig.Applicants.some(applicant => applicant.status === 'accept')))
+
                                             .map((gig) => (
                                                 <div
                                                     key={gig.event_id}
@@ -563,7 +489,21 @@ function Account() {
                                                         <p className="card-text">
                                                             <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
                                                         </p>
-                                                        <p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
+                                                        <p>
+                                                            {gig.Applicants.length > 0 ? (
+                                                                gig.Applicants.some(applicant => applicant.status === 'applied') ? (
+                                                                    'Status: Click Listing to Hire'
+                                                                ) : (
+                                                                    gig.Applicants.some(applicant => applicant.status === 'accepted') ? (
+                                                                        'Status: Applicant Hired'
+                                                                    ) : (
+                                                                        'Status: Applicant Required'
+                                                                    )
+                                                                )
+                                                            ) : (
+                                                                'Status: Applicant Required'
+                                                            )}
+                                                        </p>
                                                         <div className="card-buttons">
                                                             {gig.status === 'owner' ? (
                                                                 <>
@@ -619,7 +559,7 @@ function Account() {
                                 <Tab eventKey="closed" title="Closed">
                                     <div className="listings-card-container">
                                         {gigs
-                                            .filter(gig => gig.status === 'withdraw' || gig.status === 'rejected' || !gig.is_listed)
+                                            .filter(gig => gig.status === 'owner' && !gig.is_listed)
                                             .map((gig) => (
                                                 <div
                                                     key={gig.event_id}
@@ -641,7 +581,6 @@ function Account() {
                                                         <p className="card-text">
                                                             <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
                                                         </p>
-                                                        <p>{gig.status === 'owner' ? 'Your Listing' : `Status: ${gig.status}`}</p>
                                                         <div className="card-buttons">
                                                             {gig.status === 'owner' && (
                                                                 <Button

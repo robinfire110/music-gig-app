@@ -55,7 +55,7 @@ module.exports = (sequelize, Sequelize, User, Event) => {
       const userStatuses = await UserStatus.findAll({
         where: {
           event_id: eventIds,
-          status: ['applied', 'reject']
+          status: ['applied', 'reject', 'accept']
         },
         attributes: ['user_id', 'status', 'event_id']
       });
