@@ -210,11 +210,39 @@ async function fixData() {
     */
 
     //Fix is_listed
+    /*
     let eventList = await db.Event.findAll();
     eventList.forEach(async event => {
         event.set({is_listed: true});
         await event.save();
     }); 
+    */
+
+    //Delete Placeholder Data
+    //Delete users <= user_id 100
+    /*
+    for (let i = 0; i < 101; i++)
+    {
+        let user = await db.User.findOne({where: {user_id: i}, include: [db.Event, db.Financial]});
+        if (user)
+        {
+            //Destroy events
+            user.Events.forEach(async event => {
+                //If owner, delete
+                if (event.UserStatus.status == "owner")
+                {
+                    await event.destroy();
+                }
+            });
+            user.Financials.forEach(async fin => {
+                await fin.destroy();
+            });
+            await user.destroy();
+        }
+        
+    }
+    console.log("It's done");
+    */
 }
 
 module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, instrumentArrayToIds, getEventHours, updateUnlistedData, fixData, checkValidUserId, checkValidEventId, checkValidFinancialId }

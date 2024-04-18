@@ -38,6 +38,7 @@ router.get("/id/:id", checkUserOptional, async (req, res) => {
         let attributes = {exclude: userSensitiveAttributes}
         if (req.user && (req.user.user_id == id || req.user.isAdmin == 1))
         {
+            console.log("Ran", id);
             attributes = {exclude: []}
             include = [db.Instrument, db.Event, db.Financial];
         } 
@@ -274,7 +275,7 @@ router.put("/instrument/:id", checkUser, async (req, res) => {
 router.delete("/:id", checkUser, async (req, res) => {
     try {
         const id = req.params.id;
-        const user = await db.User.findOne({where: {user_id: id}, include: [{model: db.Event}], attributes: {exclude: userSensitiveAttributes}});
+        const user = await db.User.findOne({where: {user_id: id}, include: [db.Event, db.Financial], attributes: {exclude: userSensitiveAttributes}});
 
         //Check User
         if (!(req.user && (req.user.user_id == id || req.user.isAdmin == 1)))
@@ -292,6 +293,13 @@ router.delete("/:id", checkUser, async (req, res) => {
                     await event.destroy();
                 }
             });
+
+            //Destroy Financial
+            user.Financials.forEach(async financial => {
+                //If financial exists, delete
+                await financial.destroy();
+            });
+
             await user.destroy();
             res.send(user);
         }
