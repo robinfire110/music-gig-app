@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const schedule = require('node-schedule');
-const moment = require('moment');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
@@ -54,18 +53,13 @@ app.use(cookieParser());
 
 //Gas price automation
 //Will run at 4am every day.
-const gasPricePull = schedule.scheduleJob('1 4 * * *', () => {
+const gasPricePull = schedule.scheduleJob({tz: "America/New_York", hour: 4, minute: 0, second: 0}, () => {
     console.log("Getting Gas Price", new Date());
     getGasPrices();
 });
 
 //Test pull
-const rule = schedule.RecurrenceRule();
-rule.tz = "America/New_York";
-rule.second = 0;
-rule.minute = 58;
-rule.hour = 9;
-const testPull = schedule.scheduleJob(rule, function () {
+const testPull = schedule.scheduleJob({tz: "America/New_York", hour: 10, minute: 5, second: 0}, function () {
     console.log('Test Pull!');
 });
 
