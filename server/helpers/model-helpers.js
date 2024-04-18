@@ -179,11 +179,14 @@ async function checkValidFinancialId(id)
 
 //Set Unlisted Data
 //If time has passed (based on start time)
-async function updateUnlistedData()
+async function updateUnlistedData(id=-1)
 {
     //Get time passed events
-    const events = await db.Event.update({is_listed: false}, {where: {start_time: {[Op.lte]: moment().toDate()}}})
-    if (events?.length > 0) console.log("Unlisted past events.");
+    const where = id == -1 ? {start_time: {[Op.lte]: moment().toDate()}} : {event_id: id, start_time: {[Op.lte]: moment().toDate()}};
+    const events = await db.Event.update({is_listed: false}, {where: where});
+
+    //Print
+    if (events.length > 0 && events[0] != 0) console.log("Unlisted past events.");
 }
 
 async function fixData() {

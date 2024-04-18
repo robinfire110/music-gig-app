@@ -34,10 +34,12 @@ router.get("/", async (req, res) => {
 //Returns JSON of event with given event_id. Will be empty if does not exist.
 router.get("/id/:id", checkUserOptional, async (req, res) => {
     try {
-        //Update unlisted
-        updateUnlistedData();
-
         const id = req.params.id;
+        
+        //Update unlisted
+        updateUnlistedData(id);
+
+        //All
         let event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, where: {[Op.or]: [{$status$: "owner"}]}, attributes: {exclude: ['password', 'isAdmin']}}]});
         
         //No Owner fix (some of the faker data doesn't have owners, so we need to query again in that case)
@@ -80,6 +82,9 @@ router.get("/instrument/:id", checkUserOptional, async (req, res) => {
         const exclude_user = req.query?.exclude_user;
         const limit = req.query?.limit ? req.query.limit : 999;
 
+        //Update unlisted
+        updateUnlistedData();
+
         //Set clauses
         const sortOrder = isSorted ? [['date_posted', 'DESC']] : [];
         const userWhere = exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}} : {model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}};
@@ -106,7 +111,7 @@ router.get("/user_id/event_id/:user_id/:event_id", checkUserOptional, async (req
         if (req.user && (req.user.user_id == user_id || req.user.isAdmin == 1))
         {
             //Update unlisted
-            updateUnlistedData();
+            updateUnlistedData(event_id);
 
             let event = await db.Event.findAll({where: {event_id: event_id}, include: [{model: db.User, where: {user_id: user_id}, attributes: {exclude: ['password', 'isAdmin']}}, db.Instrument, db.Address]});
             res.json(event);
