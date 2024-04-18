@@ -114,7 +114,8 @@ const Calculator = () => {
             axios.get(`${getBackendURL()}/account`, {withCredentials: true}).then(res => {
                 if (res.data?.user)
                 {
-                    axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`).then(res => {
+                    console.log(res.data.user.user_id);
+                    axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`, { withCredentials: true }).then(res => {
                         const userData = res.data;
                         setModalOriginZip(userData.zip);
                         setUser(userData);
