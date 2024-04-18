@@ -2,9 +2,9 @@ const db = require("../models/models");
 const instrument = require('./instrumentList');
 const axois = require('axios');
 const { faker } = require("@faker-js/faker");
-const moment= require("moment");
+const moment = require("moment");
 const cheerio = require('cheerio');
-const { where } = require("sequelize");
+const { Op, where } = require('sequelize');
 require('dotenv').config();
 
 /* Functions */
@@ -177,6 +177,15 @@ async function checkValidFinancialId(id)
     return false;
 }
 
+//Set Unlisted Data
+//If time has passed (based on start time)
+async function updateUnlistedData()
+{
+    //Get time passed events
+    const events = await db.Event.update({is_listed: false}, {where: {start_time: {[Op.lte]: moment().toDate()}}})
+    if (events?.length > 0) console.log("Unlisted past events.");
+}
+
 async function fixData() {
     //Update zip codes
     /*
@@ -205,4 +214,4 @@ async function fixData() {
     }); 
 }
 
-module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, instrumentArrayToIds, getEventHours, fixData, checkValidUserId, checkValidEventId, checkValidFinancialId }
+module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, instrumentArrayToIds, getEventHours, updateUnlistedData, fixData, checkValidUserId, checkValidEventId, checkValidFinancialId }

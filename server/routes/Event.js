@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models/models');
-const {getEventHours, getInstrumentId, checkValidUserId, checkValidEventId, instrumentArrayToIds} = require('../helpers/model-helpers');
+const {getEventHours, getInstrumentId, checkValidUserId, checkValidEventId, instrumentArrayToIds, updateUnlistedData} = require('../helpers/model-helpers');
 const {sequelize} = require('../config/database_config');
 const { Op, where } = require('sequelize');
 const { eventSchema, addressSchema, addUserToEventSchema, instrumentSchema } = require('../helpers/validators');
@@ -15,11 +15,15 @@ const {checkUser, checkUserOptional} = require("../Middleware/AuthMiddleWare");
 //Only returns the owner of the event. If you want to see all associated users, you have to check individual event.
 router.get("/", async (req, res) => {
     try {
+        //Update unlisted
+        updateUnlistedData();
+
         //Exclude user 
         const exclude_user = req.query?.exclude_user;
         const userWhere = exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}} : {model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}};
                 
         const events = await db.Event.findAll({include: [db.Instrument, db.Address, userWhere]});
+
         res.json(events);
     } catch (error) {
         res.status(500).send(error.message);
@@ -30,6 +34,9 @@ router.get("/", async (req, res) => {
 //Returns JSON of event with given event_id. Will be empty if does not exist.
 router.get("/id/:id", checkUserOptional, async (req, res) => {
     try {
+        //Update unlisted
+        updateUnlistedData();
+
         const id = req.params.id;
         let event = await db.Event.findOne({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, where: {[Op.or]: [{$status$: "owner"}]}, attributes: {exclude: ['password', 'isAdmin']}}]});
         
@@ -98,6 +105,9 @@ router.get("/user_id/event_id/:user_id/:event_id", checkUserOptional, async (req
         const {user_id, event_id} = req.params;
         if (req.user && (req.user.user_id == user_id || req.user.isAdmin == 1))
         {
+            //Update unlisted
+            updateUnlistedData();
+
             let event = await db.Event.findAll({where: {event_id: event_id}, include: [{model: db.User, where: {user_id: user_id}, attributes: {exclude: ['password', 'isAdmin']}}, db.Instrument, db.Address]});
             res.json(event);
         }
@@ -113,6 +123,9 @@ router.get("/user_id/event_id/:user_id/:event_id", checkUserOptional, async (req
 //?exclude_user
 router.get("/recent/:limit", async (req, res) => {
     try {
+        //Update unlisted
+        updateUnlistedData();
+
         const limit = req.params.limit;
         const exclude_user = req.query?.exclude_user;
         const events = await db.Event.findAll({include: [db.Instrument, db.Address, exclude_user ? ({model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}}) : ({model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}})], order: [['date_posted', 'DESC']], limit: sequelize.literal(limit), where: {is_listed: true}});
@@ -125,6 +138,9 @@ router.get("/recent/:limit", async (req, res) => {
 //Get soonest events (a given number)
 router.get("/soonest/:limit", async (req, res) => {
     try {
+        //Update unlisted
+        updateUnlistedData();
+
         const limit = req.params.limit;
         const userWhere = req.query?.exclude_user ? {model: db.User, where: {user_id: {[Op.ne]: exclude_user}, $status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}} : {model: db.User, where: {$status$: "owner"}, attributes: {exclude: ['password', 'isAdmin']}};
         const events = await db.Event.findAll({include: [db.Instrument, db.Address, userWhere], order: [['start_time', 'ASC']], limit: sequelize.literal(limit), where: {is_listed: true}});
@@ -158,7 +174,7 @@ router.post("/", checkUser, async (req, res) => {
         //Get data
         const data = req.body;
         const addressData = data.address;
-        console.log(data);
+        //console.log(data);
 
         //Check user
         if (!(req.user && (req.user.user_id == data.user_id || req.user.isAdmin == 1)))
