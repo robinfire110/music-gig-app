@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const schedule = require('node-schedule');
+const moment = require('moment');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
@@ -56,6 +57,16 @@ app.use(cookieParser());
 const gasPricePull = schedule.scheduleJob('1 4 * * *', () => {
     console.log("Getting Gas Price", new Date());
     getGasPrices();
+});
+
+//Test pull
+const rule = schedule.RecurrenceRule();
+rule.tz = "America/New_York";
+rule.second = 0;
+rule.minute = 58;
+rule.hour = 9;
+const testPull = schedule.scheduleJob(rule, function () {
+    console.log('Test Pull!');
 });
 
 // Database setup
