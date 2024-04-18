@@ -194,14 +194,49 @@ module.exports.getUserEvents = async (req, res, next) => {
 		const userId = req.user.user_id;
 		const userStatuses = await db.UserStatus.findByUserId(userId);
 		const eventIds = userStatuses.map(status => status.event_id);
+
+		const ownerEventIds = userStatuses
+			.filter(status => status.status === 'owner')
+			.map(status => status.event_id);
+
+		const userIds = await db.UserStatus.findUserIdsByEventIdsAndStatuses(ownerEventIds);
+		const userIdArray = userIds.map(user => user.user_id);
+		const users = await db.User.findApplicantsByUserIds(userIdArray);
+
+		const usersWithStatus = users.map(user => {
+			const userStatus = userIds.find(status => status.user_id === user.user_id);
+			return {
+				...user,
+				status: userStatus ? userStatus.status : null,
+				event_id: userStatus ? userStatus.event_id : null
+			};
+		});
+		console.log("users with statusses");
+		console.log(usersWithStatus);
+
 		const events = await db.Event.findByEventIds(eventIds, userStatuses);
 
-		res.status(200).json({ userGigs: events });
+		const addresses = await db.Address.findAll({
+			where: {
+				event_id: eventIds
+			},
+			raw: true
+		});
+
+		const eventsWithAddresses = events.map(event => {
+			const eventAddresses = addresses.filter(address => address.event_id === event.event_id);
+			const eventUsers = usersWithStatus.filter(user => user.event_id === event.event_id);
+			const eventWithApplicants = { ...event, addresses: eventAddresses, Applicants: eventUsers };
+			return eventWithApplicants;
+		});
+
+		res.status(200).json({ userEvents: eventsWithAddresses });
 	} catch (error) {
 		console.error('Error fetching user events:', error);
 		throw new Error('Failed to fetch user events');
 	}
-}
+};
+
 
 
 
@@ -269,7 +304,7 @@ module.exports.getEvents = async (req, res, next) => {
 
 module.exports.giveUserAdmin = async (req, res, next) => {
 	try {
-		const userIdToUpdate = req.body.user_id;
+		const userIdToUpdate = req.params.userId;
 
 		await updateUserToAdmin(userIdToUpdate);
 
@@ -287,7 +322,7 @@ module.exports.giveUserAdmin = async (req, res, next) => {
 
 module.exports.giveUserUser = async (req, res, next) => {
 	try {
-		const userIdToUpdate = req.body.user_id;
+		const userIdToUpdate = req.params.userId;
 
 		await demoteUserFromAdmin(userIdToUpdate);
 
@@ -306,7 +341,7 @@ module.exports.giveUserUser = async (req, res, next) => {
 
 module.exports.removeUser = async (req, res, next) => {
 	try {
-		const userIdToRemove = req.body.user_id;
+		const userIdToRemove = req.params.userId;
 		await removeUser(userIdToRemove);
 
 		const userExists = await db.User.findByPk(userIdToRemove);
@@ -345,7 +380,7 @@ module.exports.deleteUserPost = async  (req,res,next) => {
 		if (!req.user.isAdmin) {
 			return res.status(403).json({ error: "Access denied. Only admins can reset passwords." });
 		}
-		const eventId = req.body.event_id;
+		const eventId = req.params.eventId;
 		const result = await deletePost(eventId);
 
 		const eventExists = await db.Event.findOne({where: {event_id: eventId}});
@@ -365,8 +400,8 @@ module.exports.deleteUserPost = async  (req,res,next) => {
 //user to delete their own events
 module.exports.deleteEvent = async (req, res, next) => {
 	try {
-		const eventId = req.body.event_id;
-		const userId = req.user.id;
+		const eventId = req.params.eventId;
+		const userId = req.user.user_id;
 
 		// Make sure it is their event to delete
 		const userStatus = await db.UserStatus.findOne({
@@ -396,9 +431,8 @@ module.exports.deleteEvent = async (req, res, next) => {
 //owner can also unlist their own events
 module.exports.unlistEvent = async (req, res, next) => {
 	try {
-		console.log("make it to unlistEvent")
-
-		const eventId = req.body.event_id;
+		console.log("is this function being called to unlist")
+		const eventId = req.params.eventId;
 		const userId = req.user.user_id;
 
 		const userStatus = await db.UserStatus.findOne({
