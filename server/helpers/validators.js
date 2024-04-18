@@ -50,7 +50,12 @@ const financialSchema = Joi.object({
     mpg: Joi.number().min(0).max(99),
     tax: Joi.number().min(0).max(100),
     fees: Joi.number().min(0).max(9999.99),
-    event_id: Joi.number().min(0)
+    event_id: Joi.number().min(0),
+    round_trip: Joi.boolean().truthy(1).falsy(0),
+    multiply_travel: Joi.boolean().truthy(1).falsy(0),
+    multiply_practice: Joi.boolean().truthy(1).falsy(0),
+    multiply_rehearsal: Joi.boolean().truthy(1).falsy(0),
+    multiply_other: Joi.boolean().truthy(1).falsy(0)
 });
 
 /* User */

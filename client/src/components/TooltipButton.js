@@ -14,9 +14,9 @@ function createPopover(text="") {
     )
 };
 
-function TooltipButton({buttonVarient="light", text="Tool tip", activate=['hover', 'focus']}) {
+function TooltipButton({buttonVarient="light", text="Tool tip", activate=['hover', 'focus'], style={}}) {
     return (
-        <OverlayTrigger trigger={activate} placement="top" overlay={createPopover(text)}><Button variant={buttonVarient}>?</Button></OverlayTrigger>
+        <OverlayTrigger trigger={activate} placement="top" overlay={createPopover(text)}><Button tabIndex={-1} style={style} variant={buttonVarient}>?</Button></OverlayTrigger>
     )
 }
 
