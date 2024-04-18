@@ -68,6 +68,27 @@ module.exports = (sequelize, Sequelize) => {
     }
   };
 
-return User;
+  User.findApplicantsByUserIds = async function(userIds) {
+    try {
+      const users = await User.findAll({
+        where: {
+          user_id: userIds
+        },
+        attributes: ['user_id', 'f_name', 'l_name']
+      });
+
+      return users.map(user => ({
+        user_id: user.user_id,
+        f_name: user.f_name,
+        l_name: user.l_name
+      }));
+    } catch (error) {
+      throw new Error('Error finding users by user_ids: ' + error.message);
+    }
+  };
+
+
+
+  return User;
 };
 

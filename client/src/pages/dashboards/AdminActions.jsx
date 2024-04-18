@@ -138,10 +138,6 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
                                     width: '100%',
                                     padding: '8px',
                                     paddingLeft: '30px',
-                                    backgroundImage: `url('/icons8-search-20.svg')`,
-                                    backgroundPosition: '5px center',
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundSize: '20px 20px',
                                     borderRadius: '20px',
                                     border: '1px solid #ced4da',
 
@@ -202,10 +198,6 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
                                     width: '100%',
                                     padding: '8px',
                                     paddingLeft: '30px',
-                                    backgroundImage: `url('/icons8-search-20.svg')`,
-                                    backgroundPosition: '5px center',
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundSize: '20px 20px',
                                     borderRadius: '20px',
                                     border: '1px solid #ced4da',
                                 }}

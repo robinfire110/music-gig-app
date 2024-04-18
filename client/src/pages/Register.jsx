@@ -5,6 +5,7 @@ import { Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import '../App.css'
 import { getBackendURL } from "../Utils"
+import Select from "react-select";
 
 
 const Register = () => {
@@ -42,6 +43,17 @@ const Register = () => {
 			[name]: value
 		});
 	};
+	const displaySelectedInstruments = () => {
+		console.log("Selected Instruments:", selectedInstruments);
+	};
+
+	const configureInstrumentList = (data) => {
+		const instrumentOptionList = []
+		data.forEach(instrument => {
+			instrumentOptionList.push({value: instrument.instrument_id, label: instrument.name});
+		});
+		return instrumentOptionList
+	}
 
 	const handleSubmit = async (event) => {
 		event.preventDefault();
@@ -137,19 +149,13 @@ const Register = () => {
 
 					<Form.Group className="mb-3" controlId="formBasicInstruments">
 						<Form.Label>Instruments (select multiple)</Form.Label>
-						<Form.Select
+						<Select
+							options={configureInstrumentList(instruments)}
 							name="instruments"
+							isMulti
+							onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)}
 							value={selectedInstruments}
-							onChange={(e) => setSelectedInstruments(Array.from(e.target.selectedOptions, option => option.value))}
-							multiple
-							required
-						>
-							{instruments.map(instrument => (
-								<option key={instrument.instrument_id} value={instrument.instrument_id}>
-									{instrument.name}
-								</option>
-							))}
-						</Form.Select>
+						/>
 					</Form.Group>
 
 
@@ -164,7 +170,6 @@ const Register = () => {
 							onChange={handleChange}
 						/>
 					</Form.Group>
-
 					<Button className="btn btn-dark" variant="primary" type="submit">
 						Submit
 					</Button>

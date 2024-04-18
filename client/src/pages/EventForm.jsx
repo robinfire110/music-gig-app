@@ -386,7 +386,7 @@ const EventForm = () => {
                                                 </Row>
                                             </Form.Label>
                                             <InputGroup>
-                                                <Form.Control as="textarea" id="eventDescription" name="description" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
+                                                <Form.Control as="textarea" id="eventDescription" rows={7} maxLength={maxDescriptionLength} type="text" placeholder='Event Description (750 character max)' value={event.description} onChange={handleChange} name="description"></Form.Control>
                                             </InputGroup>
                                         </Col>
                                     </Row>
