@@ -58,11 +58,6 @@ const gasPricePull = schedule.scheduleJob({tz: "America/New_York", hour: 4, minu
     getGasPrices();
 });
 
-//Test pull
-const testPull = schedule.scheduleJob({tz: "America/New_York", hour: 10, minute: 5, second: 0}, function () {
-    console.log('Test Pull!');
-});
-
 // Database setup
 app.listen(port, async () => {
     await connectToDatabase();
