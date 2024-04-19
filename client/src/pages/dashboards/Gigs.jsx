@@ -57,32 +57,38 @@ function Gigs({ userData, gigs, onGigsChange }) {
 						{gigs
 							.filter(gig => gig.is_listed && gig.status === 'accept')
 							.map((gig) => (
-							<div
-								key={gig.event_id}
-								className="listings-custom-card"
-								onClick={() => navigate(`/event/${gig.event_id}`)}
-							>
-								<div className="card-body">
-									<h5 className="card-title">{gig.event_name}</h5>
-									<p className="card-text">Event Date: {gig.start_time}</p>
-									{gig.addresses && gig.addresses.length > 0 && (
-										<div>
-											{gig.addresses.map((address, index) => (
-												<div key={index}>
-													<p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
-												</div>
-											))}
-										</div>
-									)}
-									<p className="card-text">
-										<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
-									</p>
-									<p className="card-text">Status: {gig.status === 'accept' ? 'You have been hired for this gig!' : gig.status}</p>
+								<div
+									key={gig.event_id}
+									className="listings-custom-card"
+									onClick={() => navigate(`/event/${gig.event_id}`)}
+								>
+									<div className="card-body">
+										<h5 className="card-title">{gig.event_name}</h5>
+										<p className="card-text">Event Date: {gig.start_time}</p>
+										{gig.addresses && gig.addresses.length > 0 && (
+											<div>
+												{gig.addresses.map((address, index) => (
+													<div key={index}>
+														<p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
+													</div>
+												))}
+											</div>
+										)}
+										<p className="card-text">
+											<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
+										</p>
+										<p className="card-text">Status: {gig.status === 'accept' ? 'You have been hired for this gig!' : gig.status}</p>
+									</div>
 								</div>
+							))}
+						{gigs.filter(gig => gig.is_listed && gig.status === 'accept').length === 0 && (
+							<div className="no-gigs-message">
+								<Button className="btn btn-dark" variant="primary" style={{ marginTop: '20px' }} onClick={() => navigate('/eventsearch')}>View all Events</Button>
 							</div>
-						))}
+						)}
 					</div>
 				</Tab>
+
 				<Tab eventKey="pending" title="Pending">
 					<h2 className="current-listings-header">Pending Applications</h2>
 					<div className="listings-card-container">
@@ -125,6 +131,11 @@ function Gigs({ userData, gigs, onGigsChange }) {
 									</div>
 								</div>
 							))}
+						{gigs.filter(gig => gig.is_listed && gig.status === 'applied').length === 0 && (
+							<div className="no-gigs-message">
+								<p>Nothing to show.</p>
+							</div>
+						)}
 					</div>
 				</Tab>
 				<Tab eventKey="closed" title="Closed">
@@ -162,6 +173,11 @@ function Gigs({ userData, gigs, onGigsChange }) {
 									</div>
 								</div>
 							))}
+						{gigs.filter(gig => gig.status === 'withdraw' || gig.status === 'rejected').length === 0 && (
+							<div className="no-gigs-message">
+								<p>Nothing to show.</p>
+							</div>
+						)}
 					</div>
 				</Tab>
 			</Tabs>

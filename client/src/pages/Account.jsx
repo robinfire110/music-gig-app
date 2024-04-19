@@ -33,28 +33,32 @@ function Account() {
     const [eventToUnlist, setEventToUnlist] = useState(null);
 
 
+    const verifyUser = async () => {
+        if (!cookies.jwt) {
+            navigate('/login');
+        } else {
+            try {
+                const { data } = await axios.get(`${getBackendURL()}/account`, { withCredentials: true });
+                axios.get(`${getBackendURL()}/user/id/${data.user.user_id}`, { withCredentials: true }).then(res => {
+                    const data = res.data;
+                    setUserData(data);
+                    console.log(data);
+                    setIsAdmin(data.isAdmin);
+                    toast(`hi ${data.f_name}`, { theme: 'dark' });
+                });
+            } catch (error) {
+                removeCookie('jwt');
+                navigate('/login');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
 
     useEffect(() => {
-        const verifyUser = async () => {
-            if (!cookies.jwt) {
-                navigate('/login');
-            } else {
-                try {
-                    const { data } = await axios.get(`${getBackendURL()}/account`, { withCredentials: true });
-                    setUserData(data.user);
-                    setIsAdmin(data.user.isAdmin);
-                    toast(`hi ${data.user.f_name}`, { theme: 'dark' });
-                } catch (error) {
-                    removeCookie('jwt');
-                    navigate('/login');
-                } finally {
-                    setLoading(false);
-                }
-            }
-        };
-
-        verifyUser();
+            verifyUser();
     }, [cookies, navigate, removeCookie]);
+
 
     const fetchUserGigs = async () => {
         try {
@@ -334,7 +338,8 @@ function Account() {
                 return null;
             case 'editProfile':
                 return <EditProfile userData={userData}
-                                    />;
+                                    onUserChange={setUserData} />
+
             case 'gigs':
                 return <Gigs userData={userData} gigs={gigs}
                              onDeleteEvent={handleDeleteEvent}
@@ -467,6 +472,11 @@ function Account() {
                                                     </div>
                                                 </div>
                                             ))}
+                                        {gigs.filter(gig => gig.is_listed && gig.status === 'owner').length === 0 && (
+                                            <div className="no-gigs-message">
+                                                <Button className="btn btn-dark" variant="primary" style={{ marginTop: '20px' }} onClick={() => navigate('/form')}>Create New Listing</Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </Tab>
                                 <Tab eventKey="pending" title="Pending">
@@ -549,6 +559,12 @@ function Account() {
                                                     </div>
                                                 </div>
                                             ))}
+                                        {gigs.filter(gig => gig.status === 'owner' && gig.is_listed &&
+                                            (!gig.Applicants || !gig.Applicants.some(applicant => applicant.status === 'accept'))).length === 0 && (
+                                            <div className="no-gigs-message">
+                                                <p>Nothing to show.</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </Tab>
                                 <Tab eventKey="closed" title="Closed">
@@ -592,6 +608,11 @@ function Account() {
                                                     </div>
                                                 </div>
                                             ))}
+                                        {gigs.filter(gig => gig.status === 'owner' && !gig.is_listed).length === 0 && (
+                                            <div className="no-gigs-message">
+                                                <p>Nothing to show.</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </Tab>
                             </Tabs>

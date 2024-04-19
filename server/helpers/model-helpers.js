@@ -14,7 +14,7 @@ function getRandomInt(max) {
 
 //Import Instruments
 async function importInstruments() {
-    console.log("Creating instrument list.")
+    //console.log("Creating instrument list.")
     instrument.instrumentList.forEach(instrument => {
         db.Instrument.findOrCreate({where: { name: instrument }});
     });
@@ -66,7 +66,7 @@ async function getGasPrices() {
 
 //Create faker data
 async function createFakerData(userNum, eventNum, financialNum) {
-    console.log("Inserting faker data");
+    //console.log("Inserting faker data");
     //Vars
     let userIds = [];
     let instrument_count;
@@ -83,7 +83,7 @@ async function createFakerData(userNum, eventNum, financialNum) {
             try {
                 await db.UserInstrument.findOrCreate({ where: { instrument_id: getRandomInt(instrument.instrumentList.length), user_id: newUser.user_id } });
             } catch (error) {
-                console.log(`Skipping - Error occured adding UserInstruments ${error}`);
+                console.error(`Skipping - Error occured adding UserInstruments ${error}`);
             }
         }
     }
@@ -107,7 +107,7 @@ async function createFakerData(userNum, eventNum, financialNum) {
             try {
                 await db.EventInstrument.findOrCreate({ where: { instrument_id: getRandomInt(instrument.instrumentList.length), event_id: newEvent.event_id } });
             } catch (error) {
-                console.log(`Skipping - Error occured adding EventInstruments ${error}}`);
+                console.error(`Skipping - Error occured adding EventInstruments ${error}}`);
             }
         }
     }
@@ -142,7 +142,7 @@ async function instrumentArrayToIds(instrumentArray)
         {
             instrumentId = await getInstrumentId(instrument);
             if (instrumentId) newArray.push(instrumentId);
-            else console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+            else console.error("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
         }
     }
     return newArray;
@@ -186,6 +186,7 @@ async function updateUnlistedData(id=-1)
 
     //Print
     if (events.length > 0 && events[0] != 0) console.log("Unlisted past events.");
+
 }
 
 async function fixData() {

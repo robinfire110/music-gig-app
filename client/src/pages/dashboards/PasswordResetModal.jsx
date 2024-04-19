@@ -29,7 +29,7 @@ const PasswordResetModal = ({ show, handleClose, message, onConfirm }) => {
 				<Button variant="secondary" onClick={handleClose}>
 					Cancel
 				</Button>
-				<Button variant="primary" onClick={handleConfirm}>
+				<Button className="btn btn-dark" variant="primary" onClick={handleConfirm}>
 					Reset Password
 				</Button>
 			</Modal.Footer>

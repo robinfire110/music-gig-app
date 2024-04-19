@@ -3,37 +3,70 @@ import {Form, Button, Container} from 'react-bootstrap';
 import {toast, ToastContainer} from 'react-toastify';
 import axios from 'axios';
 import {getBackendURL} from "../../Utils";
+import UserPasswordResetModal from "../dashboards/UserPasswordResetModal";
+import Select from "react-select";
 
-function EditProfile({ userData }) {
+function EditProfile({ userData,  onUserChange }) {
 	const [formData, setFormData] = useState({
 		email: '',
 		password: '',
 		f_name: '',
 		l_name: '',
 		zip: '',
-		instruments: '',
+		instruments: [],
 		bio: ''
 
 	});
+
+	const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
+	const [instruments, setInstruments] = useState([])
+	const [selectedInstruments, setSelectedInstruments] = useState([])
 
 	const generateError = (err) => toast.error(err, {
 		position: "bottom-right",
 	})
 
 	useEffect(() => {
+		axios.get(`${getBackendURL()}/instrument/`).then(async (res) => {
+			setInstruments(res.data);
+		}).catch(error => {
+			console.error(error);
+		});
+	}, []);
+
+	useEffect(() => {
 		if (userData) {
 			setFormData(prevFormData => ({
 				...prevFormData,
 				email: userData.email || '',
-				password: userData.password || '',
+				password: '', //For now, it's better to have this empty than the giant hash.
 				f_name: userData.f_name || '',
 				l_name: userData.l_name || '',
 				zip: userData.zip || '',
-				instruments: userData.instruments || '',
+				instruments: userData.Instruments || [],
 				bio: userData.bio || ''
 			}));
+			
+			//Set instruments
+			const instrumentList = [];
+			userData.Instruments.forEach(instrument => {
+				instrumentList.push({ value: instrument.instrument_id, label: instrument.name });
+			});
+			if (instrumentList.length > 0) setSelectedInstruments(instrumentList);
+
 		}
 	}, [userData]);
+
+
+	const configureInstrumentList = (data) => {
+		const instrumentOptionList = [];
+		data.forEach(instrument => {
+			instrumentOptionList.push({ value: instrument.instrument_id, label: instrument.name });
+		});
+		console.log("InstrumetnOptionList")
+		console.log(instrumentOptionList)
+		return instrumentOptionList;
+	}
 
 
 	const handleChange = (e) => {
@@ -43,11 +76,17 @@ function EditProfile({ userData }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		console.log(userData);
+		console.log("Selected instrument IDs:", selectedInstruments.map(instrument => instrument.value));
 		try {
-			const response = await axios.post(`${getBackendURL()}/account/update_user`, formData, {
+			const response = await axios.post(`${getBackendURL()}/account/update_user`, {
+				...formData,
+				instruments: selectedInstruments.map(instrument => instrument.value)
+			}, {
 				withCredentials: true
 			});
 			if (response.data.success) {
+				onUserChange(userData);
 				toast.success('Profile updated successfully' , { theme: 'dark' });
 			} else {
 				toast.error('Failed to update profile', { theme: 'dark' });
@@ -58,8 +97,11 @@ function EditProfile({ userData }) {
 		}
 	};
 
-	return (
+	const togglePasswordResetModal = () => {
+		setShowPasswordResetModal(!showPasswordResetModal);
+	};
 
+	return (
 		<Container style={{ maxWidth: '600px', position: 'relative' }}>
 			<h2>{formData.f_name}'s Profile</h2>
 			<Form onSubmit={handleSubmit}>
@@ -71,26 +113,30 @@ function EditProfile({ userData }) {
 						name="email"
 						value={formData.email}
 						onChange={handleChange}
-						disabled
 					/>
 				</Form.Group>
 
 				<Form.Group className="mb-3" controlId="formBasicPassword">
 					<Form.Label>Password</Form.Label>
-					<Form.Control
-						type="password"
-						placeholder="Password"
-						name="password"
-						value={formData.password}
-						onChange={handleChange}
-						disabled
-					/>
+					<div className="d-flex align-items-center">
+						<Form.Control
+							type="password"
+							placeholder="Password"
+							name="password"
+							value={formData.password}
+							onChange={handleChange}
+							disabled
+						/>
+						<Button style={{ marginLeft: '15px' }} className="btn btn-dark" variant="secondary" onClick={togglePasswordResetModal}>
+							Reset Password
+						</Button>
+					</div>
 				</Form.Group>
 				<Form.Group className="mb-3" controlId="formBasicName">
-					<Form.Label>Profile Name</Form.Label>
+					<Form.Label>First Name</Form.Label>
 					<Form.Control
 						type="text"
-						placeholder="Enter your name"
+						placeholder="Enter your first name"
 						name="f_name"
 						value={formData.f_name}
 						onChange={handleChange}
@@ -122,13 +168,13 @@ function EditProfile({ userData }) {
 				</Form.Group>
 
 				<Form.Group className="mb-3" controlId="formBasicInstruments">
-					<Form.Label>Instruments</Form.Label>
-					<Form.Control
-						type="text"
-						placeholder="Enter instruments you play"
+					<Form.Label>Instruments (select multiple)</Form.Label>
+					<Select
+						options={configureInstrumentList(instruments)}
 						name="instruments"
-						value={formData.instruments}
-						onChange={handleChange}
+						isMulti
+						onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)}
+						value={selectedInstruments}
 					/>
 				</Form.Group>
 
@@ -148,6 +194,11 @@ function EditProfile({ userData }) {
 					Update Profile
 				</Button>
 			</Form>
+			<UserPasswordResetModal
+				show={showPasswordResetModal}
+				handleClose={togglePasswordResetModal}
+				isAdmin={false}
+			/>
 		</Container>
 	);
 }
