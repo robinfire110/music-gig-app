@@ -39,13 +39,21 @@ function EditProfile({ userData,  onUserChange }) {
 			setFormData(prevFormData => ({
 				...prevFormData,
 				email: userData.email || '',
-				password: userData.password || '',
+				password: '', //For now, it's better to have this empty than the giant hash.
 				f_name: userData.f_name || '',
 				l_name: userData.l_name || '',
 				zip: userData.zip || '',
 				instruments: userData.Instruments || [],
 				bio: userData.bio || ''
 			}));
+			
+			//Set instruments
+			const instrumentList = [];
+			userData.Instruments.forEach(instrument => {
+				instrumentList.push({ value: instrument.instrument_id, label: instrument.name });
+			});
+			if (instrumentList.length > 0) setSelectedInstruments(instrumentList);
+
 		}
 	}, [userData]);
 
@@ -125,10 +133,10 @@ function EditProfile({ userData,  onUserChange }) {
 					</div>
 				</Form.Group>
 				<Form.Group className="mb-3" controlId="formBasicName">
-					<Form.Label>Profile Name</Form.Label>
+					<Form.Label>First Name</Form.Label>
 					<Form.Control
 						type="text"
-						placeholder="Enter your name"
+						placeholder="Enter your first name"
 						name="f_name"
 						value={formData.f_name}
 						onChange={handleChange}
@@ -168,17 +176,6 @@ function EditProfile({ userData,  onUserChange }) {
 						onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)}
 						value={selectedInstruments}
 					/>
-				</Form.Group>
-
-				<Form.Group className="mb-3">
-					<Form.Label>Your Instruments</Form.Label>
-					<Form.Control
-						as="textarea"
-						rows={3}
-						value={formData.instruments.map(instrument => instrument.name).join(', ')}
-						readOnly
-					/>
-
 				</Form.Group>
 
 				<Form.Group className="mb-3" controlId="formBasicBio">

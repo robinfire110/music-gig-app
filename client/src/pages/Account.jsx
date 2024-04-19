@@ -39,10 +39,13 @@ function Account() {
         } else {
             try {
                 const { data } = await axios.get(`${getBackendURL()}/account`, { withCredentials: true });
-                setUserData(data.user);
-                console.log(data.user)
-                setIsAdmin(data.user.isAdmin);
-                toast(`hi ${data.user.f_name}`, { theme: 'dark' });
+                axios.get(`${getBackendURL()}/user/id/${data.user.user_id}`, { withCredentials: true }).then(res => {
+                    const data = res.data;
+                    setUserData(data);
+                    console.log(data);
+                    setIsAdmin(data.isAdmin);
+                    toast(`hi ${data.f_name}`, { theme: 'dark' });
+                });
             } catch (error) {
                 removeCookie('jwt');
                 navigate('/login');
