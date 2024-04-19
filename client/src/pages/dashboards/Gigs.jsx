@@ -1,17 +1,21 @@
 import React, {useEffect, useState} from 'react';
-import {Card, Container, Row, Col, Button, Tab, Tabs, Table} from 'react-bootstrap';
+import {Button, Tab, Tabs} from 'react-bootstrap';
 import {useNavigate} from "react-router-dom";
 import ConfirmationModal from "./ConfirmationModal";
 
-function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
+function Gigs({ userData, gigs, onGigsChange }) {
 	const navigate = useNavigate();
 	const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 	const [confirmationMessage, setConfirmationMessage] = useState('');
 	const [actionToConfirm, setActionToConfirm] = useState(null);
 
-	const handleCreateNewListing = () => {
-		navigate('/form');
-	};
+
+	useEffect(() => {
+
+		if (onGigsChange) {
+			onGigsChange(gigs);
+		}
+	}, [gigs, onGigsChange]);
 
 	const handleWithdrawEvent = (event) => {
 		navigate(`/event/${event.event_id}`);

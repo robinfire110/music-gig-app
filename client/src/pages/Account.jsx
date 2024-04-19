@@ -56,68 +56,69 @@ function Account() {
         verifyUser();
     }, [cookies, navigate, removeCookie]);
 
-    useEffect(() => {
-        const fetchUserGigs = async () => {
-            try {
-                const { data } = await axios.get(`${getBackendURL()}/account/user-gigs`, { withCredentials: true });
-                console.log(data.userEvents)
-                setGigs(data.userEvents);
-            } catch (error) {
-                console.error('Error fetching user gigs:', error);
-            }
-        };
+    const fetchUserGigs = async () => {
+        try {
+            const { data } = await axios.get(`${getBackendURL()}/account/user-gigs`, { withCredentials: true });
+            setGigs(data.userEvents);
+        } catch (error) {
+            console.error('Error fetching user gigs:', error);
+        }
+    };
 
+    useEffect(() => {
         if (userData) {
             fetchUserGigs();
         }
     }, [userData]);
 
-    useEffect(() => {
-        const fetchUserFinancials = async () => {
-            try {
-                if (!userData || !userData.user_id) {
-                    console.error('User data or user_id is not available');
-                    return;
-                }
-                const { data } = await axios.get(`${getBackendURL()}/account/user-financials`, { withCredentials: true });
-                setFinancials(data.userFinancials);
-            } catch (error) {
-                console.error('Error fetching user financials:', error);
-            }
-        };
 
+    const fetchUserFinancials = async () => {
+        try {
+            if (!userData || !userData.user_id) {
+                console.error('User data or user_id is not available');
+                return;
+            }
+            const { data } = await axios.get(`${getBackendURL()}/account/user-financials`, { withCredentials: true });
+            setFinancials(data.userFinancials);
+        } catch (error) {
+            console.error('Error fetching user financials:', error);
+        }
+    };
+
+    useEffect(() => {
         if (userData) {
             fetchUserFinancials();
         }
     }, [userData]);
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                if(isAdmin){
-                    const { data } = await axios.get(`${getBackendURL()}/account/admin/all-users`, { withCredentials: true });
-                    setUsers(data.users);
-                }
-
-            } catch (error) {
-                console.error('Error fetching users:', error);
+    const fetchUsers = async () => {
+        try {
+            if(isAdmin){
+                const { data } = await axios.get(`${getBackendURL()}/account/admin/all-users`, { withCredentials: true });
+                setUsers(data.users);
             }
-        };
+
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    };
+
+    useEffect(() => {
         fetchUsers();
     }, [isAdmin]);
 
+    const fetchPosts = async () => {
+        try {
+            if(isAdmin){
+                const { data } = await axios.get(`${getBackendURL()}/account/admin/all-events`, { withCredentials: true });
+                setPosts(data.events);
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    };
 
     useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                if(isAdmin){
-                    const { data } = await axios.get(`${getBackendURL()}/account/admin/all-events`, { withCredentials: true });
-                    setPosts(data.events);
-                }
-            } catch (error) {
-                console.error('Error fetching users:', error);
-            }
-        };
         fetchPosts();
     }, [isAdmin]);
 
@@ -135,6 +136,7 @@ function Account() {
                     });
                 if (response.data.success) {
                     toast.success("Password reset successfully", { theme: 'dark' });
+                    fetchUsers();
                 } else {
                     console.error('Failed to reset password:', response.data.message);
                 }
@@ -154,6 +156,7 @@ function Account() {
                     });
                 if (response.data.success) {
                     toast.success(`Successfully promoted ${user.email} to Admin`, { theme: 'dark' });
+                    fetchUsers();
                 } else {
                     console.error('Failed to promote user:', response.data.message);
                 }
@@ -174,7 +177,7 @@ function Account() {
                     });
                 if (response.data.success) {
                     toast.success(`Successfully demoted ${user.email} to user`, { theme: 'dark' });
-
+                    fetchUsers();
                 } else {
                     console.error('Failed to demote user:', response.data.message);
                 }
@@ -194,7 +197,7 @@ function Account() {
                     });
                 if (response.data.success) {
                     toast.success(`Successfully deleted user ${user.email}`, { theme: 'dark' });
-
+                    fetchUsers();
                 } else {
                     console.error('Failed to delete user:', response.data.message);
                 }
@@ -212,7 +215,7 @@ function Account() {
                 });
             if (response.data.success) {
                 toast.success(`Successfully deleted post ${post.event_name} by ${post.f_name}`, { theme: 'dark' });
-
+                fetchPosts();
             } else {
                 console.error('Failed to delete post:', response.data.message);
             }
@@ -223,12 +226,14 @@ function Account() {
 
     const handleDeleteFinancial = async (financial) => {
         try {
+            console.log(financial.fin_id)
             const response = await axios.delete(`${getBackendURL()}/account/delete-financial/${financial.fin_id}`
                 , {
                     withCredentials: true
                 });
             if (response.data.success) {
                 toast.success(`Successfully deleted ${financial.fin_name}`, { theme: 'dark' });
+                fetchUserFinancials();
             } else {
                 console.error('Failed to delete financial:', response.data.message);
             }
@@ -249,7 +254,7 @@ function Account() {
                 });
             if (response.data.success) {
                 toast.success(`Successfully deleted listing ${event.event_name}`, { theme: 'dark' }, { theme: 'dark' });
-                window.location.reload();
+                fetchUserGigs();
             } else {
                 console.error('Failed to delete listing:', response.data.message);
             }
@@ -270,6 +275,7 @@ function Account() {
                 });
             if (response.data.success) {
                 toast.success(`Successfully unlisted event ${event.event_name}`, { theme: 'dark' });
+                fetchUserGigs();
             } else {
                 console.error('Failed to unlist event:', response.data.message);
             }
@@ -332,7 +338,8 @@ function Account() {
             case 'gigs':
                 return <Gigs userData={userData} gigs={gigs}
                              onDeleteEvent={handleDeleteEvent}
-                             onUnlistEvent={handleUnlistEvent}/>;
+                             onUnlistEvent={handleUnlistEvent}
+                             onGigsChange={setGigs}/>;
             case 'financials':
                 return <Financials userData={userData}
                                    financials={financials}

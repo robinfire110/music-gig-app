@@ -50,7 +50,7 @@ module.exports.register = async (req, res, next) => {
         const {error} = userSchema.validate(data)
         if (error) 
         {
-            console.log(error);
+            console.error(error);
             return res.status(403).send(error.details);;
         }
 
@@ -70,7 +70,7 @@ module.exports.register = async (req, res, next) => {
                 }
                 else
                 {
-                    console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+                    console.error("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
                 }
             }
         }
@@ -156,7 +156,7 @@ module.exports.update_user = async (req, res, next) => {
 		const {error} = userSchema.fork(['email', 'password'], (schema) => schema.optional()).validate(data)
         if (error) 
         {
-            console.log(error);
+            console.error(error);
             return res.status(403).send(error.details);;
         }
 
@@ -176,7 +176,7 @@ module.exports.update_user = async (req, res, next) => {
 				}
 				else
 				{
-					console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+					console.error("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
 				}
 			}
 		}
@@ -211,8 +211,6 @@ module.exports.getUserEvents = async (req, res, next) => {
 				event_id: userStatus ? userStatus.event_id : null
 			};
 		});
-		console.log("users with statusses");
-		console.log(usersWithStatus);
 
 		const events = await db.Event.findByEventIds(eventIds, userStatuses);
 
@@ -431,7 +429,6 @@ module.exports.deleteEvent = async (req, res, next) => {
 //owner can also unlist their own events
 module.exports.unlistEvent = async (req, res, next) => {
 	try {
-		console.log("is this function being called to unlist")
 		const eventId = req.params.eventId;
 		const userId = req.user.user_id;
 
@@ -461,7 +458,7 @@ module.exports.unlistEvent = async (req, res, next) => {
 
 module.exports.deleteFinancial = async (req, res, next) => {
 	try {
-		const finId = req.body.fin_id;
+		const finId = req.params.finId;
 		const userId = req.user.user_id;
 
 		const finStatus = await db.FinStatus.findOne({
