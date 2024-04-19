@@ -140,6 +140,7 @@ module.exports.account = async (req, res, next) => {
 	try {
 		const userToSend = {};
 
+		console.log(req.user)
 		if (req.user.user_id) userToSend.user_id = req.user.user_id;
 		if (req.user.email) userToSend.email = req.user.email;
 		if (req.user.f_name) userToSend.f_name = req.user.f_name;
@@ -149,6 +150,7 @@ module.exports.account = async (req, res, next) => {
 		if (req.user.isAdmin !== undefined) userToSend.isAdmin = req.user.isAdmin;
 		if (req.user.Instruments) userToSend.Instruments = req.user.Instruments;
 		if (req.user.Events) userToSend.Events = req.user.Events;
+		console.log(userToSend)
 
 		if (Object.keys(userToSend).length > 0) {
 			res.status(200).json({ user: userToSend });

@@ -24,11 +24,9 @@ const Register = () => {
 
 	useEffect(() => {
 		axios.get(`${getBackendURL()}/instrument/`).then(async (res) => {
-			//Create instruments
 			setInstruments(res.data);
-			console.log(res.data)
 		}).catch(error => {
-			console.log(error);
+			console.error(error);
 		});
 	}, []);
 
@@ -76,7 +74,7 @@ const Register = () => {
 				}
 			}
 		}catch (err){
-			console.log(err);
+			console.error(err);
 		}
 	};
 

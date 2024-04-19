@@ -33,26 +33,26 @@ function Account() {
     const [eventToUnlist, setEventToUnlist] = useState(null);
 
 
+    const verifyUser = async () => {
+        if (!cookies.jwt) {
+            navigate('/login');
+        } else {
+            try {
+                const { data } = await axios.get(`${getBackendURL()}/account`, { withCredentials: true });
+                setUserData(data.user);
+                console.log(data.user)
+                setIsAdmin(data.user.isAdmin);
+                toast(`hi ${data.user.f_name}`, { theme: 'dark' });
+            } catch (error) {
+                removeCookie('jwt');
+                navigate('/login');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
 
     useEffect(() => {
-        const verifyUser = async () => {
-            if (!cookies.jwt) {
-                navigate('/login');
-            } else {
-                try {
-                    const { data } = await axios.get(`${getBackendURL()}/account`, { withCredentials: true });
-                    setUserData(data.user);
-                    setIsAdmin(data.user.isAdmin);
-                    toast(`hi ${data.user.f_name}`, { theme: 'dark' });
-                } catch (error) {
-                    removeCookie('jwt');
-                    navigate('/login');
-                } finally {
-                    setLoading(false);
-                }
-            }
-        };
-
         verifyUser();
     }, [cookies, navigate, removeCookie]);
 
@@ -334,6 +334,7 @@ function Account() {
                 return null;
             case 'editProfile':
                 return <EditProfile userData={userData}
+                                    onUserChange={setUsers}
                                     />;
             case 'gigs':
                 return <Gigs userData={userData} gigs={gigs}

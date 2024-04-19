@@ -29,9 +29,9 @@ const PasswordResetModal = ({ show, handleClose, onConfirm }) => {
 				});
 
 			if (response.data.success) {
-				toast.success('Password reset successful');
+				toast.success('Password reset successful', { theme: 'dark' });
 			} else {
-				generateError('Failed to reset password');
+				generateError('Failed to reset password', { theme: 'dark' });
 			}
 
 			handleClose();

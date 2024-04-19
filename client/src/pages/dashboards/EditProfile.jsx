@@ -4,8 +4,9 @@ import {toast, ToastContainer} from 'react-toastify';
 import axios from 'axios';
 import {getBackendURL} from "../../Utils";
 import UserPasswordResetModal from "../dashboards/UserPasswordResetModal";
+import Select from "react-select";
 
-function EditProfile({ userData }) {
+function EditProfile({ userData,  onUserChange }) {
 	const [formData, setFormData] = useState({
 		email: '',
 		password: '',
@@ -18,10 +19,21 @@ function EditProfile({ userData }) {
 	});
 
 	const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
+	const [instruments, setInstruments] = useState([])
+	const [selectedInstruments, setSelectedInstruments] = useState([])
 
 	const generateError = (err) => toast.error(err, {
 		position: "bottom-right",
 	})
+
+	useEffect(() => {
+		axios.get(`${getBackendURL()}/instrument/`).then(async (res) => {
+			//Create instruments
+			setInstruments(res.data);
+		}).catch(error => {
+			console.error(error);
+		});
+	}, []);
 
 	useEffect(() => {
 		if (userData) {
@@ -38,6 +50,14 @@ function EditProfile({ userData }) {
 		}
 	}, [userData]);
 
+	const configureInstrumentList = (data) => {
+		const instrumentOptionList = []
+		data.forEach(instrument => {
+			instrumentOptionList.push({value: instrument.instrument_id, label: instrument.name});
+		});
+		return instrumentOptionList
+	}
+
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -51,6 +71,7 @@ function EditProfile({ userData }) {
 				withCredentials: true
 			});
 			if (response.data.success) {
+				onUserChange(formData);
 				toast.success('Profile updated successfully' , { theme: 'dark' });
 			} else {
 				toast.error('Failed to update profile', { theme: 'dark' });
@@ -77,7 +98,6 @@ function EditProfile({ userData }) {
 						name="email"
 						value={formData.email}
 						onChange={handleChange}
-						disabled
 					/>
 				</Form.Group>
 
@@ -133,13 +153,23 @@ function EditProfile({ userData }) {
 				</Form.Group>
 
 				<Form.Group className="mb-3" controlId="formBasicInstruments">
-					<Form.Label>Instruments</Form.Label>
-					<Form.Control
-						type="text"
-						placeholder="Enter instruments you play"
+					<Form.Label>Instruments (select multiple)</Form.Label>
+					<Select
+						options={configureInstrumentList(instruments)}
 						name="instruments"
+						isMulti
+						onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)}
+						value={selectedInstruments}
+					/>
+				</Form.Group>
+
+				<Form.Group className="mb-3">
+					<Form.Label>Your Instruments</Form.Label>
+					<Form.Control
+						as="textarea"
+						rows={3}
 						value={formData.instruments}
-						onChange={handleChange}
+						readOnly
 					/>
 				</Form.Group>
 
@@ -162,10 +192,6 @@ function EditProfile({ userData }) {
 			<UserPasswordResetModal
 				show={showPasswordResetModal}
 				handleClose={togglePasswordResetModal}
-				onConfirm={(oldPassword, newPassword) => {
-					console.log("Old Password:", oldPassword);
-					console.log("New Password:", newPassword);
-				}}
 				isAdmin={false}
 			/>
 		</Container>
