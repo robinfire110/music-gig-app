@@ -38,10 +38,11 @@ function Landing() {
                     if (res.data?.user)
                     {
                         //Get user data
-                        axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`).then(async res => {
+                        axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`, { withCredentials: true }).then(async res => {
                             const userData = res.data;
                             if (userData)
                             {
+                                
                                 setUser(userData);
 
                                 //Set user events
