@@ -69,9 +69,15 @@ const Register = () => {
 	const handleSubmit = async (event) => {
 		event.preventDefault();
 		try {
-			const {data} =  await axios.post(`${getBackendURL()}/register`, {
-				...values,
-			}, {
+			//Set up data
+			const registerData = {...values};
+			const instruments = [];
+			selectedInstruments.forEach((instrument) => {
+				instruments.push(instrument.value);
+			});
+			registerData.instruments = instruments;
+
+			const {data} = await axios.post(`${getBackendURL()}/register`, registerData, {
 				withCredentials:true,
 			});
 			if(data){
@@ -190,7 +196,7 @@ const Register = () => {
 						</Col>
 					</Row>
 
-					<Form.Group className="text-start mb-3" controlId="formBasicBio">
+					<Form.Group className="text-start mb-3">
 						<Form.Label style={{width: '100%'}}>
 							<Row>
 								<Col lg={10}>Bio</Col>

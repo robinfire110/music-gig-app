@@ -44,7 +44,7 @@ module.exports.register = async (req, res, next) => {
 	let newInstrument;
 	try {
 		const data = req.body;
-
+		console.log(data);
 		//Validate
 		data.instruments = await instrumentArrayToIds(data?.instruments);
         const {error} = userSchema.validate(data)

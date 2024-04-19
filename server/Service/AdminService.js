@@ -41,10 +41,27 @@ async function demoteUserFromAdmin(userId) {
 
 async function removeUser(userId) {
 	try {
-		const user = await db.User.findByPk(userId);
-		if (user) {
-			await user.destroy();
-		} else {
+		const user = await db.User.findByPk(userId, {include: [db.Event, db.Financial]});
+		if (user)
+        {
+            //Destroy events
+            user.Events.forEach(async event => {
+                //If owner, delete
+                if (event.UserStatus.status == "owner")
+                {
+                    await event.destroy();
+                }
+            });
+
+            //Destroy Financial
+            user.Financials.forEach(async financial => {
+                //If financial exists, delete
+                await financial.destroy();
+            });
+
+			//Destroy user
+            await user.destroy();
+        } else {
 			throw new Error("User not found");
 		}
 	} catch (error) {
