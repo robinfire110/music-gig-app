@@ -69,6 +69,10 @@ function Financials({ financials, onDeleteFinancial }) {
 		setShowConfirmationModal(false);
 	};
 
+	const handleRowClick = (financial) => {
+		navigate(`/calculator/${financial.fin_id}`);
+	};
+
 	const indexOfLastFinancial = currentPage * financialsPerPage;
 	const indexOfFirstFinancial = indexOfLastFinancial - financialsPerPage;
 	const currentFinancials = filteredFinancials.slice(indexOfFirstFinancial, indexOfLastFinancial);
@@ -120,7 +124,7 @@ function Financials({ financials, onDeleteFinancial }) {
 				</thead>
 				<tbody>
 				{currentFinancials.map((financial, index) => (
-					<tr key={index}>
+					<tr key={index} style={{ cursor: 'pointer' }} onClick={() => handleRowClick(financial)}>
 						<td><input type="checkbox" checked={selectedRows.includes(index)} onChange={() => handleRowSelect(index)} /></td>
 						<td>{financial.date}</td>
 						<td>{financial.event_hours}</td>
