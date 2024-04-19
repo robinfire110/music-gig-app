@@ -128,12 +128,12 @@ function Financials({ financials, onDeleteFinancial }) {
 				</thead>
 				<tbody>
 				{currentFinancials.map((financial, index) => (
-					<tr key={index} style={{ cursor: 'pointer' }} onClick={() => handleRowClick(financial)}>
-						<td><input type="checkbox" checked={selectedRows.includes(index)} onChange={() => handleRowSelect(index)} /></td>
-						<td>{financial.date}</td>
-						<td>{financial.event_hours}</td>
-						<td>{financial.fin_name}</td>
-						<td>${financial.total_wage}</td>
+					<tr key={index} style={{ cursor: 'pointer' }}>
+						<td onClick={() => handleRowSelect(index)}><input type="checkbox" checked={selectedRows.includes(index)} onChange={() => handleRowSelect(index)} /></td>
+						<td onClick={() => handleRowClick(financial)}>{financial.date}</td>
+						<td onClick={() => handleRowClick(financial)}>{financial.event_hours}</td>
+						<td onClick={() => handleRowClick(financial)}>{financial.fin_name}</td>
+						<td onClick={() => handleRowClick(financial)}>${financial.total_wage}</td>
 						<td>
 							<Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeleteFinancial(financial); }}>Delete</Button>
 						</td>
