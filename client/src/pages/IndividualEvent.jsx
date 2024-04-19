@@ -1,4 +1,5 @@
 import React from "react";
+import moment from 'moment';
 import { useEffect } from "react";
 import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
@@ -108,17 +109,11 @@ const IndividualEvent = () => {
     }
 
     const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+        return moment(dateString).format("dddd, MMMM D")
     }
 
     const formatTime = (timeString) => {
-        const time = new Date(timeString);
-        const timeZoneSet = {
-            hour: 'numeric',
-            minute: '2-digit',
-        }
-        return time.toLocaleTimeString([], timeZoneSet);
+        return moment(timeString).format("h:mm A");
     }
 
     const handleAddApplication = async (user, email=false) => {
@@ -400,7 +395,7 @@ const IndividualEvent = () => {
                                 </Card.Header>
                                 <Card.Body>
                                     <Row>
-                                        <Col><h5>Posted by - {event.Users && event.Users.length > 0 && (event.Users && <Link to={`/profile/${owner.f_name}`} style={{ color: "#000" }}>{owner.f_name} {owner.l_name}</Link>)}</h5></Col>
+                                        <Col><h5>Posted by - {event.Users && event.Users.length > 0 && (event.Users && <Link to={`/profile/${owner.user_id}`} style={{ color: "#000" }}>{owner.f_name} {owner.l_name}</Link>)}</h5></Col>
                                     </Row>
                                     <Row>
                                         <Col><h5>Contact - {owner.email} </h5></Col>

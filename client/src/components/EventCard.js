@@ -43,11 +43,11 @@ function EventCard({eventId}) {
                 <Card.Title><Link to={`/event/${eventId}`} style={{color: "#000"}}><h4>{eventData && eventData.event_name}</h4></Link></Card.Title>
                 <h6>Posted by:</h6> {owner && <Link to={`/profile/${owner.user_id}`} style={{color: "#000"}}>{owner.f_name} {owner.l_name}</Link>}
                 <br />
-                <h6>Date Posted:</h6> {eventData && moment.utc(eventData.date_posted).format("M/DD/YYYY")}
+                <h6>Date Posted:</h6> {eventData && moment(eventData.date_posted).format("M/DD/YYYY")}
                 <br />
-                <h6>Event Date:</h6> {eventData && moment.utc(eventData.start_time).format("M/DD/YYYY")}
+                <h6>Event Date:</h6> {eventData && moment(eventData.start_time).format("M/DD/YYYY")}
                 <br />
-                <h6>Event Time:</h6> {eventData && moment.utc(eventData.start_time).format("h:mm A")} - {eventData && moment.utc(eventData.end_time).format("h:mm A")}
+                <h6>Event Time:</h6> {eventData && moment(eventData.start_time).format("h:mm A")} - {eventData && moment(eventData.end_time).format("h:mm A")}
                 <br />
                 <h6>Location:</h6> {eventData && eventData.Address.city}, {eventData && eventData.Address.state}
                 <br />

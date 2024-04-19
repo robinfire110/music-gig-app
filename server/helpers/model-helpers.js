@@ -145,7 +145,6 @@ async function instrumentArrayToIds(instrumentArray)
             else console.log("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
         }
     }
-    console.log("NewArray", newArray);
     return newArray;
 }
 
