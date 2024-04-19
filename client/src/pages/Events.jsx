@@ -119,7 +119,6 @@ const Events = () => {
         setCurrentPage(1);
 
         //Sort by...
-        console.log(filteredEvents);
         filteredEvents = sortEvents(filteredEvents);
         setFilteredEvents(filteredEvents);
     };

@@ -3,6 +3,7 @@ import {Form, Button, Container} from 'react-bootstrap';
 import {toast, ToastContainer} from 'react-toastify';
 import axios from 'axios';
 import {getBackendURL} from "../../Utils";
+import UserPasswordResetModal from "../dashboards/UserPasswordResetModal";
 
 function EditProfile({ userData }) {
 	const [formData, setFormData] = useState({
@@ -15,6 +16,8 @@ function EditProfile({ userData }) {
 		bio: ''
 
 	});
+
+	const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
 
 	const generateError = (err) => toast.error(err, {
 		position: "bottom-right",
@@ -58,8 +61,11 @@ function EditProfile({ userData }) {
 		}
 	};
 
-	return (
+	const togglePasswordResetModal = () => {
+		setShowPasswordResetModal(!showPasswordResetModal);
+	};
 
+	return (
 		<Container style={{ maxWidth: '600px', position: 'relative' }}>
 			<h2>{formData.f_name}'s Profile</h2>
 			<Form onSubmit={handleSubmit}>
@@ -77,14 +83,19 @@ function EditProfile({ userData }) {
 
 				<Form.Group className="mb-3" controlId="formBasicPassword">
 					<Form.Label>Password</Form.Label>
-					<Form.Control
-						type="password"
-						placeholder="Password"
-						name="password"
-						value={formData.password}
-						onChange={handleChange}
-						disabled
-					/>
+					<div className="d-flex align-items-center">
+						<Form.Control
+							type="password"
+							placeholder="Password"
+							name="password"
+							value={formData.password}
+							onChange={handleChange}
+							disabled
+						/>
+						<Button style={{ marginLeft: '15px' }} className="btn btn-dark" variant="secondary" onClick={togglePasswordResetModal}>
+							Reset Password
+						</Button>
+					</div>
 				</Form.Group>
 				<Form.Group className="mb-3" controlId="formBasicName">
 					<Form.Label>Profile Name</Form.Label>
@@ -148,6 +159,15 @@ function EditProfile({ userData }) {
 					Update Profile
 				</Button>
 			</Form>
+			<UserPasswordResetModal
+				show={showPasswordResetModal}
+				handleClose={togglePasswordResetModal}
+				onConfirm={(oldPassword, newPassword) => {
+					console.log("Old Password:", oldPassword);
+					console.log("New Password:", newPassword);
+				}}
+				isAdmin={false}
+			/>
 		</Container>
 	);
 }

@@ -117,6 +117,25 @@ module.exports.login = async (req, res, next) => {
 	}
 };
 
+module.exports.updatePassword = async (req, res, next) => {
+	const userId = req.user.user_id;
+	const { oldPassword, newPassword } = req.body;
+
+	try {
+		const result = await db.User.resetUserPassword(userId, oldPassword, newPassword);
+
+		if (result.success) {
+			res.json({ success: true, message: "Password updated successfully" });
+		} else {
+			res.status(400).json({ success: false, message: "Failed to update password" });
+		}
+	} catch (error) {
+		console.error("Error updating password:", error);
+		res.status(500).json({ success: false, error: error.message });
+	}
+};
+
+
 module.exports.account = async (req, res, next) => {
 	try {
 		const userToSend = {};

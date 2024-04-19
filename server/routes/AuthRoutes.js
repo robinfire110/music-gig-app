@@ -1,6 +1,6 @@
 const { register, login, account, update_user, getUserEvents, getUserFinancials, getUsers,
 	giveUserAdmin, giveUserUser, removeUser, resetUserPassword, getEvents, deleteUserPost,
-	deleteEvent, unlistEvent, deleteFinancial
+	deleteEvent, unlistEvent, deleteFinancial, updatePassword
 } = require("../Controllers/AuthControllers")
 const {checkUser} = require("../Middleware/AuthMiddleWare");
 const router = require("express").Router();
@@ -11,6 +11,7 @@ router.post("/login", login)
 //user
 router.get("/account",checkUser, account);
 router.post("/account/update_user", checkUser, update_user)
+router.post("/account/update_password", checkUser, updatePassword)
 router.get("/account/user-gigs", checkUser, getUserEvents)
 router.get("/account/user-financials", checkUser, getUserFinancials)
 router.put("/account/unlist-event/:eventId", checkUser, unlistEvent)

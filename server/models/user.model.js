@@ -87,7 +87,29 @@ module.exports = (sequelize, Sequelize) => {
     }
   };
 
+  User.resetUserPassword = async function(userId, oldPassword, newPassword) {
+    try {
+      //find user, compare passwords, if true update pass to new pass
+      const user = await this.findByPk(userId);
+      if (!user) {
+        throw new Error("User not found");
+      }
 
+      const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+      if (!isPasswordValid) {
+        throw new Error("Incorrect old password");
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      await user.update({ password: hashedPassword });
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error resetting user password:", error);
+      throw error;
+    }
+  };
 
   return User;
 };
