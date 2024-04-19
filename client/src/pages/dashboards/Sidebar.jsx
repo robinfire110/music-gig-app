@@ -17,7 +17,7 @@ function Sidebar({ handleLinkClick, isAdmin }) {
                         <Nav.Link
                             onClick={() => handleLinkClick('gigs')}
                             href="#"
-                        >Gigs</Nav.Link>
+                        >Applications</Nav.Link>
                         <Nav.Link
                             onClick={() => handleLinkClick('financials')}
                             href="#">Financials</Nav.Link>

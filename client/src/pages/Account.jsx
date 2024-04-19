@@ -470,6 +470,7 @@ function Account() {
                                     </div>
                                 </Tab>
                                 <Tab eventKey="pending" title="Pending">
+                                    <h2 className="current-listings-header">Your Pending Events</h2>
                                     <div className="listings-card-container">
                                         {gigs
                                             .filter(gig => gig.status === 'owner' && gig.is_listed &&

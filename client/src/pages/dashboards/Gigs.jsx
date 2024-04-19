@@ -84,7 +84,7 @@ function Gigs({ userData, gigs, onGigsChange }) {
 					</div>
 				</Tab>
 				<Tab eventKey="pending" title="Pending">
-					<h2 className="current-listings-header">Gigs you've Applied to</h2>
+					<h2 className="current-listings-header">Pending Applications</h2>
 					<div className="listings-card-container">
 						{gigs
 							.filter(gig => gig.is_listed && gig.status === 'applied')
@@ -128,7 +128,7 @@ function Gigs({ userData, gigs, onGigsChange }) {
 					</div>
 				</Tab>
 				<Tab eventKey="closed" title="Closed">
-					<h2 className="current-listings-header">Closed Listings</h2>
+					<h2 className="current-listings-header">Closed Gigs</h2>
 					<div className="listings-card-container">
 						{gigs
 							.filter(gig => gig.status === 'withdraw' || gig.status === 'rejected')
