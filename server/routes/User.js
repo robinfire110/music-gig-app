@@ -38,7 +38,6 @@ router.get("/id/:id", checkUserOptional, async (req, res) => {
         let attributes = {exclude: userSensitiveAttributes}
         if (req.user && (req.user.user_id == id || req.user.isAdmin == 1))
         {
-            console.log("Ran", id);
             attributes = {exclude: []}
             include = [db.Instrument, db.Event, db.Financial];
         } 

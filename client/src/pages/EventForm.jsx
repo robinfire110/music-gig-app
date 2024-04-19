@@ -40,8 +40,8 @@ const EventForm = () => {
     const [startTime, setStartTime] = useState("12:00");
     const [endTime, setEndTime] = useState("14:00");
     const [totalEventHours, setTotalEventHours] = useState(0);
-    const [startDate, setStartDate] = useState(new moment().format("YYYY-MM-DD"));
-    const [endDate, setEndDate] = useState(new moment().format("YYYY-MM-DD"));
+    const [startDate, setStartDate] = useState(new moment().add(1, 'd').format("YYYY-MM-DD"));
+    const [endDate, setEndDate] = useState(new moment().add(1, 'd').format("YYYY-MM-DD"));
     const [loading, setLoading] = useState(true);
     const [userLoggedIn, setUserLoggedIn] = useState(false);
     const [unauthorizedAccess, setUnauthorizedAccess] = useState(false);
