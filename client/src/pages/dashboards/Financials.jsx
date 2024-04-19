@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Table } from 'react-bootstrap';
+import { Button, Col, Container, Row, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { saveSpreadsheetAll } from '../../Utils';
 import ConfirmationModal from './ConfirmationModal';
@@ -76,21 +76,25 @@ function Financials({ financials, onDeleteFinancial }) {
 	const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
 	return (
-		<div>
-			<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+		<Container>
+			<Row>
+				<Col>
+			<div className='text-start'>
 				<h2>Financials</h2>
+				<br />
 				<h5>Select records to export</h5>
-				<div>
-					<div className="button-container">
-						<Button className="btn btn-dark mr-2" variant="primary" onClick={handleCreateNewCalc}>Calculate New Wage</Button>
-					</div>
-					<div className="button-container">
-						<Button variant="success mr-2" onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export All to Spreadsheet</Button>
-					</div>
-					<div className="button-container">
-						<Button variant="success mr-2" onClick={handleExportToSpreadsheet} disabled={selectedRows.length === 0}>Export Individual Spreadsheet</Button>
-					</div>
-					<div style={{ marginTop: '20px', marginBottom: '20px', width: '100%'}}>
+			</div>
+			</Col>
+			<Col>
+			
+					<Row className="button-container text-end">
+						<div>
+							<Button className="mx-2 btn btn-dark mr-2" variant="primary" onClick={handleCreateNewCalc}>Create New Financial</Button>
+							<Button className="mx-2 " variant="success mr-2" onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export Selected to Spreadsheet</Button>
+							{/*<Button variant="success mr-2" onClick={handleExportToSpreadsheet} disabled={selectedRows.length === 0}>Export Individual Spreadsheet</Button>*/}
+						</div>
+					</Row>
+					<Row style={{ marginTop: '20px', marginBottom: '10px', width: '100%'}}>
 						<input
 							type="text"
 							placeholder="Search financials..."
@@ -104,9 +108,9 @@ function Financials({ financials, onDeleteFinancial }) {
 								border: '1px solid #ced4da',
 							}}
 						/>
-					</div>
-				</div>
-			</div>
+					</Row>
+			</Col>
+			</Row>
 			<Table striped bordered hover>
 				<thead>
 				<tr>
@@ -148,7 +152,7 @@ function Financials({ financials, onDeleteFinancial }) {
 				message={deleteMessage}
 				onConfirm={handleConfirmDeleteFinancial}
 			/>
-		</div>
+		</Container>
 	);
 }
 

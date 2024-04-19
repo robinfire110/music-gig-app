@@ -116,48 +116,70 @@ async function saveSpreadsheetAll(data, filename = 'Harmonize_Export')
     });
 
     //Fomatting
-    const moneyColumns = ["C", "J", "L", "O", "P", "Q", "S"];
+    const moneyColumns = ["C", "J", "L", "P", "Q", "R", "S", "U"];
     moneyColumns.forEach(column => {
         worksheet.getColumn(column).numFmt = '$#,##0.00';
     });
-    worksheet.getColumn("N").numFmt = '0.00##\\%'; //Format percen
-    worksheet.getColumn("S").font = {bold: true};
+    worksheet.getColumn("O").numFmt = '0.00##\\%'; //Format percent
+    worksheet.getColumn("U").font = {bold: true};
 
     //Set header
-    const headerRow = ["Name", "Date", "Total Wage", "# of Gigs", "Event Hours", "Practice Hours", "Rehearsal Hours", "Total Mileage", "Travel Hours", "Gas $/Gallon", "Vehicle MPG", "Gas $/Mile", "Mileage Covered", "Tax %", "Other Fees", "Tax Cut", "Travel Cost", "Total Hours", "Hourly Wage"]
+    const headerRow = ["Name", "Date", "Total Wage", "# of Gigs", "Event Hours", "Practice Hours", "Rehearsal Hours", "Total Mileage", "Travel Hours", "Gas $/Gallon", "Vehicle MPG", "Gas $/Mile", "Mileage Covered", "Trip Type", "Tax %", "Other Fees", "Tax Cut", "Travel Cost", "Total Profit", "Total Hours", "Hourly Wage"]
     worksheet.addRow(headerRow).commit();
     worksheet.getRow(1).font = {bold: true};
     worksheet.getRow(1).numFmt = "";
-    worksheet.getCell(`P1`).border = {left: {style: "thin"}};
+    worksheet.getCell(`Q1`).border = {left: {style: "thin"}};
 
     //Size columns
     autoSizeColumn(worksheet);
     worksheet.getColumn("A").width = 20; //Name width
     worksheet.getColumn("B").width = 11; //Date width
-    worksheet.getColumn("N").width = 8; //Tax width
+    worksheet.getColumn("O").width = 10; //Tax width
+    worksheet.getColumn("Q").width = 10; //Tax Cut Width
 
     //Set data
     let rowCount = 1;
     data.forEach(fin => {
         rowCount++;
-        var row = worksheet.addRow([fin.fin_name, fin.date, parseFloatZero(fin.total_wage), parseIntZero(fin.even_num) === 0 ? 1 : parseIntZero(fin.even_num), parseFloatZero(fin.event_hours), parseFloatZero(fin.practice_hours), parseFloatZero(fin.rehearse_hours), parseFloatZero(fin.total_mileage), parseFloatZero(fin.travel_hours), parseFloatZero(fin.gas_price), parseFloatZero(fin.mpg), parseFloatZero(fin.gas_price/fin.mpg), parseFloatZero(fin.mileage_pay), parseFloatZero(fin.tax), parseFloatZero(fin.fees), fin.total_wage*(.01*parseFloatZero(fin.tax)), parseFloatZero(fin.gas_price/fin.mpg)*parseFloatZero(fin.total_mileage), 0, parseFloatZero(fin.hourly_wage)]);
+        var row = worksheet.addRow([fin.fin_name, fin.date, parseFloatZero(fin.total_wage), parseIntZero(fin.event_num) === 0 ? 1 : parseIntZero(fin.event_num), parseFloatZero(fin.event_hours), parseFloatZero(fin.practice_hours), parseFloatZero(fin.rehearse_hours), parseFloatZero(fin.total_mileage), parseFloatZero(fin.travel_hours), parseFloatZero(fin.gas_price), parseFloatZero(fin.mpg), parseFloatZero(fin.gas_price/fin.mpg), parseFloatZero(fin.mileage_pay), fin.round_trip ? "Round Trip" : "One-Way", parseFloatZero(fin.tax), parseFloatZero(fin.fees), fin.total_wage*(.01*parseFloatZero(fin.tax)), 0, parseFloatZero(fin.gas_price/fin.mpg)*parseFloatZero(fin.total_mileage), 0, parseFloatZero(fin.hourly_wage)]);
+
+        //Get values
+        let multiplyTravel = fin.multiply_travel == 1 ? fin.event_num : 1;
+        let multiplyPractice = fin.multiply_practice == 1 ? fin.event_num : 1;
+        let multiplyRehearsal = fin.multiply_rehearsal == 1 ? fin.event_num : 1;
+        let multiplyOther = fin.multiply_other == 1 ? fin.event_num : 1;
+        let isRoundTrip = fin.round_trip == 1;
+        let gasPerMile = fin.mpg > 0 ? (fin.gas_price/fin.mpg).toFixed(2) : 0;
+        let otherFees = fin.fees * multiplyOther;
+        let totalPay = fin.total_wage * fin.event_num;
+        let taxCut = totalPay * (fin.tax * .01);
+        let travelCosts = fin.total_mileage*(gasPerMile-fin.mileage_pay)*multiplyTravel*(isRoundTrip ? 2 : 1);
+        let totalHours = (fin.event_hours*fin.event_num) + (fin.practice_hours*multiplyPractice) + (fin.rehearse_hours*multiplyRehearsal) + (fin.travel_hours*multiplyTravel*(isRoundTrip ? 2 : 1));
 
         //Set Formulas
         worksheet.getCell(`L${rowCount}`).value = {formula: `IFERROR(J${rowCount}/K${rowCount}, 0)`}; //Gas Price Per Mile
-        worksheet.getCell(`P${rowCount}`).value = {formula: `(C${rowCount}*D${rowCount})*(0.01*N${rowCount})`}; //Tax Cut
-        worksheet.getCell(`Q${rowCount}`).value = {formula: `H${rowCount}*(L${rowCount}-M${rowCount})`}; //Travel Costs
-        worksheet.getCell(`R${rowCount}`).value = {formula: `((E${rowCount}*D${rowCount})+F${rowCount}+G${rowCount}+I${rowCount})`}; //Total Hours
-        worksheet.getCell(`S${rowCount}`).value = {formula: `IFERROR(((C${rowCount}*D${rowCount})-O${rowCount}-P${rowCount}-Q${rowCount})/R${rowCount}, 0)`}; //Total Hourly Wage
+        worksheet.getCell(`P${rowCount}`).value = otherFees; //Other fees
+        worksheet.getCell(`Q${rowCount}`).value = {formula: `(C${rowCount}*D${rowCount})*(0.01*O${rowCount})`}; //Tax Cut
+        worksheet.getCell(`R${rowCount}`).value = travelCosts; //Travel Costs
+        worksheet.getCell(`S${rowCount}`).value = totalPay - taxCut - travelCosts - otherFees; //Total Profits
+        worksheet.getCell(`T${rowCount}`).value = totalHours > 0 ? totalHours : 0; //Total Hours
+        if (totalHours <= 0) worksheet.getCell(`U${rowCount}`).value = 0; //Hourly Wage
+        
+        //worksheet.getCell(`L${rowCount}`).value = {formula: `IFERROR(J${rowCount}/K${rowCount}, 0)`}; //Gas Price Per Mile
+        //worksheet.getCell(`P${rowCount}`).value = {formula: `(C${rowCount}*D${rowCount})*(0.01*N${rowCount})`}; //Tax Cut
+        //worksheet.getCell(`Q${rowCount}`).value = {formula: `H${rowCount}*(L${rowCount}-M${rowCount})`}; //Travel Costs
+        //worksheet.getCell(`R${rowCount}`).value = {formula: `((E${rowCount}*D${rowCount})+F${rowCount}+G${rowCount}+I${rowCount})`}; //Total Hours
+        //worksheet.getCell(`S${rowCount}`).value = {formula: `IFERROR(((C${rowCount}*D${rowCount})-O${rowCount}-P${rowCount}-Q${rowCount})/R${rowCount}, 0)`}; //Total Hourly Wage
 
         //Border
-        worksheet.getCell(`P${rowCount}`).border = {left: {style: "thin"}};
+        worksheet.getCell(`Q${rowCount}`).border = {left: {style: "thin"}};
         row.commit();
     });
 
     //Final sum
-    worksheet.getCell(`O${rowCount+2}`).value = "Total";
-    worksheet.getCell(`O${rowCount+2}`).border = {top: {style: "medium"}};
-    const sumRows = ["P", "Q", "R", "S"];
+    worksheet.getCell(`P${rowCount+2}`).value = "Total";
+    worksheet.getCell(`P${rowCount+2}`).border = {top: {style: "medium"}};
+    const sumRows = ["Q", "R", "S", "T", "U"];
     sumRows.forEach(row => {
         var cell = worksheet.getCell(`${row}${rowCount+2}`);
         cell.value = {formula: `SUM(${row}2:${row}${rowCount})`};
