@@ -83,6 +83,8 @@ const Login = () => {
                         <Button className="btn btn-dark" variant="primary" type="submit">
                             Submit
                         </Button>
+                        <br />
+                        <br />
                         <span>Want to join? <Link to="/register">Register</Link></span>
                     </Form>
                     <ToastContainer></ToastContainer>

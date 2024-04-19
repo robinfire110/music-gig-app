@@ -85,17 +85,17 @@ const Events = () => {
         switch (sort)
         {
             //Date Posted (Most recent -> Least Recent) (Default)
-            case "date_posted_asc": events.sort((a, b) => {return moment.utc(b.date_posted).subtract(moment.utc(a.date_posted))}); break;
+            case "date_posted_asc": events.sort((a, b) => {return moment(b.date_posted).subtract(moment(a.date_posted))}); break;
             //Date Posted (Least recent -> Most Recent)
-            case "date_posted_dsc": events.sort((a, b) => {return moment.utc(a.date_posted).subtract(moment.utc(b.date_posted))}); break;
+            case "date_posted_dsc": events.sort((a, b) => {return moment(a.date_posted).subtract(moment(b.date_posted))}); break;
             //Name (A->Z)
             case "event_name_asc": events.sort((a, b) => {return a.event_name.toLowerCase().charCodeAt(0) - b.event_name.toLowerCase().charCodeAt(0)}); break;
             //Name (Z->A)
             case "event_name_dsc": events.sort((a, b) => {return b.event_name.toLowerCase().charCodeAt(0) - a.event_name.toLowerCase().charCodeAt(0)}); break;
             //Date (Soonest -> Latest)
-            case "start_time_asc": events.sort((a, b) => {return moment.utc(a.start_time).subtract(moment.utc(b.end_time))}); break;
+            case "start_time_asc": events.sort((a, b) => {return moment(a.start_time).subtract(moment(b.end_time))}); break;
             //Date (Latest -> Soonest)
-            case "start_time_dsc": events.sort((a, b) => {return moment.utc(b.start_time).subtract(moment.utc(a.end_time))}); break;
+            case "start_time_dsc": events.sort((a, b) => {return moment(b.start_time).subtract(moment(a.end_time))}); break;
             //Price (Lowest -> Highest)
             case "pay_asc": events.sort((a, b) => {return a.pay - b.pay}); break;
             //Price (Highest -> Lowest)
@@ -108,10 +108,10 @@ const Events = () => {
         event.preventDefault();
         let filteredEvents = events.filter(event => {
             const owner = getEventOwner(event);
-            const eventDate = moment.utc(event.start_time);
+            const eventDate = moment(event.start_time);
             const eventInstruments = event.Instruments ? event.Instruments.map(instrument => instrument.name.toLowerCase()) : [];
             const containsSearchQuery = !searchQuery || event.event_name.toLowerCase().includes(searchQuery.toLowerCase()) || owner.f_name.toLowerCase().includes(searchQuery.toLowerCase()) || owner.l_name.toLowerCase().includes(searchQuery.toLowerCase());
-            const isInDateRange = startDate ? eventDate.isSameOrAfter(moment.utc(startDate)) && eventDate.isSameOrBefore(moment.utc(endDate)) : true;
+            const isInDateRange = startDate ? eventDate.isSameOrAfter(moment(startDate)) && eventDate.isSameOrBefore(moment(endDate)) : true;
             const matchesSelectedInstruments = selectedInstruments.length === 0 || selectedInstruments.some(selected => eventInstruments.includes(selected.value.toLowerCase()))
 
             return containsSearchQuery && isInDateRange && matchesSelectedInstruments;
