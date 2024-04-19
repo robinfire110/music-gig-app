@@ -53,8 +53,9 @@ function Account() {
     };
 
     useEffect(() => {
-        verifyUser();
+            verifyUser();
     }, [cookies, navigate, removeCookie]);
+
 
     const fetchUserGigs = async () => {
         try {
@@ -334,8 +335,8 @@ function Account() {
                 return null;
             case 'editProfile':
                 return <EditProfile userData={userData}
-                                    onUserChange={setUsers}
-                                    />;
+                                    onUserChange={setUserData} />
+
             case 'gigs':
                 return <Gigs userData={userData} gigs={gigs}
                              onDeleteEvent={handleDeleteEvent}

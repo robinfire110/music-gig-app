@@ -1,5 +1,6 @@
 const { instrumentArrayToIds } = require("../helpers/model-helpers");
 const { userSchema } = require("../helpers/validators");
+const { instrumentList } = require("../helpers/instrumentList")
 const db = require("../models/models");
 const jwt = require("jsonwebtoken");
 const {updateUserToAdmin, getAllUsers, demoteUserFromAdmin, removeUser, resetUserPassword,
@@ -59,7 +60,8 @@ module.exports.register = async (req, res, next) => {
 
 		// If instruments are provided, associate them with the new user
 		newInstrumentArray = [];
-        if (data.instruments)
+
+		if (data.instruments)
         {
             for (const instrument of data.instruments) {
                 //Add if found
@@ -140,7 +142,6 @@ module.exports.account = async (req, res, next) => {
 	try {
 		const userToSend = {};
 
-		console.log(req.user)
 		if (req.user.user_id) userToSend.user_id = req.user.user_id;
 		if (req.user.email) userToSend.email = req.user.email;
 		if (req.user.f_name) userToSend.f_name = req.user.f_name;
@@ -148,9 +149,21 @@ module.exports.account = async (req, res, next) => {
 		if (req.user.zip) userToSend.zip = req.user.zip;
 		if (req.user.bio) userToSend.bio = req.user.bio;
 		if (req.user.isAdmin !== undefined) userToSend.isAdmin = req.user.isAdmin;
-		if (req.user.Instruments) userToSend.Instruments = req.user.Instruments;
 		if (req.user.Events) userToSend.Events = req.user.Events;
-		console.log(userToSend)
+
+		const userInstruments = await db.UserInstrument.findAll({
+			where: {
+				user_id: req.user.user_id
+			},
+			attributes: ['instrument_id']
+		});
+
+		if (userInstruments.length > 0) {
+			userToSend.Instruments = userInstruments.map(instrument => {
+				const instrumentName = instrumentList[instrument.instrument_id] ;
+				return { id: instrument.instrument_id, name: instrumentName };
+			});
+		}
 
 		if (Object.keys(userToSend).length > 0) {
 			res.status(200).json({ user: userToSend });
@@ -166,48 +179,53 @@ module.exports.account = async (req, res, next) => {
 
 
 module.exports.update_user = async (req, res, next) => {
+	let newInstrumentArray;
+	let newInstrument;
 	try {
-		//const { f_name, l_name, zip, instruments, bio } = req.body;
+		console.log("do we get to update_user?")
 		const data = req.body;
 		const userId = req.user.user_id;
-
+		console.log(data.instruments)
 		//Validate
 		data.instruments = await instrumentArrayToIds(data?.instruments);
 		delete data.password;
 		const {error} = userSchema.fork(['email', 'password'], (schema) => schema.optional()).validate(data)
-        if (error) 
-        {
-            console.error(error);
-            return res.status(403).send(error.details);;
-        }
+		if (error) {
+			console.error(error);
+			return res.status(403).send(error.details);
+			;
+		}
 
 		await db.User.updateUser(userId, data);
 
 		//Instruments
 		newInstrumentArray = [];
-		if (data.instruments)
-		{
-			await db.UserInstrument.destroy({where: {user_id: userId}});
-			for (const instrument of data.instruments) {
-				//Add if found
-				if (instrumentId)
-				{
-					newInstrument = await db.UserInstrument.findOrCreate({where: {instrument_id: instrumentId, user_id: id}});
+
+		if (data.instruments) {
+			await db.UserInstrument.destroy({ where: { user_id: userId } });
+			for (const instrumentId of data.instruments) {
+				try {
+					newInstrument = await db.UserInstrument.findOrCreate({
+						where: {
+							instrument_id: instrumentId,
+							user_id: userId
+						}
+					});
 					newInstrumentArray.push(newInstrument);
-				}
-				else
-				{
-					console.error("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+				} catch (err) {
+					console.error(`Error adding instrument with ID ${instrumentId}:`, err);
 				}
 			}
 		}
 
-		res.status(200).json({ success: true });
+		res.status(200).json({success: true});
 	} catch (err) {
 		console.error(err);
-		res.status(500).json({ error: "Internal server error" });
+		res.status(500).json({error: "Internal server error"});
 	}
 };
+
+
 
 //Events to specific user
 module.exports.getUserEvents = async (req, res, next) => {

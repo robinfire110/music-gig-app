@@ -13,7 +13,7 @@ function EditProfile({ userData,  onUserChange }) {
 		f_name: '',
 		l_name: '',
 		zip: '',
-		instruments: '',
+		instruments: [],
 		bio: ''
 
 	});
@@ -28,7 +28,6 @@ function EditProfile({ userData,  onUserChange }) {
 
 	useEffect(() => {
 		axios.get(`${getBackendURL()}/instrument/`).then(async (res) => {
-			//Create instruments
 			setInstruments(res.data);
 		}).catch(error => {
 			console.error(error);
@@ -44,18 +43,21 @@ function EditProfile({ userData,  onUserChange }) {
 				f_name: userData.f_name || '',
 				l_name: userData.l_name || '',
 				zip: userData.zip || '',
-				instruments: userData.instruments || '',
+				instruments: userData.Instruments || [],
 				bio: userData.bio || ''
 			}));
 		}
 	}, [userData]);
 
+
 	const configureInstrumentList = (data) => {
-		const instrumentOptionList = []
+		const instrumentOptionList = [];
 		data.forEach(instrument => {
-			instrumentOptionList.push({value: instrument.instrument_id, label: instrument.name});
+			instrumentOptionList.push({ value: instrument.instrument_id, label: instrument.name });
 		});
-		return instrumentOptionList
+		console.log("InstrumetnOptionList")
+		console.log(instrumentOptionList)
+		return instrumentOptionList;
 	}
 
 
@@ -66,12 +68,17 @@ function EditProfile({ userData,  onUserChange }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		console.log(userData);
+		console.log("Selected instrument IDs:", selectedInstruments.map(instrument => instrument.value));
 		try {
-			const response = await axios.post(`${getBackendURL()}/account/update_user`, formData, {
+			const response = await axios.post(`${getBackendURL()}/account/update_user`, {
+				...formData,
+				instruments: selectedInstruments.map(instrument => instrument.value)
+			}, {
 				withCredentials: true
 			});
 			if (response.data.success) {
-				onUserChange(formData);
+				onUserChange(userData);
 				toast.success('Profile updated successfully' , { theme: 'dark' });
 			} else {
 				toast.error('Failed to update profile', { theme: 'dark' });
@@ -168,9 +175,10 @@ function EditProfile({ userData,  onUserChange }) {
 					<Form.Control
 						as="textarea"
 						rows={3}
-						value={formData.instruments}
+						value={formData.instruments.map(instrument => instrument.name).join(', ')}
 						readOnly
 					/>
+
 				</Form.Group>
 
 				<Form.Group className="mb-3" controlId="formBasicBio">

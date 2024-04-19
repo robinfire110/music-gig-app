@@ -56,8 +56,9 @@ const Register = () => {
 	const handleSubmit = async (event) => {
 		event.preventDefault();
 		try {
-			const {data} =  await axios.post(`${getBackendURL()}/register`, {
+			const { data } = await axios.post(`${getBackendURL()}/register`, {
 				...values,
+				instruments: selectedInstruments.map(instrument => instrument.value)
 			}, {
 				withCredentials:true,
 			});
