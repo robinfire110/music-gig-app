@@ -115,6 +115,7 @@ function Financials({ financials, onDeleteFinancial }) {
 					</Row>
 			</Col>
 			</Row>
+			{filteredFinancials.length > 0 ? (
 			<Table striped bordered hover>
 				<thead>
 				<tr>
@@ -141,6 +142,11 @@ function Financials({ financials, onDeleteFinancial }) {
 				))}
 				</tbody>
 			</Table>
+			) : (
+				<div className="no-financials-message">
+					<p>No financial records to show.</p>
+				</div>
+			)}
 			{filteredFinancials.length > financialsPerPage && (
 				<ul style={{ display: 'flex', justifyContent: 'center', listStyleType: 'none', padding: 0 }}>
 					{[...Array(Math.ceil(filteredFinancials.length / financialsPerPage)).keys()].map(number => (
