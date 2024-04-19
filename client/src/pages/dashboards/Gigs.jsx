@@ -1,17 +1,21 @@
 import React, {useEffect, useState} from 'react';
-import {Card, Container, Row, Col, Button, Tab, Tabs, Table} from 'react-bootstrap';
+import {Button, Tab, Tabs} from 'react-bootstrap';
 import {useNavigate} from "react-router-dom";
 import ConfirmationModal from "./ConfirmationModal";
 
-function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
+function Gigs({ userData, gigs, onGigsChange }) {
 	const navigate = useNavigate();
 	const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 	const [confirmationMessage, setConfirmationMessage] = useState('');
 	const [actionToConfirm, setActionToConfirm] = useState(null);
 
-	const handleCreateNewListing = () => {
-		navigate('/form');
-	};
+
+	useEffect(() => {
+
+		if (onGigsChange) {
+			onGigsChange(gigs);
+		}
+	}, [gigs, onGigsChange]);
 
 	const handleWithdrawEvent = (event) => {
 		navigate(`/event/${event.event_id}`);
@@ -80,7 +84,7 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 					</div>
 				</Tab>
 				<Tab eventKey="pending" title="Pending">
-					<h2 className="current-listings-header">Gigs you've Applied to</h2>
+					<h2 className="current-listings-header">Pending Applications</h2>
 					<div className="listings-card-container">
 						{gigs
 							.filter(gig => gig.is_listed && gig.status === 'applied')
@@ -124,7 +128,7 @@ function Gigs({ userData, gigs, onDeleteEvent, onUnlistEvent }) {
 					</div>
 				</Tab>
 				<Tab eventKey="closed" title="Closed">
-					<h2 className="current-listings-header">Closed Listings</h2>
+					<h2 className="current-listings-header">Closed Gigs</h2>
 					<div className="listings-card-container">
 						{gigs
 							.filter(gig => gig.status === 'withdraw' || gig.status === 'rejected')
