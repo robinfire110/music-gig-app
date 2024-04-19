@@ -467,6 +467,11 @@ function Account() {
                                                     </div>
                                                 </div>
                                             ))}
+                                        {gigs.filter(gig => gig.is_listed && gig.status === 'owner').length === 0 && (
+                                            <div className="no-gigs-message">
+                                                <Button className="btn btn-dark" variant="primary" style={{ marginTop: '20px' }} onClick={() => navigate('/form')}>Create New Listing</Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </Tab>
                                 <Tab eventKey="pending" title="Pending">
@@ -549,6 +554,12 @@ function Account() {
                                                     </div>
                                                 </div>
                                             ))}
+                                        {gigs.filter(gig => gig.status === 'owner' && gig.is_listed &&
+                                            (!gig.Applicants || !gig.Applicants.some(applicant => applicant.status === 'accept'))).length === 0 && (
+                                            <div className="no-gigs-message">
+                                                <p>Nothing to show.</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </Tab>
                                 <Tab eventKey="closed" title="Closed">
@@ -592,6 +603,11 @@ function Account() {
                                                     </div>
                                                 </div>
                                             ))}
+                                        {gigs.filter(gig => gig.status === 'owner' && !gig.is_listed).length === 0 && (
+                                            <div className="no-gigs-message">
+                                                <p>Nothing to show.</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </Tab>
                             </Tabs>
