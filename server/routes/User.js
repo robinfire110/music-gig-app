@@ -5,6 +5,7 @@ const db = require('../models/models');
 const { userSchema, instrumentSchema } = require('../helpers/validators');
 const Joi = require('joi');
 const {checkUser, checkUserOptional} = require("../Middleware/AuthMiddleWare");
+const { Op } = require('sequelize');
 
 //Varaibles
 const userSensitiveAttributes = ['password', 'isAdmin'];
@@ -18,7 +19,7 @@ router.get("/", checkUser, async (req, res) => {
         //Check for admin
         if (req.user.isAdmin == 1)
         {
-            const users = await db.User.findAll({include: [db.Instrument, db.Event, db.Financial], attributes: {exclude: userSensitiveAttributes}});
+            const users = await db.User.findAll({include: [db.Instrument, db.Event], attributes: {exclude: userSensitiveAttributes}});
             res.json(users);
         }
         else throw new Error("Unauthorized access.");
@@ -33,9 +34,14 @@ router.get("/id/:id", checkUserOptional, async (req, res) => {
     try {
         const id = req.params.id;
         //Check user to change attributes returned (if not user or admin, only return non-sensitive attributes); 
+        let include = [db.Instrument, {model: db.Event, where: {$status$: "owner"}}];
         let attributes = {exclude: userSensitiveAttributes}
-        if (req.user && (req.user.user_id == id || req.user.isAdmin == 1)) attributes = {exclude: []}
-        const user = await db.User.findOne({where: {user_id: id}, attributes: attributes, include: [db.Instrument, db.Event, db.Financial]});
+        if (req.user && (req.user.user_id == id || req.user.isAdmin == 1))
+        {
+            attributes = {exclude: []}
+            include = [db.Instrument, db.Event, db.Financial];
+        } 
+        const user = await db.User.findOne({where: {user_id: id}, attributes: attributes, include: include});
         res.json(user);
     } catch (error) {
         res.status(500).send(error.message);
@@ -268,7 +274,7 @@ router.put("/instrument/:id", checkUser, async (req, res) => {
 router.delete("/:id", checkUser, async (req, res) => {
     try {
         const id = req.params.id;
-        const user = await db.User.findOne({where: {user_id: id}, include: [{model: db.Event}], attributes: {exclude: userSensitiveAttributes}});
+        const user = await db.User.findOne({where: {user_id: id}, include: [db.Event, db.Financial], attributes: {exclude: userSensitiveAttributes}});
 
         //Check User
         if (!(req.user && (req.user.user_id == id || req.user.isAdmin == 1)))
@@ -286,6 +292,13 @@ router.delete("/:id", checkUser, async (req, res) => {
                     await event.destroy();
                 }
             });
+
+            //Destroy Financial
+            user.Financials.forEach(async financial => {
+                //If financial exists, delete
+                await financial.destroy();
+            });
+
             await user.destroy();
             res.send(user);
         }

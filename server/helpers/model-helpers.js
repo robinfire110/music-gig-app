@@ -145,7 +145,6 @@ async function instrumentArrayToIds(instrumentArray)
             else console.error("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
         }
     }
-    console.log("NewArray", newArray);
     return newArray;
 }
 
@@ -179,11 +178,15 @@ async function checkValidFinancialId(id)
 
 //Set Unlisted Data
 //If time has passed (based on start time)
-async function updateUnlistedData()
+async function updateUnlistedData(id=-1)
 {
     //Get time passed events
-    const events = await db.Event.update({is_listed: false}, {where: {start_time: {[Op.lte]: moment().toDate()}}})
-   // if (events?.length > 0) console.log("Unlisted past events.");
+    const where = id == -1 ? {start_time: {[Op.lte]: moment().toDate()}} : {event_id: id, start_time: {[Op.lte]: moment().toDate()}};
+    const events = await db.Event.update({is_listed: false}, {where: where});
+
+    //Print
+    if (events.length > 0 && events[0] != 0) console.log("Unlisted past events.");
+
 }
 
 async function fixData() {
@@ -207,11 +210,39 @@ async function fixData() {
     */
 
     //Fix is_listed
+    /*
     let eventList = await db.Event.findAll();
     eventList.forEach(async event => {
         event.set({is_listed: true});
         await event.save();
     }); 
+    */
+
+    //Delete Placeholder Data
+    //Delete users <= user_id 100
+    /*
+    for (let i = 0; i < 101; i++)
+    {
+        let user = await db.User.findOne({where: {user_id: i}, include: [db.Event, db.Financial]});
+        if (user)
+        {
+            //Destroy events
+            user.Events.forEach(async event => {
+                //If owner, delete
+                if (event.UserStatus.status == "owner")
+                {
+                    await event.destroy();
+                }
+            });
+            user.Financials.forEach(async fin => {
+                await fin.destroy();
+            });
+            await user.destroy();
+        }
+        
+    }
+    console.log("It's done");
+    */
 }
 
 module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, instrumentArrayToIds, getEventHours, updateUnlistedData, fixData, checkValidUserId, checkValidEventId, checkValidFinancialId }

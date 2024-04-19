@@ -38,10 +38,11 @@ function Landing() {
                     if (res.data?.user)
                     {
                         //Get user data
-                        axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`).then(async res => {
+                        axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`, { withCredentials: true }).then(async res => {
                             const userData = res.data;
                             if (userData)
                             {
+                                
                                 setUser(userData);
 
                                 //Set user events
@@ -79,28 +80,32 @@ function Landing() {
                                                 zipList.push(event.Address.zip);
                                             });
 
-                                            //Sort by location
-                                            axios.get(`${getBackendURL()}/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
-                                                const distanceMatrixData = res.data.rows[0].elements;
-                                                //Add to data
-                                                for (let i = 0; i < instrumentEventSearch.length; i++)
-                                                {
-                                                    if (distanceMatrixData[i].status == "OK" && distanceMatrixData[i].distance)
+                                            if (zipList.length > 0)
+                                            {
+                                                //Sort by location
+                                                axios.get(`${getBackendURL()}/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
+                                                    const distanceMatrixData = res.data.rows[0].elements;
+                                                    //Add to data
+                                                    for (let i = 0; i < instrumentEventSearch.length; i++)
                                                     {
-                                                        instrumentEventSearch[i]["distance"] = distanceMatrixData[i].distance.value;
+                                                        if (distanceMatrixData[i].status == "OK" && distanceMatrixData[i].distance)
+                                                        {
+                                                            instrumentEventSearch[i]["distance"] = distanceMatrixData[i].distance.value;
+                                                        }
+                                                        else 
+                                                        {
+                                                            instrumentEventSearch[i]["distance"] = 9999;
+                                                        }
                                                     }
-                                                    else 
-                                                    {
-                                                        instrumentEventSearch[i]["distance"] = 9999;
-                                                    }
-                                                }
-                                                
-                                                //Sort
-                                                instrumentEventSearch.sort((a, b) => a.distance - b.distance);
-                                                console.log("Got Relevant");
-                                                setRelevantEvents(instrumentEventSearch.slice(0, Math.min(relevantNum, instrumentEventSearch.length)));
-                                                setIsLoading(false);
-                                            })
+                                                    
+                                                    //Sort
+                                                    instrumentEventSearch.sort((a, b) => a.distance - b.distance);
+                                                    console.log("Got Relevant");
+                                                    setRelevantEvents(instrumentEventSearch.slice(0, Math.min(relevantNum, instrumentEventSearch.length)));
+                                                    setIsLoading(false);
+                                                })
+                                            }
+                                            else setGetRecent(true);
                                         }
                                         else setGetRecent(true);
                                     })

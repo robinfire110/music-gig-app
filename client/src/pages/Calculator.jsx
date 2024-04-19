@@ -114,7 +114,8 @@ const Calculator = () => {
             axios.get(`${getBackendURL()}/account`, {withCredentials: true}).then(res => {
                 if (res.data?.user)
                 {
-                    axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`).then(res => {
+                    console.log(res.data.user.user_id);
+                    axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`, { withCredentials: true }).then(res => {
                         const userData = res.data;
                         setModalOriginZip(userData.zip);
                         setUser(userData);
@@ -912,8 +913,8 @@ const Calculator = () => {
                                         <Row className="mb-3">
                                             <Form.Label>Trip Type</Form.Label>
                                                 <ButtonGroup>
-                                                    <ToggleButton type="radio" variant="outline-primary" value={0} checked={isRoundTrip === 0} onClick={(e) => setIsRoundTrip(0)}>One-Way</ToggleButton>
-                                                    <ToggleButton type="radio"variant="outline-primary" value={1} checked={isRoundTrip === 1} onClick={(e) => setIsRoundTrip(1)}>Round Trip</ToggleButton>
+                                                    <ToggleButton type="radio" variant="outline-primary" value={0} checked={isRoundTrip === 0} onClick={(e) => setIsRoundTrip(0)} disabled={!travelHoursEnabled && !totalMileageEnabled}>One-Way</ToggleButton>
+                                                    <ToggleButton type="radio"variant="outline-primary" value={1} checked={isRoundTrip === 1} onClick={(e) => setIsRoundTrip(1)} disabled={!travelHoursEnabled && !totalMileageEnabled}>Round Trip</ToggleButton>
                                                     <TooltipButton text="Detemines whether mileage is counted as one-way or a round trip. Selecting round trip will muliply travel hours and cost by 2."/>
                                                 </ButtonGroup>
                                                 

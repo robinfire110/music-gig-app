@@ -59,6 +59,6 @@ const instrumentList = [
     "Xylophone",
     "Vocals"
 ]
-const instrumentListLength = instrumentList.length-1;
+const instrumentListLength = instrumentList.length;
 
 module.exports = {instrumentList, instrumentListLength};

@@ -17,8 +17,8 @@ import Title from "../components/Title";
 const EventForm = () => {
     const [event, setEvent] = useState({
         event_name: "",
-        start_time: new moment().format("YYYY-MM-DD"),
-        end_time: new moment().format("YYYY-MM-DD"),
+        start_time: new moment().format("YYYY-MM-DD HH:mm:ss"),
+        end_time: new moment().format("YYYY-MM-DD HH:mm:ss"),
         description: "",
         pay: null,
         event_hours: "",
@@ -40,8 +40,8 @@ const EventForm = () => {
     const [startTime, setStartTime] = useState("12:00");
     const [endTime, setEndTime] = useState("14:00");
     const [totalEventHours, setTotalEventHours] = useState(0);
-    const [startDate, setStartDate] = useState(new moment().format("YYYY-MM-DD"));
-    const [endDate, setEndDate] = useState(new moment().format("YYYY-MM-DD"));
+    const [startDate, setStartDate] = useState(new moment().add(1, 'd').format("YYYY-MM-DD"));
+    const [endDate, setEndDate] = useState(new moment().add(1, 'd').format("YYYY-MM-DD"));
     const [loading, setLoading] = useState(true);
     const [userLoggedIn, setUserLoggedIn] = useState(false);
     const [unauthorizedAccess, setUnauthorizedAccess] = useState(false);
@@ -91,15 +91,15 @@ const EventForm = () => {
                             setSelectedInstruments(configureInstrumentList(data.Instruments));
         
                             //autofill data start and end times from id
-                            const startTime = moment(data.start_time).local().format("HH:mm:ss");
-                            const endTime = moment(data.end_time).local().format("HH:mm:ss");
+                            const startTime = moment.utc(data.start_time).local().format("HH:mm:ss");
+                            const endTime = moment.utc(data.end_time).local().format("HH:mm:ss");
         
                             setStartTime(startTime);
                             setEndTime(endTime);
         
                             //autofill data of start and end date
-                            const startDate = moment(data.start_time).format("YYYY-MM-DD");
-                            const endDate = moment(data.end_time).format("YYYY-MM-DD");
+                            const startDate = moment.utc(data.start_time).format("YYYY-MM-DD");
+                            const endDate = moment.utc(data.end_time).format("YYYY-MM-DD");
         
                             setStartDate(startDate);
                             setEndDate(endDate);
@@ -175,6 +175,7 @@ const EventForm = () => {
         const currentEndDate = name === "end_date" ? value : endDate;
         const startDateTime = moment(`${currentStartDate} ${currentStartTime}`);
         const endDateTime = moment(`${currentEndDate} ${currentEndTime}`);
+        console.log(startDateTime, endDateTime);
         
         //Update
         switch (name)
@@ -232,6 +233,21 @@ const EventForm = () => {
         return instrumentOptionList
     }
 
+    const checkFormValidity = () => {
+        //Check validity (will return false if not valid, HTML will take care of the rest).
+        const inputs = document.getElementById("eventForm").elements;
+        for (let i = 0; i < inputs.length; i++) {
+            if (!inputs[i].disabled && !inputs[i].checkValidity())
+            {
+                inputs[i].reportValidity();
+                console.log("NOT VALID");
+                setIsSubmitting(false);
+                return false
+            } 
+        }
+        return true;
+    }
+
     //seperate handler for address changes
     const handleAddressChange = (name, value) => {
         setAddress(prev => ({ ...prev, [name]: value }))
@@ -243,17 +259,8 @@ const EventForm = () => {
         {
             setIsSubmitting(true);
             try {
-                //Check validity (will return false if not valid, HTML will take care of the rest).
-                const inputs = document.getElementById("eventForm").elements;
-                for (let i = 0; i < inputs.length; i++) {
-                    if (!inputs[i].disabled && !inputs[i].checkValidity())
-                    {
-                        inputs[i].reportValidity();
-                        console.log("NOT VALID");
-                        setIsSubmitting(false);
-                        return false
-                    } 
-                }
+                //Check validity
+                if (!checkFormValidity()) return false;
 
                 const isListed = 1
                 const { start: startDateTime, end: endDateTime } = formatDateTime(startDate, startTime, endDate, endTime);
@@ -319,6 +326,9 @@ const EventForm = () => {
         if (!isDeleting)
         {
             try {
+                //Check validity
+                if (!checkFormValidity()) return false;
+
                 const listingUpdate = {is_listed : 1};
                 const response = await axios.put(`${getBackendURL()}/event/${id}`, listingUpdate, { withCredentials: true })
                 setIsDeleting(false);
@@ -386,7 +396,7 @@ const EventForm = () => {
                                     <Row className="mb-3">
                                         <Form.Label>Start Time<span style={{color: "red"}}>*</span></Form.Label>
                                         <Col>
-                                            <Form.Control name="start_date" type="date" value={moment(startDate).format("YYYY-MM-DD")} onChange={(e) => handleDateTimeChange('start_date', e)} required={true}></Form.Control>
+                                            <Form.Control name="start_date" type="date" min={moment().format("YYYY-MM-DD")} value={startDate} onChange={(e) => handleDateTimeChange('start_date', e)} required={true}></Form.Control>
                                         </Col>
                                         <Col>
                                             <Form.Control type="time" value={startTime} onChange={(e) => handleDateTimeChange("start_time", e)} required={true}></Form.Control>
@@ -395,7 +405,7 @@ const EventForm = () => {
                                     <Row className="mb-3 align-items-center">
                                         <Form.Label>End Time<span style={{color: "red"}}>*</span></Form.Label>
                                         <Col>
-                                            <Form.Control name="end_date" type="date" min={startDate} value={moment(endDate).format("YYYY-MM-DD")} onChange={(e) => handleDateTimeChange('end_date', e)} required={true}></Form.Control>
+                                            <Form.Control name="end_date" type="date" min={startDate} value={endDate} onChange={(e) => handleDateTimeChange('end_date', e)} required={true}></Form.Control>
                                         </Col>
                                         <Col>
                                             <Form.Control type="time" min={startTime} value={endTime} onChange={(e) => handleDateTimeChange("end_time", e)} required={true}></Form.Control>
@@ -405,7 +415,7 @@ const EventForm = () => {
                                         <Col>
                                             <Form.Label>Rehearsal Hours</Form.Label>
                                             <InputGroup>
-                                                <FormNumber maxValue={100} name="rehearse_hours" integer={false} placeholder='Ex. 3' value={event.rehearse_hours} onChange={(e) => {handleChange(e)}} name="rehearse_hours" />
+                                                <FormNumber maxValue={100} name="rehearse_hours" integer={false} placeholder='Ex. 3' value={event.rehearse_hours} onChange={(e) => {handleChange(e)}} />
                                                 <TooltipButton text="How many hours of rehearsal expected from musicians (optional)." />
                                             </InputGroup>
                                             
