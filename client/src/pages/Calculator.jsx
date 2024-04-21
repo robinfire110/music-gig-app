@@ -664,18 +664,24 @@ const Calculator = () => {
                 allowBlank: false,
                 formulae: ['"Enabled,Disabled"']
             }
-            worksheet.getCell("F11").value = "Multiply Travel";
+            worksheet.getCell("F11").value = "Multiply Pay";
             worksheet.getCell("G11").dataValidation = enabledDataValidation;
-            worksheet.getCell("G11").value = multiplyTravel == 1 ? "Enabled" : "Disabled";
-            worksheet.getCell("F12").value = "Multiply Practice";
+            worksheet.getCell("G11").value = multiplyPay == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F12").value = "Multiply Gig Hours";
             worksheet.getCell("G12").dataValidation = enabledDataValidation;
-            worksheet.getCell("G12").value = multiplyPracticeHours == 1 ? "Enabled" : "Disabled";
-            worksheet.getCell("F13").value = "Multiply Rehearsal";
+            worksheet.getCell("G12").value = multiplyGigHours == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F13").value = "Multiply Travel";
             worksheet.getCell("G13").dataValidation = enabledDataValidation;
-            worksheet.getCell("G13").value = multiplyRehearsalHours == 1 ? "Enabled" : "Disabled";
-            worksheet.getCell("F14").value = "Multiply Other Fees";
+            worksheet.getCell("G13").value = multiplyTravel == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F14").value = "Multiply Practice";
             worksheet.getCell("G14").dataValidation = enabledDataValidation;
-            worksheet.getCell("G14").value = multiplyOtherFees == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("G14").value = multiplyPracticeHours == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F15").value = "Multiply Rehearsal";
+            worksheet.getCell("G15").dataValidation = enabledDataValidation;
+            worksheet.getCell("G15").value = multiplyRehearsalHours == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F16").value = "Multiply Other Fees";
+            worksheet.getCell("G16").dataValidation = enabledDataValidation;
+            worksheet.getCell("G16").value = multiplyOtherFees == 1 ? "Enabled" : "Disabled";
 
             //Validation
             worksheet.getCell("D2").dataValidation = {
@@ -696,12 +702,12 @@ const Calculator = () => {
             worksheet.getCell("G7").border = {bottom: {style: "thin"}};
 
             //Set formulas
-            worksheet.getCell("G2").value = {formula: 'C2*D2'}; //Payment
+            worksheet.getCell("G2").value = {formula: 'C2*IF(G11="Enabled", D2, 1)'}; //Payment
             worksheet.getCell("G3").value = {formula: 'G2*(0.01*A14)'}; //Tax Cut
-            worksheet.getCell("G4").value = {formula: '(A8*IF(D8="Round Trip", 2, 1)*(ROUND(C11, 2)-C8))*IF(G11="Enabled", D2, 1)'}; //Travel Cost
-            worksheet.getCell("G5").value = {formula: 'B14*IF(G14="Enabled", D2, 1)'}; //Other Fees 
+            worksheet.getCell("G4").value = {formula: '(A8*IF(D8="Round Trip", 2, 1)*(ROUND(C11, 2)-C8))*IF(G13="Enabled", D2, 1)'}; //Travel Cost
+            worksheet.getCell("G5").value = {formula: 'B14*IF(G16="Enabled", D2, 1)'}; //Other Fees 
             worksheet.getCell("G6").value = {formula: 'G2-G3-G4-G5'}; //Total Income
-            worksheet.getCell("G7").value = {formula: '=(A5*D2)+(B5*IF(G12="Enabled", D2, 1))+(C5*IF(G13="Enabled", D2, 1))+(B8*IF(G11="Enabled", D2, 1)*IF(D8="Round Trip", 2, 1))'}; //Total Hours
+            worksheet.getCell("G7").value = {formula: '=(A5*IF(G12="Enabled", D2, 1))+(B5*IF(G14="Enabled", D2, 1))+(C5*IF(G15="Enabled", D2, 1))+(B8*IF(G13="Enabled", D2, 1)*IF(D8="Round Trip", 2, 1))'}; //Total Hours
             worksheet.getCell("G8").value = {formula: 'IFERROR(G6/G7, 0)'}; //Total Hourly Wage
             worksheet.getCell("C11").value = {formula: 'IFERROR(A11/B11, 0)'}; //Gas Price per Mile
 
