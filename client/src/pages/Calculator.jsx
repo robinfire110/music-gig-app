@@ -724,7 +724,8 @@ const Calculator = () => {
                     <Col lg={3} md={3} sm={3} xs={3}><Button variant="secondary" size="sm" disabled={isEvent ? fin.event_id==finId : fin.fin_id==finId} href={fin.event_id ? `/calculator/${fin.event_id}?event=true` : `/calculator/${fin.fin_id}`}>Load</Button></Col>
                 </Row>
             );
-            setUserFinancials(financials);
+            if (financials.length > 0) setUserFinancials(financials);
+            else setUserFinancials(<Row>No Financials</Row>);
         }
         else
         {
