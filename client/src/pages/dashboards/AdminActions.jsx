@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {useNavigate} from "react-router-dom";
-import {Button, Tab, Tabs, Table} from "react-bootstrap";
+import {Button, Tab, Tabs, Table, Row, Col, Form} from "react-bootstrap";
 import ConfirmationModal from './ConfirmationModal';
 import PasswordResetModal from "./PasswordResetModal";
+import { PaginationControl } from 'react-bootstrap-pagination-control';
 
 function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onDemoteUser, onDeleteUser, onDeletePost }) {
     const [searchQuery, setSearchQuery] = useState('');
@@ -10,8 +11,7 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [filteredPosts, setFilteredPosts] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [usersPerPage] = useState(20);
-    const [postsPerPage] = useState(20);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [confirmationMessage, setConfirmationMessage] = useState('');
     const [resetPassMessage, setResetPassMessage] = useState('');
@@ -113,19 +113,19 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
         setShowPasswordResetModal(false);
     };
 
-    const indexOfLastUser = currentPage * usersPerPage;
-    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const indexOfLastUser = currentPage * itemsPerPage;
+    const indexOfFirstUser = indexOfLastUser - itemsPerPage;
     const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+    //const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    const indexOfLastPost = currentPage * postsPerPage;
-    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    const indexOfLastPost = currentPage * itemsPerPage;
+    const indexOfFirstPost = indexOfLastPost - itemsPerPage;
     const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
-    const paginatePosts = (pageNumber) => setCurrentPage(pageNumber);
+    //const paginatePosts = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
         <>
-            <Tabs defaultActiveKey="users" id="admin-actions-tabs">
+            <Tabs defaultActiveKey="users" id="admin-actions-tabs" onSelect={() => {setCurrentPage(1)}}>
                 <Tab eventKey="users" title="Users">
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <div style={{ marginTop: '20px', marginBottom: '20px', width: '50%'}}>
@@ -177,14 +177,20 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
                             ))}
                             </tbody>
                         </Table>
-                        <ul style={{ display: 'flex', justifyContent: 'center', listStyleType: 'none', padding: 0 }}>
-                            {[...Array(Math.ceil(filteredUsers.length / usersPerPage)).keys()].map(number => (
-                                <li key={number} style={{ cursor: 'pointer', margin: '0 5px' }} onClick={() => paginate(number + 1)}>
-                                    {number + 1}
-                                </li>
-                            ))}
-                        </ul>
                     </div>
+                    <Row className="justify-content-center">
+                        <Col lg={{offset: 1}} sm={{offset: 1}} xs={{offset: 1}}>
+                            <PaginationControl page={currentPage} total={filteredUsers.length} limit={itemsPerPage} changePage={(page) => {setCurrentPage(page)}} ellipsis={1}/>
+                        </Col>
+                        <Col lg={1} sm={1} xs={1}>
+                            <Form.Select className="float-right" value={itemsPerPage} style={{width: "5rem", float: "right"}} onChange={(e) => {setItemsPerPage(e.target.value);}}>
+                                <option value={10}>10</option>
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                                <option value={9999}>All</option>
+                            </Form.Select>
+                        </Col>
+                    </Row>
                 </Tab>
                 <Tab eventKey="posts" title="Posts">
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -227,14 +233,20 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
                             ))}
                             </tbody>
                         </Table>
-                        <ul style={{ display: 'flex', justifyContent: 'center', listStyleType: 'none', padding: 0 }}>
-                            {[...Array(Math.ceil(filteredPosts.length / postsPerPage)).keys()].map(number => (
-                                <li key={number} style={{ cursor: 'pointer', margin: '0 5px' }} onClick={() => paginatePosts(number + 1)}>
-                                    {number + 1}
-                                </li>
-                            ))}
-                        </ul>
                     </div>
+                    <Row className="justify-content-center">
+                        <Col lg={{offset: 1}} sm={{offset: 1}} xs={{offset: 1}}>
+                            <PaginationControl page={currentPage} total={filteredPosts.length} limit={itemsPerPage} changePage={(page) => {setCurrentPage(page)}} ellipsis={1}/>
+                        </Col>
+                        <Col lg={1} sm={1} xs={1}>
+                            <Form.Select className="float-right" value={itemsPerPage} style={{width: "5rem", float: "right"}} onChange={(e) => {setItemsPerPage(e.target.value);}}>
+                                <option value={10}>10</option>
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                                <option value={9999}>All</option>
+                            </Form.Select>
+                        </Col>
+                    </Row>
                 </Tab>
             </Tabs>
             <ConfirmationModal

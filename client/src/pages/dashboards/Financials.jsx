@@ -197,7 +197,7 @@ function Financials({ financials, onDeleteFinancial }) {
 					<PaginationControl page={currentPage} total={filteredFinancials.length} limit={financialsPerPage} changePage={(page) => {setCurrentPage(page)}} ellipsis={1}/>
 				</Col>
 				<Col lg={1} sm={1} xs={1}>
-					<Form.Select className="float-right" style={{width: "5rem", float: "right"}} onChange={(e) => {setFinancialsPerPage(e.target.value); resetRowSelect();}}>
+					<Form.Select className="float-right" value={financialsPerPage} style={{width: "5rem", float: "right"}} onChange={(e) => {setFinancialsPerPage(e.target.value); resetRowSelect();}}>
 						<option value={10}>10</option>
 						<option value={25}>25</option>
 						<option value={50}>50</option>
