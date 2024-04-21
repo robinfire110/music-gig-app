@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {Form, Button, Container} from 'react-bootstrap';
+import {Form, Button, Container, Col, Row} from 'react-bootstrap';
 import {toast, ToastContainer} from 'react-toastify';
 import axios from 'axios';
-import {getBackendURL} from "../../Utils";
+import {getBackendURL, maxBioLength, maxFNameLength, maxLNameLength} from "../../Utils";
 import UserPasswordResetModal from "../dashboards/UserPasswordResetModal";
 import Select from "react-select";
+import FormNumber from '../../components/FormNumber';
 
 function EditProfile({ userData,  onUserChange }) {
 	const [formData, setFormData] = useState({
@@ -15,8 +16,8 @@ function EditProfile({ userData,  onUserChange }) {
 		zip: '',
 		instruments: [],
 		bio: ''
-
 	});
+	const [bioLength, setBioLength] = useState(maxBioLength);
 
 	const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
 	const [instruments, setInstruments] = useState([])
@@ -53,10 +54,17 @@ function EditProfile({ userData,  onUserChange }) {
 				instrumentList.push({ value: instrument.instrument_id, label: instrument.name });
 			});
 			if (instrumentList.length > 0) setSelectedInstruments(instrumentList);
-
 		}
 	}, [userData]);
 
+	useEffect(() => {
+		//Update bio length
+		const bioBox = document.getElementById("bio");
+		if (bioBox)
+		{
+			setBioLength(maxBioLength-bioBox.value.length);
+		} 
+	}, [formData]);
 
 	const configureInstrumentList = (data) => {
 		const instrumentOptionList = [];
@@ -103,93 +111,128 @@ function EditProfile({ userData,  onUserChange }) {
 
 	return (
 		<Container style={{ maxWidth: '600px', position: 'relative' }}>
-			<h2>{formData.f_name}'s Profile</h2>
+			<h2>{userData.f_name} {userData.l_name} Profile</h2>
 			<Form onSubmit={handleSubmit}>
-				<Form.Group className="mb-3" controlId="formBasicEmail">
-					<Form.Label>Email address</Form.Label>
-					<Form.Control
-						type="email"
-						placeholder="Enter email"
-						name="email"
-						value={formData.email}
-						onChange={handleChange}
-					/>
-				</Form.Group>
+				<Col>
+					<Row>
+						<Col>
+							<Form.Group className="text-start mb-3" controlId="formBasicEmail">
+								<Form.Label>Email Address<span style={{color: "red"}}>*</span></Form.Label>
+								<Form.Control
+									type="email"
+									placeholder="Enter email"
+									name="email"
+									value={formData.email}
+									onChange={handleChange}
+									required
+								/>
+							</Form.Group>
+						</Col>
+					</Row>
 
-				<Form.Group className="mb-3" controlId="formBasicPassword">
-					<Form.Label>Password</Form.Label>
-					<div className="d-flex align-items-center">
+					<Row>
+						<Col>
+							<Form.Group className="text-start mb-3" controlId="formBasicPassword">
+								<Form.Label>Password<span style={{color: "red"}}>*</span></Form.Label>
+								<Form.Control
+									type="password"
+									placeholder="Password"
+									name="password"
+									value={"greatpassword"}
+									onChange={handleChange}
+									disabled={true}
+								/>
+							</Form.Group>
+						</Col>
+						<Col lg={4} className='text-start'>
+							<br />
+							<Button className="mt-2 btn btn-dark" variant="secondary" onClick={togglePasswordResetModal}>
+							Update Password
+							</Button>
+						</Col>
+					</Row>
+
+					<Row>
+						<Col>
+							<Form.Group className="text-start mb-3" controlId="formBasicName">
+								<Form.Label>First Name<span style={{color: "red"}}>*</span></Form.Label>
+								<Form.Control
+									type="text"
+									placeholder="Enter your name"
+									name="f_name"
+									value={formData.f_name}
+									maxLength={maxFNameLength}
+									onChange={handleChange}
+									required
+								/>
+							</Form.Group>
+						</Col>
+						<Col>
+							<Form.Group className="text-start mb-3" controlId="formBasicLastName">
+								<Form.Label>Last Name<span style={{color: "red"}}>*</span></Form.Label>
+								<Form.Control
+									type="text"
+									placeholder="Enter your last name"
+									name="l_name"
+									value={formData.l_name}
+									maxLength={maxLNameLength}
+									onChange={handleChange}
+									required
+								/>
+							</Form.Group>
+						</Col>
+					</Row>
+
+					<Row>
+						<Col lg={4}>
+							<Form.Group className="text-start mb-3" controlId="formBasicLocation">
+								<Form.Label>Location<span style={{color: "red"}}>*</span></Form.Label>
+								<FormNumber
+									placeholder="Ex. 27412"
+									name="zip"
+									min={5}
+									max={5}
+									integer={true}
+									value={formData.zip}
+									onChange={handleChange}
+									required
+								/>
+							</Form.Group>
+						</Col>
+
+						<Col>
+							<Form.Group className="text-start mb-3" controlId="formBasicInstruments">
+								<Form.Label>Instruments</Form.Label>
+								<Select
+									options={configureInstrumentList(instruments)}
+									name="instruments"
+									isMulti
+									onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)}
+									value={selectedInstruments}
+								/>
+							</Form.Group>
+						</Col>
+					</Row>
+
+					<Form.Group className="text-start mb-3">
+						<Form.Label style={{width: '100%'}}>
+							<Row>
+								<Col lg={10}>Bio</Col>
+								<Col className="text-end">{bioLength}/{maxBioLength}</Col>
+							</Row>
+						</Form.Label>
 						<Form.Control
-							type="password"
-							placeholder="Password"
-							name="password"
-							value={formData.password}
+							as="textarea"
+							rows={3}
+							placeholder="Enter a short bio"
+							maxLength={maxBioLength}
+							name="bio"
+							id="bio"
+							value={formData.bio}
 							onChange={handleChange}
-							disabled
 						/>
-						<Button style={{ marginLeft: '15px' }} className="btn btn-dark" variant="secondary" onClick={togglePasswordResetModal}>
-							Reset Password
-						</Button>
-					</div>
-				</Form.Group>
-				<Form.Group className="mb-3" controlId="formBasicName">
-					<Form.Label>First Name</Form.Label>
-					<Form.Control
-						type="text"
-						placeholder="Enter your first name"
-						name="f_name"
-						value={formData.f_name}
-						onChange={handleChange}
-						required
-					/>
-				</Form.Group>
-				<Form.Group className="mb-3" controlId="formBasicLastName">
-					<Form.Label>Profile Name</Form.Label>
-					<Form.Control
-						type="text"
-						placeholder="Enter your last name"
-						name="l_name"
-						value={formData.l_name}
-						onChange={handleChange}
-						required
-					/>
-				</Form.Group>
-
-				<Form.Group className="mb-3" controlId="formBasicLocation">
-					<Form.Label>Location</Form.Label>
-					<Form.Control
-						type="text"
-						placeholder="Enter your Zipcode"
-						name="zip"
-						value={formData.zip}
-						onChange={handleChange}
-						required
-					/>
-				</Form.Group>
-
-				<Form.Group className="mb-3" controlId="formBasicInstruments">
-					<Form.Label>Instruments (select multiple)</Form.Label>
-					<Select
-						options={configureInstrumentList(instruments)}
-						name="instruments"
-						isMulti
-						onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)}
-						value={selectedInstruments}
-					/>
-				</Form.Group>
-
-				<Form.Group className="mb-3" controlId="formBasicBio">
-					<Form.Label>Bio</Form.Label>
-					<Form.Control
-						as="textarea"
-						rows={3}
-						placeholder="Enter a short bio"
-						name="bio"
-						value={formData.bio}
-						onChange={handleChange}
-					/>
-				</Form.Group>
-
+					</Form.Group>
+				</Col>
 				<Button className="btn btn-dark" variant="primary" type="submit">
 					Update Profile
 				</Button>

@@ -7,6 +7,7 @@ import axios from 'axios';
 import { getBackendURL, maxBioLength, maxFNameLength, maxLNameLength } from "../Utils"
 import Select from "react-select";
 import FormNumber from "../components/FormNumber";
+import Title from "../components/Title";
 
 
 const Register = () => {
@@ -97,6 +98,7 @@ const Register = () => {
 
 	return (
 		<Container style={{width: "50%"}}>
+			<Title title="Register"/>
 			<h2>Register Account</h2>
 			<br />
 			<br />
