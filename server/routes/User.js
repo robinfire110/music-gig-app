@@ -38,7 +38,7 @@ router.get("/id/:id", checkUserOptional, async (req, res) => {
         let attributes = {exclude: userSensitiveAttributes}
         if (req.user && (req.user.user_id == id || req.user.isAdmin == 1))
         {
-            attributes = {exclude: []}
+            attributes = {exclude: ['password']}
             include = [db.Instrument, db.Event, db.Financial];
         } 
         const user = await db.User.findOne({where: {user_id: id}, attributes: attributes, include: include});
