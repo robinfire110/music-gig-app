@@ -34,7 +34,7 @@ const addUserToEventSchema = Joi.object({
 
 /* Financials */
 const financialSchema = Joi.object({
-    fin_name: Joi.string().pattern(/^[a-zA-Z0-9\s'"]+$/).max(maxFinancialNameLength).required(),
+    fin_name: Joi.string().pattern(/^[a-zA-Z0-9\s.'"-]+$/).max(maxFinancialNameLength).required(),
     date: Joi.date().format("YYYY-MM-DD").required(),
     total_wage: Joi.number().min(0).max(9999.99).required(),
     hourly_wage: Joi.number().min(0).max(9999.99).required(),
@@ -52,6 +52,8 @@ const financialSchema = Joi.object({
     fees: Joi.number().min(0).max(9999.99),
     event_id: Joi.number().min(0),
     round_trip: Joi.boolean().truthy(1).falsy(0),
+    multiply_pay: Joi.boolean().truthy(1).falsy(0),
+    multiply_hours: Joi.boolean().truthy(1).falsy(0),
     multiply_travel: Joi.boolean().truthy(1).falsy(0),
     multiply_practice: Joi.boolean().truthy(1).falsy(0),
     multiply_rehearsal: Joi.boolean().truthy(1).falsy(0),

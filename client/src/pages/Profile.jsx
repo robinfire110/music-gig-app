@@ -42,7 +42,7 @@ const Profile = () => {
 
     function listEvents()
     {
-        const events = userData.Events.filter((event) => {return event.UserStatus.status === "owner"});
+        const events = userData.Events.filter((event) => {return event.UserStatus.status === "owner" && event.is_listed == 1});
         if (events.length > 0)
         {
             return (<EventHorizontalScroll data={events} />)

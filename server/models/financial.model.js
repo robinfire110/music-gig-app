@@ -74,6 +74,14 @@ module.exports = (sequelize, Sequelize, Event) => {
       type: Sequelize.FLOAT,
       defaultValue: true
     },
+    multiply_pay: {
+      type: Sequelize.FLOAT,
+      defaultValue: true
+    },
+    multiply_hours: {
+      type: Sequelize.FLOAT,
+      defaultValue: true
+    },
     multiply_travel: {
       type: Sequelize.FLOAT,
       defaultValue: true

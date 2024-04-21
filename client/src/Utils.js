@@ -144,6 +144,8 @@ async function saveSpreadsheetAll(data, filename = 'Harmonize_Export')
         var row = worksheet.addRow([fin.fin_name, fin.date, parseFloatZero(fin.total_wage), parseIntZero(fin.event_num) === 0 ? 1 : parseIntZero(fin.event_num), parseFloatZero(fin.event_hours), parseFloatZero(fin.practice_hours), parseFloatZero(fin.rehearse_hours), parseFloatZero(fin.total_mileage), parseFloatZero(fin.travel_hours), parseFloatZero(fin.gas_price), parseFloatZero(fin.mpg), parseFloatZero(fin.gas_price/fin.mpg), parseFloatZero(fin.mileage_pay), fin.round_trip ? "Round Trip" : "One-Way", parseFloatZero(fin.tax), parseFloatZero(fin.fees), fin.total_wage*(.01*parseFloatZero(fin.tax)), 0, parseFloatZero(fin.gas_price/fin.mpg)*parseFloatZero(fin.total_mileage), 0, parseFloatZero(fin.hourly_wage)]);
 
         //Get values
+        let multiplyPay = fin.multiply_pay == 1 ? fin.event_num : 1;
+        let multiplyGigHours = fin.multiply_hours == 1 ? fin.event_num : 1;
         let multiplyTravel = fin.multiply_travel == 1 ? fin.event_num : 1;
         let multiplyPractice = fin.multiply_practice == 1 ? fin.event_num : 1;
         let multiplyRehearsal = fin.multiply_rehearsal == 1 ? fin.event_num : 1;
@@ -151,7 +153,7 @@ async function saveSpreadsheetAll(data, filename = 'Harmonize_Export')
         let isRoundTrip = fin.round_trip == 1;
         let gasPerMile = fin.mpg > 0 ? (fin.gas_price/fin.mpg).toFixed(2) : 0;
         let otherFees = fin.fees * multiplyOther;
-        let totalPay = fin.total_wage * fin.event_num;
+        let totalPay = fin.total_wage * multiplyPay;
         let taxCut = totalPay * (fin.tax * .01);
         let travelCosts = fin.total_mileage*(gasPerMile-fin.mileage_pay)*multiplyTravel*(isRoundTrip ? 2 : 1);
         let totalHours = (fin.event_hours*fin.event_num) + (fin.practice_hours*multiplyPractice) + (fin.rehearse_hours*multiplyRehearsal) + (fin.travel_hours*multiplyTravel*(isRoundTrip ? 2 : 1));
@@ -159,7 +161,7 @@ async function saveSpreadsheetAll(data, filename = 'Harmonize_Export')
         //Set Formulas
         worksheet.getCell(`L${rowCount}`).value = {formula: `IFERROR(J${rowCount}/K${rowCount}, 0)`}; //Gas Price Per Mile
         worksheet.getCell(`P${rowCount}`).value = otherFees; //Other fees
-        worksheet.getCell(`Q${rowCount}`).value = {formula: `(C${rowCount}*D${rowCount})*(0.01*O${rowCount})`}; //Tax Cut
+        worksheet.getCell(`Q${rowCount}`).value = taxCut; //Tax Cut
         worksheet.getCell(`R${rowCount}`).value = travelCosts; //Travel Costs
         worksheet.getCell(`S${rowCount}`).value = totalPay - taxCut - travelCosts - otherFees; //Total Profits
         worksheet.getCell(`T${rowCount}`).value = totalHours > 0 ? totalHours : 0; //Total Hours

@@ -49,6 +49,8 @@ const Calculator = () => {
     const [gigPay, setGigPay] = useState();
     const [gigHours, setGigHours] = useState();
     const [gigNum, setGigNum] = useState();
+    const [multiplyPay, setMultiplyPay] = useState(true);
+    const [multiplyGigHours, setMultiplyGigHours] = useState(true);
     const [multiplyTravel, setMultiplyTravel] = useState(true);
     const [multiplyRehearsalHours, setMultiplyRehearsalHours] = useState(false);
     const [multiplyPracticeHours, setMultiplyPracticeHours] = useState(false);
@@ -164,7 +166,7 @@ const Calculator = () => {
       calculateHourlyWage();
     }, [gigPay, gigHours, gigNum, totalMileage, mileageCovered, gasPricePerMile, travelHours, practiceHours, rehearsalHours, tax, otherFees,
         gigNumEnabled, totalMileageEnabled, mileageCoveredEnabled, travelHoursEnabled, practiceHoursEnabled, rehearsalHoursEnabled, taxEnabled, otherFeesEnabled,
-        isRoundTrip, multiplyTravel, multiplyPracticeHours, multiplyRehearsalHours, multiplyOtherFees])
+        isRoundTrip, multiplyPay, multiplyGigHours, multiplyTravel, multiplyPracticeHours, multiplyRehearsalHours, multiplyOtherFees])
 
     //Runs when any fields related to gas price calcuation updates.
     useEffect(() => {
@@ -201,10 +203,13 @@ const Calculator = () => {
         if (data?.tax > 0) setTax(data.tax); 
         if (data?.fees > 0) setOtherFees(data.fees);
         if (data?.round_trip != undefined) setIsRoundTrip(data.round_trip);
+        if (data?.multiply_pay != undefined) setMultiplyPay(data.multiply_pay);
+        if (data?.multiply_hours != undefined) setMultiplyGigHours(data.multiply_hours);
         if (data?.multiply_travel != undefined) setMultiplyTravel(data.multiply_travel);
         if (data?.multiply_practice != undefined) setMultiplyPracticeHours(data.multiply_practice);
         if (data?.multiply_rehearsal != undefined) setMultiplyRehearsalHours(data.multiply_rehearsal);
         if (data?.multiply_other != undefined) setMultiplyOtherFees(data.multiply_other);
+        console.log(data);
 
         //Set switches
         setGigNumEnabled(data?.event_num > 0);
@@ -383,16 +388,16 @@ const Calculator = () => {
         let finalPay = 0;
 
         //Set multiples
-        let gigHoursNum = gigNumEnabled && gigNum? parseFloat(gigNum) : 1;
-        let practiceHoursNum = gigNumEnabled && gigNum && multiplyPracticeHours? parseFloat(gigNum) : 1;
-        let rehearsalHoursNum = gigNumEnabled && gigNum && multiplyRehearsalHours? parseFloat(gigNum) : 1;
+        let gigHoursNum = gigNumEnabled && gigNum && multiplyGigHours ? parseFloat(gigNum) : 1;
+        let practiceHoursNum = gigNumEnabled && gigNum && multiplyPracticeHours ? parseFloat(gigNum) : 1;
+        let rehearsalHoursNum = gigNumEnabled && gigNum && multiplyRehearsalHours ? parseFloat(gigNum) : 1;
         let travelNum = gigNumEnabled && gigNum && multiplyTravel? parseFloat(gigNum) : 1;
         let otherFeesNum = gigNumEnabled && gigNum && multiplyOtherFees? parseFloat(gigNum) : 1;
         let roundTrip = isRoundTrip == 1 ? 2 : 1;
 
         //Calculate possible income
         if (gigPay) wage = parseFloat(gigPay);
-        if (gigNumEnabled && gigNum) wage *= parseInt(gigNum);
+        if (gigNumEnabled && gigNum && multiplyPay) wage *= parseInt(gigNum);
 
         //Calculate tax (if needed)
         if (taxEnabled)
@@ -494,13 +499,14 @@ const Calculator = () => {
                 tax: parseFloatZero(tax),
                 fees: parseFloatZero(otherFees),
                 round_trip: isRoundTrip,
+                multiply_pay: multiplyPay,
+                multiply_hours: multiplyGigHours,
                 multiply_travel: multiplyTravel,
                 multiply_practice: multiplyPracticeHours,
                 multiply_rehearsal: multiplyRehearsalHours,
                 multiply_other: multiplyOtherFees
             }
             if (isNewEvent && isEvent) data["event_id"] = paramId;
-            console.log(data.zip);
             
             //Check validity (will return false if not valid, HTML will take care of the rest).
             const inputs = document.getElementById("calculatorForm").elements;
@@ -658,18 +664,24 @@ const Calculator = () => {
                 allowBlank: false,
                 formulae: ['"Enabled,Disabled"']
             }
-            worksheet.getCell("F11").value = "Multiply Travel";
+            worksheet.getCell("F11").value = "Multiply Pay";
             worksheet.getCell("G11").dataValidation = enabledDataValidation;
-            worksheet.getCell("G11").value = multiplyTravel == 1 ? "Enabled" : "Disabled";
-            worksheet.getCell("F12").value = "Multiply Practice";
+            worksheet.getCell("G11").value = multiplyPay == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F12").value = "Multiply Gig Hours";
             worksheet.getCell("G12").dataValidation = enabledDataValidation;
-            worksheet.getCell("G12").value = multiplyPracticeHours == 1 ? "Enabled" : "Disabled";
-            worksheet.getCell("F13").value = "Multiply Rehearsal";
+            worksheet.getCell("G12").value = multiplyGigHours == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F13").value = "Multiply Travel";
             worksheet.getCell("G13").dataValidation = enabledDataValidation;
-            worksheet.getCell("G13").value = multiplyRehearsalHours == 1 ? "Enabled" : "Disabled";
-            worksheet.getCell("F14").value = "Multiply Other Fees";
+            worksheet.getCell("G13").value = multiplyTravel == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F14").value = "Multiply Practice";
             worksheet.getCell("G14").dataValidation = enabledDataValidation;
-            worksheet.getCell("G14").value = multiplyOtherFees == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("G14").value = multiplyPracticeHours == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F15").value = "Multiply Rehearsal";
+            worksheet.getCell("G15").dataValidation = enabledDataValidation;
+            worksheet.getCell("G15").value = multiplyRehearsalHours == 1 ? "Enabled" : "Disabled";
+            worksheet.getCell("F16").value = "Multiply Other Fees";
+            worksheet.getCell("G16").dataValidation = enabledDataValidation;
+            worksheet.getCell("G16").value = multiplyOtherFees == 1 ? "Enabled" : "Disabled";
 
             //Validation
             worksheet.getCell("D2").dataValidation = {
@@ -690,12 +702,12 @@ const Calculator = () => {
             worksheet.getCell("G7").border = {bottom: {style: "thin"}};
 
             //Set formulas
-            worksheet.getCell("G2").value = {formula: 'C2*D2'}; //Payment
+            worksheet.getCell("G2").value = {formula: 'C2*IF(G11="Enabled", D2, 1)'}; //Payment
             worksheet.getCell("G3").value = {formula: 'G2*(0.01*A14)'}; //Tax Cut
-            worksheet.getCell("G4").value = {formula: '(A8*IF(D8="Round Trip", 2, 1)*(ROUND(C11, 2)-C8))*IF(G11="Enabled", D2, 1)'}; //Travel Cost
-            worksheet.getCell("G5").value = {formula: 'B14*IF(G14="Enabled", D2, 1)'}; //Other Fees 
+            worksheet.getCell("G4").value = {formula: '(A8*IF(D8="Round Trip", 2, 1)*(ROUND(C11, 2)-C8))*IF(G13="Enabled", D2, 1)'}; //Travel Cost
+            worksheet.getCell("G5").value = {formula: 'B14*IF(G16="Enabled", D2, 1)'}; //Other Fees 
             worksheet.getCell("G6").value = {formula: 'G2-G3-G4-G5'}; //Total Income
-            worksheet.getCell("G7").value = {formula: '=(A5*D2)+(B5*IF(G12="Enabled", D2, 1))+(C5*IF(G13="Enabled", D2, 1))+(B8*IF(G11="Enabled", D2, 1)*IF(D8="Round Trip", 2, 1))'}; //Total Hours
+            worksheet.getCell("G7").value = {formula: '=(A5*IF(G12="Enabled", D2, 1))+(B5*IF(G14="Enabled", D2, 1))+(C5*IF(G15="Enabled", D2, 1))+(B8*IF(G13="Enabled", D2, 1)*IF(D8="Round Trip", 2, 1))'}; //Total Hours
             worksheet.getCell("G8").value = {formula: 'IFERROR(G6/G7, 0)'}; //Total Hourly Wage
             worksheet.getCell("C11").value = {formula: 'IFERROR(A11/B11, 0)'}; //Gas Price per Mile
 
@@ -724,7 +736,8 @@ const Calculator = () => {
                     <Col lg={3} md={3} sm={3} xs={3}><Button variant="secondary" size="sm" disabled={isEvent ? fin.event_id==finId : fin.fin_id==finId} href={fin.event_id ? `/calculator/${fin.event_id}?event=true` : `/calculator/${fin.fin_id}`}>Load</Button></Col>
                 </Row>
             );
-            setUserFinancials(financials);
+            if (financials.length > 0) setUserFinancials(financials);
+            else setUserFinancials(<Row>No Financials</Row>);
         }
         else
         {
@@ -790,7 +803,7 @@ const Calculator = () => {
                                                     <Col className="text-end">{nameLength}/{maxFinancialNameLength}</Col>
                                                 </Row>
                                             </Form.Label>
-                                            <Form.Control id="financialName" value={calcName || ""} type="text" maxLength={maxFinancialNameLength} required={true} placeholder="Calculator Name" onChange={e => setCalcName(e.target.value)}></Form.Control>
+                                            <Form.Control id="financialName" value={calcName || ""} type="text" maxLength={maxFinancialNameLength} required={true} placeholder="Calculator Name" onChange={e => setCalcName(e.target.value)} pattern={`[a-zA-Z0-9\\s.'"-]+`}></Form.Control>
                                         </Col>
                                         <Col lg="4">
                                             <Form.Label>Date<span style={{color: "red"}}>*</span></Form.Label>
@@ -834,6 +847,14 @@ const Calculator = () => {
                                                             <Card style={{display:'flex'}}>
                                                                 <Container>
                                                                     <Col>
+                                                                        <Row className="py-2 align-items-center" style={{backgroundColor: "rgba(100, 100, 100, .05)"}}>
+                                                                            <Col lg={2} xs={2} className="text-end"><Form.Check type="switch" onChange={() => {setMultiplyPay(!multiplyPay)}} checked={multiplyPay}></Form.Check></Col>
+                                                                            <Col><div>Multiply Pay</div></Col>
+                                                                        </Row>
+                                                                        <Row className="py-2 align-items-center" style={{backgroundColor: "rgba(100, 100, 100, .15)"}}>
+                                                                            <Col lg={2} xs={2} className="text-end"><Form.Check type="switch" onChange={() => {setMultiplyGigHours(!multiplyGigHours)}} checked={multiplyGigHours}></Form.Check></Col>
+                                                                            <Col><div>Multiply Gig Hours</div></Col>
+                                                                        </Row>
                                                                         <Row className="py-2 align-items-center" style={{backgroundColor: "rgba(100, 100, 100, .05)"}}>
                                                                             <Col lg={2} xs={2} className="text-end"><Form.Check type="switch" onChange={() => {setMultiplyTravel(!multiplyTravel)}} checked={multiplyTravel}></Form.Check></Col>
                                                                             <Col><div>Multiply Travel</div></Col>
@@ -1060,7 +1081,7 @@ const Calculator = () => {
                                             <h5 style={{display: "block"}}>Payment: </h5>
                                         </Col>
                                         <Col>
-                                        <h5 style={{whiteSpace: "pre-wrap", textAlign: "right", display: "block"}}>{formatCurrency(gigPay)}{gigNumEnabled && gigNum ? ` x ${gigNum} = ${formatCurrency(gigPay*gigNum)}` : ""}</h5>
+                                        <h5 style={{whiteSpace: "pre-wrap", textAlign: "right", display: "block"}}>{formatCurrency(gigPay)}{gigNumEnabled && multiplyPay && gigNum ? ` x ${gigNum} = ${formatCurrency(gigPay*gigNum)}` : ""}</h5>
                                         </Col>
                                     </Row>
                                     <Row>
