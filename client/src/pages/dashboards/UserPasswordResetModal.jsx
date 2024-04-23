@@ -2,16 +2,14 @@ import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { toast } from "react-toastify";
 import axios from 'axios';
-import { getBackendURL } from "../../Utils";
+import { getBackendURL, toastError, toastSuccess } from "../../Utils";
 
 const PasswordResetModal = ({ show, handleClose, onConfirm }) => {
 	const [oldPassword, setOldPassword] = useState('');
 	const [newPassword, setNewPassword] = useState('');
 	const [confirmPassword, setConfirmPassword] = useState('');
 
-	const generateError = (err) => toast.error(err, {
-		position: "bottom-right",
-	});
+	const generateError = (err) => toast(err, toastError)
 
 	const handleConfirm = async () => {
 		try {
@@ -29,7 +27,7 @@ const PasswordResetModal = ({ show, handleClose, onConfirm }) => {
 				});
 
 			if (response.data.success) {
-				toast.success('Password reset successful', { theme: 'dark' });
+				toast('Password reset successful', toastSuccess);
 			} else {
 				generateError('Failed to reset password', { theme: 'dark' });
 			}

@@ -110,7 +110,7 @@ function EditProfile({ userData,  onUserChange }) {
 	};
 
 	return (
-		<Container style={{ maxWidth: '600px', position: 'relative' }}>
+		<div style={{ maxWidth: '600px', margin: "auto" }}>
 			<h2>{userData.f_name} {userData.l_name} Profile</h2>
 			<Form onSubmit={handleSubmit}>
 				<Col>
@@ -142,13 +142,16 @@ function EditProfile({ userData,  onUserChange }) {
 									onChange={handleChange}
 									disabled={true}
 								/>
+								<Button className="btn btn-dark" variant="secondary" onClick={togglePasswordResetModal}>
+								Update Password
+								</Button>
 							</Form.Group>
 						</Col>
 						<Col lg={4} className='text-start'>
-							<br />
-							<Button className="mt-2 btn btn-dark" variant="secondary" onClick={togglePasswordResetModal}>
-							Update Password
-							</Button>
+							<Form.Group className="text-start mb-3" controlId="formBasicPassword">
+								
+							</Form.Group>
+							
 						</Col>
 					</Row>
 
@@ -242,7 +245,7 @@ function EditProfile({ userData,  onUserChange }) {
 				handleClose={togglePasswordResetModal}
 				isAdmin={false}
 			/>
-		</Container>
+		</div>
 	);
 }
 

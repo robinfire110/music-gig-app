@@ -21,7 +21,7 @@ const statesList = [ 'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL',
 //Default toast settings
 const toastTheme = 'dark';
 const toastPosition = 'top-center';
-const toastTimeout = 1500;
+const toastTimeout = 1750;
 const toastSuccess = { theme: toastTheme, position: toastPosition, type: "success", autoClose: toastTimeout};
 const toastError = { theme: toastTheme, position: toastPosition, type: "error", autoClose: toastTimeout};
 const toastInfo = { theme: toastTheme, position: toastPosition, type: "info", autoClose: toastTimeout};

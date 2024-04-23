@@ -4,7 +4,7 @@ import {toast, ToastContainer} from 'react-toastify';
 import { Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import '../App.css';
-import {getBackendURL} from "../Utils";
+import {getBackendURL, toastError} from "../Utils";
 import Title from "../components/Title";
 
 const Login = () => {
@@ -14,9 +14,7 @@ const Login = () => {
         password: '',
     });
 
-    const generateError = (err) => toast.error(err, {
-        position: "bottom-right",
-    })
+    const generateError = (err) => toast("Login failed. Please ensure email and password are correct.", toastError)
 
     const handleChange = (event) => {
         const { name, value } = event.target;
