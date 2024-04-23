@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Container from 'react-bootstrap/Container';
-import { Nav, Navbar, NavDropdown } from 'react-bootstrap';
+import { Col, Nav, Navbar, NavDropdown, Row } from 'react-bootstrap';
 import '../../App.css';
+import { Link } from 'react-router-dom';
 
 function Sidebar({ handleLinkClick, isAdmin }) {
     //States
@@ -33,9 +34,10 @@ function Sidebar({ handleLinkClick, isAdmin }) {
 
     return (
         <>
-        <Navbar className="">
-            <Container>
-                    <Nav className={`me-auto ${sidebarOrientation}`}>
+        <Container>
+            {deviceType === "browser" && 
+                <Navbar className="">
+                    <Nav className={`${sidebarOrientation}`}>
                         <Nav.Link
                             onClick={() => handleLinkClick('listings')}
                             href="#"
@@ -60,8 +62,48 @@ function Sidebar({ handleLinkClick, isAdmin }) {
                             </Nav.Link>
                         )}
                     </Nav>
-            </Container>
-        </Navbar>
+                </Navbar>
+            }
+            {deviceType === "mobile" &&
+            <Row>
+                <Col className="mx-2 my-1">
+                    <Link style={{color: "black", textDecoration: "none"}}
+                        onClick={() => handleLinkClick('listings')}
+                        href="#"
+                    >Listings</Link>
+                </Col>
+                <Col className="mx-2 my-1">
+                    <Link style={{color: "black", textDecoration: "none"}}
+                        onClick={() => handleLinkClick('gigs')}
+                        href="#"
+                    >Applications</Link>
+                </Col>
+                <Col className="mx-2 my-1">
+                    <Link style={{color: "black", textDecoration: "none"}}
+                        onClick={() => handleLinkClick('financials')}
+                        href="#">Financials
+                    </Link>
+                </Col>
+                <Col className="mx-2 my-1">
+                    <Link style={{color: "black", textDecoration: "none"}}
+                        onClick={() => handleLinkClick('editProfile')}
+                        href="#">Profile
+                    </Link>
+                </Col>
+                {isAdmin && (
+                    <Col className="mx-2 my-1">
+                    <Link style={{color: "black", textDecoration: "none"}}
+                        onClick={() => handleLinkClick('adminActions')}
+                        href="#"
+                        className="custom-link"
+                    >
+                        Admin
+                    </Link>
+                    </Col>
+                )}
+            </Row>
+            }
+        </Container>
         {deviceType === "mobile" && <hr />}
         </>
     );
