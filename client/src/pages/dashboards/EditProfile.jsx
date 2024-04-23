@@ -142,13 +142,16 @@ function EditProfile({ userData,  onUserChange }) {
 									onChange={handleChange}
 									disabled={true}
 								/>
+								<Button className="btn btn-dark" variant="secondary" onClick={togglePasswordResetModal}>
+								Update Password
+								</Button>
 							</Form.Group>
 						</Col>
 						<Col lg={4} className='text-start'>
-							<br />
-							<Button className="mt-2 btn btn-dark" variant="secondary" onClick={togglePasswordResetModal}>
-							Update Password
-							</Button>
+							<Form.Group className="text-start mb-3" controlId="formBasicPassword">
+								
+							</Form.Group>
+							
 						</Col>
 					</Row>
 

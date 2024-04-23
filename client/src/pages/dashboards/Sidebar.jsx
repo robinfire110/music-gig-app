@@ -65,6 +65,7 @@ function Sidebar({ handleLinkClick, isAdmin }) {
                 </Navbar>
             }
             {deviceType === "mobile" &&
+            <>
             <Row>
                 <Col className="mx-2 my-1">
                     <Link style={{color: "black", textDecoration: "none"}}
@@ -102,9 +103,10 @@ function Sidebar({ handleLinkClick, isAdmin }) {
                     </Col>
                 )}
             </Row>
+            <hr />
+            </>
             }
         </Container>
-        {deviceType === "mobile" && <hr />}
         </>
     );
 }

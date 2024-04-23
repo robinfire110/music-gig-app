@@ -126,19 +126,17 @@ function Financials({ financials, onDeleteFinancial }) {
 					</div>
 				</Col>
 				<Col>
-					<Row className="button-container text-lg-end text-xs-end">
-						<div>
-							<Button className="mx-2 btn btn-dark mr-2" variant="primary" onClick={handleCreateNewCalc}>Create New Financial</Button>
-							<Button className="mx-2 " variant="success mr-2" onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export Selected to Spreadsheet</Button>
-						</div>
+					<Row className="button-container text-lg-end text-md-start text-sm-start text-xs-start">
+						<Col xl={6} lg={5} md={4} xs={12}><Button className="btn btn-dark mb-1" variant="primary" onClick={handleCreateNewCalc}>Create New Financial</Button></Col>
+						<Col><Button className="mb-1" variant="success mr-2" onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export Selected to Spreadsheet</Button></Col>
 					</Row>
 				</Col>
 			</Row>
 			<Row style={{ marginTop: '20px', marginBottom: '10px', width: '100%'}}>
-				<Col className="text-start" lg={3}>
+				<Col className="mb-1 text-start" lg={{order: 0, span: 3}} xs={{order: 3, span: 6}}>
 					<Button onClick={handleRowSelectAll}>Select All </Button>
 				</Col>
-				<Col>
+				<Col className="mb-1" lg={5} xs={12}>
 					<input
 						type="text"
 						placeholder="Search financials..."
@@ -153,15 +151,15 @@ function Financials({ financials, onDeleteFinancial }) {
 						}}
 					/>
 				</Col>
-				<Col lg={2}>
+				<Col className="mb-1" lg={2} xs={6}>
 					<Form.Control type="date" placeholder="Start Date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
 				</Col>
-				<Col lg={2}>
+				<Col className="mb-1" lg={2} xs={6}>
 					<Form.Control type="date" placeholder="End Date" value={endDate} onChange={(e) => setEndDate(e.target.value)} min={startDate}/>
 				</Col>
 			</Row>
 			{filteredFinancials.length > 0 ? (
-			<Table striped bordered hover>
+			<Table striped bordered hover responsive>
 				<thead>
 				<tr>
 					<th>Select</th>
@@ -193,7 +191,7 @@ function Financials({ financials, onDeleteFinancial }) {
 				</div>
 			)}
 			<Row className="justify-content-center">
-				<Col lg={{offset: 1}} sm={{offset: 1}} xs={{offset: 1}}>
+				<Col lg={{offset: 1}} md={{offset: 1}} sm={{offset: 4}} xs={{offset: 3}}>
 					<PaginationControl page={currentPage} total={filteredFinancials.length} limit={financialsPerPage} changePage={(page) => {setCurrentPage(page)}} ellipsis={1}/>
 				</Col>
 				<Col lg={1} sm={1} xs={1}>

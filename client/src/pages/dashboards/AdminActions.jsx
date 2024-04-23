@@ -45,8 +45,6 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
         setFilteredPosts(filteredPosts);
     }, [searchQueryPosts, postData]);
 
-
-
     const handleSearchInputChange = (event) => {
         setSearchQuery(event.target.value);
     };
@@ -127,63 +125,60 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
         <div>
             <Tabs defaultActiveKey="users" id="admin-actions-tabs" onSelect={() => {setCurrentPage(1)}}>
                 <Tab eventKey="users" title="Users">
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div style={{ marginTop: '20px', marginBottom: '20px', width: '50%'}}>
-                            <input
-                                type="text"
-                                placeholder="Search users..."
-                                value={searchQuery}
-                                onChange={handleSearchInputChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    paddingLeft: '30px',
-                                    borderRadius: '20px',
-                                    border: '1px solid #ced4da',
+                    <div style={{ marginTop: '20px', marginBottom: '20px', width: '65%'}}>
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            value={searchQuery}
+                            onChange={handleSearchInputChange}
+                            style={{
+                                width: '100%',
+                                padding: '8px',
+                                paddingLeft: '30px',
+                                borderRadius: '20px',
+                                border: '1px solid #ced4da',
 
-                            }}
-                            />
-                        </div>
-                        <Table striped bordered hover>
-                            <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Last Online</th>
-                                <th>User Type</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {currentUsers.map(user => (
-                                <tr key={user.user_id} style={{ cursor: 'pointer' }} onClick={() => handleUserClick(user.user_id)}>
-                                    <td>{user.user_id}</td>
-                                    <td>{user.f_name} {user.l_name}</td>
-                                    <td>{user.email}</td>
-                                    <td></td>
-                                    <td><td>{user.isAdmin ? 'Admin' : 'User'}</td></td>
-                                    <td>
-                                        {user.isAdmin ? (
-                                            <Button variant="warning" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDemoteUser(user); }}>Demote</Button>
-                                        ) : (
-                                            <Button variant="primary" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handlePromoteUser(user); }}>Promote</Button>
-                                        )}
-                                        <Button variant="secondary" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handlePasswordReset(user); }}>Reset Password</Button>
-                                        <Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeleteUser(user); }}>Delete</Button>
-
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </Table>
+                        }}
+                        />
                     </div>
+                    <Table striped bordered hover responsive>
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>User Type</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {currentUsers.map(user => (
+                            <tr key={user.user_id} style={{ cursor: 'pointer' }} onClick={() => handleUserClick(user.user_id)}>
+                                <td>{user.user_id}</td>
+                                <td>{user.f_name} {user.l_name}</td>
+                                <td>{user.email}</td>
+                                <td><td>{user.isAdmin ? 'Admin' : 'User'}</td></td>
+                                <td>
+                                    {user.isAdmin ? (
+                                        <Button variant="warning" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDemoteUser(user); }}>Demote</Button>
+                                    ) : (
+                                        <Button variant="primary" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handlePromoteUser(user); }}>Promote</Button>
+                                    )}
+                                    <Button variant="secondary" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handlePasswordReset(user); }}>Reset Password</Button>
+                                    <Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeleteUser(user); }}>Delete</Button>
+
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </Table>
+
                     <Row className="justify-content-center">
                         <Col lg={{offset: 1}} sm={{offset: 1}} xs={{offset: 1}}>
                             <PaginationControl page={currentPage} total={filteredUsers.length} limit={itemsPerPage} changePage={(page) => {setCurrentPage(page)}} ellipsis={1}/>
                         </Col>
                         <Col lg={1} sm={1} xs={1}>
-                            <Form.Select className="float-right" value={itemsPerPage} style={{width: "5rem", float: "right"}} onChange={(e) => {setItemsPerPage(e.target.value);}}>
+                            <Form.Select className="float-right" value={itemsPerPage} style={{width: "5rem", float: "right"}} onChange={(e) => {setItemsPerPage(e.target.value); setCurrentPage(1); }}>
                                 <option value={10}>10</option>
                                 <option value={25}>25</option>
                                 <option value={50}>50</option>
@@ -193,53 +188,51 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
                     </Row>
                 </Tab>
                 <Tab eventKey="posts" title="Posts">
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div style={{ marginTop: '20px', marginBottom: '20px', width: '50%'}}>
-                            <input
-                                type="text"
-                                placeholder="Search posts..."
-                                value={searchQueryPosts}
-                                onChange={handleSearchPostsInputChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    paddingLeft: '30px',
-                                    borderRadius: '20px',
-                                    border: '1px solid #ced4da',
-                                }}
-                            />
-                        </div>
-                        <Table striped bordered hover>
-                            <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Date Created</th>
-                                <th>Name</th>
-                                <th>Created By</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {currentPosts.map(post => (
-                                <tr key={post.event_id} style={{ cursor: 'pointer' }} onClick={() => handlePostClick(post.event_id)}>
-                                    <td>{post.event_id}</td>
-                                    <td>{new Date(post.date_posted).toLocaleDateString()}</td>
-                                    <td>{post.event_name}</td>
-                                    <td>{post.f_name} {post.l_name}</td>
-                                    <td>
-                                        <Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeletePost(post); }}>Delete</Button>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </Table>
+                    <div style={{ marginTop: '20px', marginBottom: '20px', width: '65%'}}>
+                        <input
+                            type="text"
+                            placeholder="Search posts..."
+                            value={searchQueryPosts}
+                            onChange={handleSearchPostsInputChange}
+                            style={{
+                                width: '100%',
+                                padding: '8px',
+                                paddingLeft: '30px',
+                                borderRadius: '20px',
+                                border: '1px solid #ced4da',
+                            }}
+                        />
                     </div>
+                    <Table striped bordered hover responsive>
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date Created</th>
+                            <th>Name</th>
+                            <th>Created By</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {currentPosts.map(post => (
+                            <tr key={post.event_id} style={{ cursor: 'pointer' }} onClick={() => handlePostClick(post.event_id)}>
+                                <td>{post.event_id}</td>
+                                <td>{new Date(post.date_posted).toLocaleDateString()}</td>
+                                <td>{post.event_name}</td>
+                                <td>{post.f_name} {post.l_name}</td>
+                                <td>
+                                    <Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeletePost(post); }}>Delete</Button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </Table>
                     <Row className="justify-content-center">
                         <Col lg={{offset: 1}} sm={{offset: 1}} xs={{offset: 1}}>
                             <PaginationControl page={currentPage} total={filteredPosts.length} limit={itemsPerPage} changePage={(page) => {setCurrentPage(page)}} ellipsis={1}/>
                         </Col>
                         <Col lg={1} sm={1} xs={1}>
-                            <Form.Select className="float-right" value={itemsPerPage} style={{width: "5rem", float: "right"}} onChange={(e) => {setItemsPerPage(e.target.value);}}>
+                            <Form.Select className="float-right" value={itemsPerPage} style={{width: "5rem", float: "right"}} onChange={(e) => {setItemsPerPage(e.target.value); setCurrentPage(1); }}>
                                 <option value={10}>10</option>
                                 <option value={25}>25</option>
                                 <option value={50}>50</option>
