@@ -4,7 +4,7 @@ import {toast, ToastContainer} from 'react-toastify';
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import axios from 'axios';
 //import '../App.css'
-import { getBackendURL, maxBioLength, maxFNameLength, maxLNameLength } from "../Utils"
+import { getBackendURL, maxBioLength, maxFNameLength, maxLNameLength, toastError } from "../Utils"
 import Select from "react-select";
 import FormNumber from "../components/FormNumber";
 import Title from "../components/Title";
@@ -42,9 +42,7 @@ const Register = () => {
         } 
     }, [values]);
 
-	const generateError = (err) => toast.error(err, {
-		position: "bottom-right",
-	})
+	const generateError = (err) => toast(err, toastError)
 
 	const handleChange = (event) => {
 		const { name, value } = event.target;

@@ -3,6 +3,7 @@ import { Nav } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useCookies } from "react-cookie";
 import {toast, ToastContainer} from 'react-toastify';
+import { toastSuccess } from "../Utils";
 
 const LogoutButton = () => {
     const navigate = useNavigate();
@@ -10,12 +11,8 @@ const LogoutButton = () => {
 
     const logOut = () => {
         removeCookie("jwt");
-        navigate("/");
-        toast.success('You have been successfully logged out!', {
-            position: "top",
-            theme: 'dark',
-            autoClose: 2000
-        });
+        window.location.reload();
+        //toast('You have been successfully logged out!', toastSuccess); //Doesn't work with reload.
     };
 
     return (

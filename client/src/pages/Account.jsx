@@ -44,7 +44,7 @@ function Account() {
                     setUserData(data);
                     console.log(data);
                     setIsAdmin(data.isAdmin);
-                    toast(`Hi ${data.f_name}`, { theme: 'dark' });
+                    toast(`Hi ${data.f_name}`, { theme: 'dark', autoClose: 2000 });
                 });
             } catch (error) {
                 removeCookie('jwt');
