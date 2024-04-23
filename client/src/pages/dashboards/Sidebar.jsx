@@ -1,15 +1,41 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Container from 'react-bootstrap/Container';
 import { Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import '../../App.css';
 
 function Sidebar({ handleLinkClick, isAdmin }) {
+    //States
+    const [deviceType, setDeviceType] = useState("browser");
+    const [sidebarOrientation, setSidebarOrientation] = useState("sidebar-vertical");
+
+    //Use effect
+    useEffect(() => {
+        updateStyle();
+
+        //Set update style
+        window.addEventListener("resize", updateStyle); 
+    }, [])
+
+    //Update overflow
+    function updateStyle()
+    {
+        if (window.innerWidth >= 992)
+        {
+            setDeviceType("browser"); 
+            setSidebarOrientation("sidebar-vertical");
+        } 
+        else
+        {
+            setDeviceType("mobile");
+            setSidebarOrientation("sidebar");
+        } 
+    }
+
     return (
-        <Navbar expand="lg" className="">
+        <>
+        <Navbar className="">
             <Container>
-                <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                <Navbar.Collapse id="basic-navbar-nav">
-                    <Nav className="me-auto sidebar-vertical">
+                    <Nav className={`me-auto ${sidebarOrientation}`}>
                         <Nav.Link
                             onClick={() => handleLinkClick('listings')}
                             href="#"
@@ -34,9 +60,10 @@ function Sidebar({ handleLinkClick, isAdmin }) {
                             </Nav.Link>
                         )}
                     </Nav>
-                </Navbar.Collapse>
             </Container>
         </Navbar>
+        {deviceType === "mobile" && <hr />}
+        </>
     );
 }
 
