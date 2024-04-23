@@ -14,7 +14,7 @@ const Login = () => {
         password: '',
     });
 
-    const generateError = (err) => toast(err, toastError)
+    const generateError = (err) => toast("Login failed. Please ensure email and password are correct.", toastError)
 
     const handleChange = (event) => {
         const { name, value } = event.target;
