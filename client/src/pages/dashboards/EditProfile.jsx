@@ -110,7 +110,7 @@ function EditProfile({ userData,  onUserChange }) {
 	};
 
 	return (
-		<div style={{ maxWidth: '600px', position: 'relative' }}>
+		<div style={{ maxWidth: '600px', margin: "auto" }}>
 			<h2>{userData.f_name} {userData.l_name} Profile</h2>
 			<Form onSubmit={handleSubmit}>
 				<Col>

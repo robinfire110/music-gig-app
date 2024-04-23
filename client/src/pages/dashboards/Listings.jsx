@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Col, Container, Form, Row, Tab, Table, Tabs } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Button, Card, Col, Container, Form, Row, Tab, Table, Tabs } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import { saveSpreadsheetAll } from '../../Utils';
 import moment from 'moment';
 import ConfirmationModal from './ConfirmationModal';
+import ProfileEventCard from '../../components/ProfileEventCard';
 
-function Listings({ userData, gigs, onGigsChange, onDeleteEvent, onUnlistEvent, handleShowDeleteModal, handleShowUnlistModal, handleCloseDeleteModal, handleCloseUnlistModal}) {
+function Listings({ userData, gigs, onGigsChange, onDeleteEvent, onUnlistEvent, handleShowDeleteModal, handleShowUnlistModal, handleCloseDeleteModal, handleCloseUnlistModal }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [eventToDelete, setEventToDelete] = useState(null);
     const [showUnlistModal, setShowUnlistModal] = useState(false);
     const [eventToUnlist, setEventToUnlist] = useState(null);
-	const navigate = useNavigate();
+    const navigate = useNavigate();
 
     const handleSeeMoreClick = (gig) => {
         navigate(`/event/${gig.event_id}`);
@@ -20,7 +21,7 @@ function Listings({ userData, gigs, onGigsChange, onDeleteEvent, onUnlistEvent, 
         navigate('/form');
     };
 
-	return (
+    return (
         <div>
             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2>Your Listings</h2>
@@ -31,231 +32,56 @@ function Listings({ userData, gigs, onGigsChange, onDeleteEvent, onUnlistEvent, 
             <Tabs defaultActiveKey="events" id="listings-tabs">
                 <Tab eventKey="events" title="Events">
                     <h2 className="current-listings-header">Your Upcoming Events</h2>
-                    <div className="listings-card-container">
+                    <Row>
                         {gigs
                             .filter(gig => gig.is_listed && gig.status === 'owner')
                             .map((gig) => (
-                                <div
-                                    key={gig.event_id}
-                                    className="listings-custom-card"
-                                    onClick={() => navigate(`/event/${gig.event_id}`)}
-                                >
-                                    <div className="card-body">
-                                        <h5 className="card-title">{gig.event_name}</h5>
-                                        <p className="card-text">Event Date: {gig.start_time}</p>
-                                        {gig.addresses && gig.addresses.length > 0 && (
-                                            <div>
-                                                {gig.addresses.map((address, index) => (
-                                                    <div key={index}>
-                                                        <p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <p className="card-text">
-                                            <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
-                                        </p>
-                                        <p>
-                                            {gig.Applicants.length > 0 ? (
-                                                gig.Applicants.some(applicant => applicant.status === 'applied') ? (
-                                                    'Status: See Pending'
-                                                ) : (
-                                                    gig.Applicants.some(applicant => applicant.status === 'accept') ? (
-                                                        'Status: Applicant Hired'
-                                                    ) : (
-                                                        'Status: Applicant Required'
-                                                    )
-                                                )
-                                            ) : (
-                                                'Status: Applicant Required'
-                                            )}
-                                        </p>
-
-                                        <div className="card-buttons">
-                                            <Button
-                                                variant="outline-secondary"
-                                                className="edit-button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    navigate(`/form/${gig.event_id}`);
-                                                }}
-                                            >
-                                                Edit
-                                            </Button>
-                                            {gig.status === 'owner' && (
-                                                <>
-                                                    <Button
-                                                        variant="outline-danger"
-                                                        className="unlist-button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleShowUnlistModal(gig);
-                                                        }}
-                                                    >
-                                                        Unlist
-                                                    </Button>
-                                                    <Button
-                                                        variant="danger"
-                                                        className="delete-button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleShowDeleteModal(gig);
-                                                        }}
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                                <Col lg={4} md={6} sm={12}><ProfileEventCard gig={gig} handleShowDeleteModal={handleShowDeleteModal} handleShowUnlistModal={handleShowUnlistModal}/></Col>
                             ))}
                         {gigs.filter(gig => gig.is_listed && gig.status === 'owner').length === 0 && (
                             <div className="no-gigs-message">
                                 <Button className="btn btn-dark" variant="primary" style={{ marginTop: '20px' }} onClick={() => navigate('/form')}>Create New Listing</Button>
                             </div>
                         )}
-                    </div>
+                        
+                    </Row>
                 </Tab>
                 <Tab eventKey="pending" title="Pending">
                     <h2 className="current-listings-header">Your Pending Events</h2>
-                    <div className="listings-card-container">
+                    <Row>
                         {gigs
                             .filter(gig => gig.status === 'owner' && gig.is_listed &&
                                 (!gig.Applicants || !gig.Applicants.some(applicant => applicant.status === 'accept')))
 
                             .map((gig) => (
-                                <div
-                                    key={gig.event_id}
-                                    className="listings-custom-card"
-                                    onClick={() => navigate(`/event/${gig.event_id}`)}
-                                >
-                                    <div className="card-body">
-                                        <h5 className="card-title">{gig.event_name}</h5>
-                                        <p className="card-text">Event Date: {gig.start_time}</p>
-                                        {gig.addresses && gig.addresses.length > 0 && (
-                                            <div>
-                                                {gig.addresses.map((address, index) => (
-                                                    <div key={index}>
-                                                        <p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <p className="card-text">
-                                            <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
-                                        </p>
-                                        <p>
-                                            {gig.Applicants.length > 0 ? (
-                                                gig.Applicants.some(applicant => applicant.status === 'applied') ? (
-                                                    'Status: Click Listing to Hire'
-                                                ) : (
-                                                    gig.Applicants.some(applicant => applicant.status === 'accepted') ? (
-                                                        'Status: Applicant Hired'
-                                                    ) : (
-                                                        'Status: Applicant Required'
-                                                    )
-                                                )
-                                            ) : (
-                                                'Status: Applicant Required'
-                                            )}
-                                        </p>
-                                        <div className="card-buttons">
-                                                <>
-                                                    <Button
-                                                        variant="outline-secondary"
-                                                        className="edit-button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            navigate(`/form/${gig.event_id}`);
-                                                        }}
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline-danger"
-                                                        className="unlist-button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleShowUnlistModal(gig);
-                                                        }}
-                                                    >
-                                                        Unlist
-                                                    </Button>
-                                                    <Button
-                                                        variant="danger"
-                                                        className="delete-button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleShowDeleteModal(gig);
-                                                        }}
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                </>
-                                        </div>
-                                    </div>
-                                </div>
+                                <Col lg={4} md={6} sm={12}><ProfileEventCard gig={gig} handleShowDeleteModal={handleShowDeleteModal} handleShowUnlistModal={handleShowUnlistModal}/></Col>
                             ))}
                         {gigs.filter(gig => gig.status === 'owner' && gig.is_listed &&
                             (!gig.Applicants || !gig.Applicants.some(applicant => applicant.status === 'accept'))).length === 0 && (
-                            <div className="no-gigs-message">
-                                <p>Nothing to show.</p>
-                            </div>
-                        )}
-                    </div>
+                                <div className="no-gigs-message">
+                                    <p>Nothing to show.</p>
+                                </div>
+                            )}
+                    </Row>
                 </Tab>
                 <Tab eventKey="closed" title="Closed">
                     <h2 className="current-listings-header">Closed Listings</h2>
-                    <div className="listings-card-container">
+                    <Row>
                         {gigs
                             .filter(gig => gig.status === 'owner' && !gig.is_listed)
                             .map((gig) => (
-                                <div
-                                    key={gig.event_id}
-                                    className="listings-custom-card"
-                                    onClick={() => navigate(`/event/${gig.event_id}`)}
-                                >
-                                    <div className="card-body">
-                                        <h5 className="card-title">{gig.event_name}</h5>
-                                        <p className="card-text">Event Date: {gig.start_time}</p>
-                                        {gig.addresses && gig.addresses.length > 0 && (
-                                            <div>
-                                                {gig.addresses.map((address, index) => (
-                                                    <div key={index}>
-                                                        <p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <p className="card-text">
-                                            <a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
-                                        </p>
-                                        <div className="card-buttons">
-                                                <Button
-                                                    variant="danger"
-                                                    className="delete-button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleShowDeleteModal(gig);
-                                                    }}
-                                                >
-                                                    Delete
-                                                </Button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <Col lg={4} md={6} sm={12}><ProfileEventCard gig={gig} editEnabled={false} unlistEnabled={false} showApplicationStatus={false} handleShowDeleteModal={handleShowDeleteModal} handleShowUnlistModal={handleShowUnlistModal}/></Col>
                             ))}
                         {gigs.filter(gig => gig.status === 'owner' && !gig.is_listed).length === 0 && (
                             <div className="no-gigs-message">
                                 <p>Nothing to show.</p>
                             </div>
                         )}
-                    </div>
+                    </Row>
                 </Tab>
             </Tabs>
-        </div> 
-	);
+        </div>
+    );
 }
 
 export default Listings;

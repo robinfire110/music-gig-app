@@ -1,14 +1,14 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Tab, Tabs} from 'react-bootstrap';
+import {Button, Col, Row, Tab, Tabs} from 'react-bootstrap';
 import {useNavigate} from "react-router-dom";
 import ConfirmationModal from "./ConfirmationModal";
+import ProfileEventCard from '../../components/ProfileEventCard';
 
 function Gigs({ userData, gigs, onGigsChange}) {
 	const navigate = useNavigate();
 	const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 	const [confirmationMessage, setConfirmationMessage] = useState('');
 	const [actionToConfirm, setActionToConfirm] = useState(null);
-
 
 	useEffect(() => {
 
@@ -52,132 +52,49 @@ function Gigs({ userData, gigs, onGigsChange}) {
 			<Tabs defaultActiveKey="gigs" id="listings-tabs">
 				<Tab eventKey="gigs" title="Gigs">
 					<h2 className="current-listings-header">Your Upcoming Gigs</h2>
-					<div className="listings-card-container">
+					<Row>
 						{gigs
 							.filter(gig => gig.is_listed && gig.status === 'accept')
 							.map((gig) => (
-								<div
-									key={gig.event_id}
-									className="listings-custom-card"
-									onClick={() => navigate(`/event/${gig.event_id}`)}
-								>
-									<div className="card-body">
-										<h5 className="card-title">{gig.event_name}</h5>
-										<p className="card-text">Event Date: {gig.start_time}</p>
-										{gig.addresses && gig.addresses.length > 0 && (
-											<div>
-												{gig.addresses.map((address, index) => (
-													<div key={index}>
-														<p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
-													</div>
-												))}
-											</div>
-										)}
-										<p className="card-text">
-											<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
-										</p>
-										<p className="card-text">Status: {gig.status === 'accept' ? 'You have been hired for this gig!' : gig.status}</p>
-									</div>
-								</div>
+								<Col lg={4} md={6} sm={12}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} /></Col>
 							))}
 						{gigs.filter(gig => gig.is_listed && gig.status === 'accept').length === 0 && (
 							<div className="no-gigs-message">
 								<Button className="btn btn-dark" variant="primary" style={{ marginTop: '20px' }} onClick={() => navigate('/eventsearch')}>View all Events</Button>
 							</div>
 						)}
-					</div>
+					</Row>
 				</Tab>
 
 				<Tab eventKey="pending" title="Pending">
 					<h2 className="current-listings-header">Pending Applications</h2>
-					<div className="listings-card-container">
+					<Row>
 						{gigs
 							.filter(gig => gig.is_listed && gig.status === 'applied')
 							.map((gig) => (
-								<div
-									key={gig.event_id}
-									className="listings-custom-card"
-									onClick={() => navigate(`/event/${gig.event_id}`)}
-								>
-									<div className="card-body">
-										<h5 className="card-title">{gig.event_name}</h5>
-										<p className="card-text">Event Date: {gig.start_time}</p>
-										{gig.addresses && gig.addresses.length > 0 && (
-											<div>
-												{gig.addresses.map((address, index) => (
-													<div key={index}>
-														<p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
-													</div>
-												))}
-											</div>
-										)}
-										<p className="card-text">
-										<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
-									</p>
-										<p>{gig.status === 'owner' ? 'Your Listing' : gig.status === 'applied' ? 'Pending Approval' : `Status: ${gig.status}`}</p>
-										<div className="card-buttons">
-											<Button
-												variant="outline-danger"
-												className="withdraw-button"
-												onClick={(e) => {
-													e.stopPropagation();
-													handleWithdrawEvent(gig);
-												}}
-											>
-												Withdraw
-											</Button>
-										</div>
-									</div>
-								</div>
+								<Col lg={4} md={6} sm={12}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} withdrawEnabled={true} handleWithdrawEvent={handleWithdrawEvent}/></Col>
 							))}
 						{gigs.filter(gig => gig.is_listed && gig.status === 'applied').length === 0 && (
 							<div className="no-gigs-message">
 								<p>Nothing to show.</p>
 							</div>
 						)}
-					</div>
+					</Row>
 				</Tab>
 				<Tab eventKey="closed" title="Closed">
 					<h2 className="current-listings-header">Closed Gigs</h2>
-					<div className="listings-card-container">
+					<Row>
 						{gigs
 							.filter(gig => gig.status === 'withdraw' || gig.status === 'rejected')
 							.map((gig) => (
-								<div
-									key={gig.event_id}
-									className="listings-custom-card"
-									onClick={() => navigate(`/event/${gig.event_id}`)}
-								>
-									<div className="card-body">
-										<h5 className="card-title">{gig.event_name}</h5>
-										<p className="card-text">Event Date: {gig.start_time}</p>
-										{gig.addresses && gig.addresses.length > 0 && (
-											<div>
-												{gig.addresses.map((address, index) => (
-													<div key={index}>
-														<p className="card-text">Address: {address.street}, {address.city}, {address.state}, {address.zip}</p>
-													</div>
-												))}
-											</div>
-										)}
-										<p className="card-text">
-											<a href="#" onClick={() => handleSeeMoreClick(gig)}>Click for more details</a>
-										</p>
-										<p>
-											{gig.status === 'withdraw' ? 'You withdrew' :
-													gig.status === 'reject' ? 'Not accepted' :
-														`Status: ${gig.status}`}
-										</p>
-
-									</div>
-								</div>
+								<Col lg={4} md={6} sm={12}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} /></Col>
 							))}
 						{gigs.filter(gig => gig.status === 'withdraw' || gig.status === 'rejected').length === 0 && (
 							<div className="no-gigs-message">
 								<p>Nothing to show.</p>
 							</div>
 						)}
-					</div>
+					</Row>
 				</Tab>
 			</Tabs>
 			<ConfirmationModal

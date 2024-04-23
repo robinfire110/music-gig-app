@@ -355,13 +355,12 @@ function Account() {
     const dashboardTitle = isAdmin ? 'Admin Dashboard' : 'User Dashboard';
 
     return (
+        <Container>
         <Row>
             <Col lg={2}>
-                <Container>
                 <div>
                     <Sidebar handleLinkClick={handleLinkClick} isAdmin={isAdmin} />
                 </div>
-                </Container>
             </Col>
             <Col>
                 <Title title={"Account"} />
@@ -381,8 +380,37 @@ function Account() {
                     onConfirm={() => handleUnlistEvent(eventToUnlist)}
                 />
             </Col>
+            
         </Row>
+        </Container>
     );
+
+    /*
+    return (
+        <div className='wrapper'>
+                <Title title={"Account"} />
+                <Container className="sidebar-vertical">
+                    <Sidebar handleLinkClick={handleLinkClick} isAdmin={isAdmin} />
+                </Container>
+                <Container className='content'>
+                    {selectedContent && renderContent()}
+                </Container>
+                <ConfirmationModal
+                show={showDeleteModal}
+                handleClose={handleCloseDeleteModal}
+                message="Are you sure you want to delete this event?"
+                onConfirm={() => handleDeleteEvent(eventToDelete)}
+                />
+                <ConfirmationModal
+                    show={showUnlistModal}
+                    handleClose={handleCloseUnlistModal}
+                    message="Are you sure you want to unlist this event?"
+                    onConfirm={() => handleUnlistEvent(eventToUnlist)}
+                />
+        </div>
+    );
+    */
+
 }
 
 export default Account;
