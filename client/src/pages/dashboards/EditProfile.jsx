@@ -110,7 +110,7 @@ function EditProfile({ userData,  onUserChange }) {
 	};
 
 	return (
-		<Container style={{ maxWidth: '600px', position: 'relative' }}>
+		<div style={{ maxWidth: '600px', position: 'relative' }}>
 			<h2>{userData.f_name} {userData.l_name} Profile</h2>
 			<Form onSubmit={handleSubmit}>
 				<Col>
@@ -242,7 +242,7 @@ function EditProfile({ userData,  onUserChange }) {
 				handleClose={togglePasswordResetModal}
 				isAdmin={false}
 			/>
-		</Container>
+		</div>
 	);
 }
 

@@ -116,7 +116,7 @@ function Financials({ financials, onDeleteFinancial }) {
 
 
 	return (
-		<Container>
+		<div>
 			<Row>
 				<Col lg={4}>
 					<div className='text-start'>
@@ -212,7 +212,7 @@ function Financials({ financials, onDeleteFinancial }) {
 				message={deleteMessage}
 				onConfirm={handleConfirmDeleteFinancial}
 			/>
-		</Container>
+		</div>
 	);
 }
 

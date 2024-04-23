@@ -3,7 +3,7 @@ import {Button, Tab, Tabs} from 'react-bootstrap';
 import {useNavigate} from "react-router-dom";
 import ConfirmationModal from "./ConfirmationModal";
 
-function Gigs({ userData, gigs, onGigsChange }) {
+function Gigs({ userData, gigs, onGigsChange}) {
 	const navigate = useNavigate();
 	const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 	const [confirmationMessage, setConfirmationMessage] = useState('');
@@ -41,10 +41,9 @@ function Gigs({ userData, gigs, onGigsChange }) {
 		}
 	}
 
-
 	return (
-		<>
-			<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+		<div>
+		<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 			<h2>Your Gigs</h2>
 			<div>
 				<Button className="btn btn-dark" variant="primary" onClick={() => navigate(`/eventsearch`)}>Apply to more Gigs!</Button>
@@ -187,7 +186,7 @@ function Gigs({ userData, gigs, onGigsChange }) {
 				message={confirmationMessage}
 				onConfirm={handleConfirmation}
 			/>
-		</>
+		</div>
 	);
 }
 

@@ -124,7 +124,7 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
     //const paginatePosts = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
-        <>
+        <div>
             <Tabs defaultActiveKey="users" id="admin-actions-tabs" onSelect={() => {setCurrentPage(1)}}>
                 <Tab eventKey="users" title="Users">
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -261,7 +261,7 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
                 message={resetPassMessage}
                 onConfirm={handlePasswordResetConfirm}
             />
-        </>
+        </div>
     );
 }
 
