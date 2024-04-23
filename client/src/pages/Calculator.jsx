@@ -1007,7 +1007,7 @@ const Calculator = () => {
                                         <Form.Label>Mileage Covered (in $ per mile)</Form.Label>
                                                 <InputGroup>
                                                     <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setMileageCoveredEnabled(!mileageCoveredEnabled)}} checked={mileageCoveredEnabled}></Form.Check>
-                                                    <FormNumber id="mileageCovered" maxValue={1} value={mileageCovered} placeholder="Ex. 0.21" integer={false} disabled={!mileageCoveredEnabled} onChange={e => setMileageCovered(e.target.value)} />
+                                                    <FormNumber id="mileageCovered" maxValue={999.99} value={mileageCovered} placeholder="Ex. 0.21" integer={false} disabled={!mileageCoveredEnabled} onChange={e => setMileageCovered(e.target.value)} />
                                                     <TooltipButton text="Number of miles that will be covered by organizers. Will subtract from total mileage for final result."/>
                                                 </InputGroup>
                                         </Row>
@@ -1102,7 +1102,7 @@ const Calculator = () => {
                                             <h5 style={{display: "block"}}>÷</h5>
                                             </div>
                                         </Col>
-                                        <Col>
+                                        <Col>                      
                                             <div style={{whiteSpace: "pre-wrap", textAlign: "right", display: "block"}}>
                                                 {taxEnabled ? <h5 style={{display: "block"}}>{formatCurrency(totalTax)}</h5> : ""}
                                                 {totalMileageEnabled ? <h5 style={{display: "block"}}>{totalMileage ? formatCurrency(totalGas) : formatCurrency(0)}</h5> : ""}

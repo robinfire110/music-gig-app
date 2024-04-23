@@ -44,7 +44,7 @@ const financialSchema = Joi.object({
     practice_hours: Joi.number().min(0).max(999.9),
     travel_hours: Joi.number().min(0).max(999.9),
     total_mileage: Joi.number().min(0).max(9999.9),
-    mileage_pay: Joi.number().min(0).max(1),
+    mileage_pay: Joi.number().min(0).max(999.9),
     zip: Joi.string().pattern(/^[0-9]+$/).min(5).max(5),
     gas_price: Joi.number().min(0).max(9.99),
     mpg: Joi.number().min(0).max(99),
