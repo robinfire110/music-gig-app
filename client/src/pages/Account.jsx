@@ -340,8 +340,9 @@ function Account() {
                                  onDeleteUser={handleDeleteUser}
                                  onDeletePost={handleDeletePost}/>;
             default:
+                if (window.location.hash != "listings") window.location.hash = "listings";
             case 'listings':
-            return <Listings userData={userData} gigs={gigs}
+                return <Listings userData={userData} gigs={gigs}
                                 onDeleteEvent={handleDeleteEvent}
                                 onUnlistEvent={handleUnlistEvent}
                                 handleShowDeleteModal={handleShowDeleteModal}

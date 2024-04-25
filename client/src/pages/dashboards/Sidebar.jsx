@@ -90,13 +90,15 @@ function Sidebar({ handleLinkClick, isAdmin }) {
                     <Nav.Link eventKey="listings" style={{color: "black", textDecoration: "none"}}
                         onClick={() => handleLinkClick('listings')}
                         href="/account#listings"
-                    >Listings</Nav.Link>
+                    >Listings
+                    </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
                     <Nav.Link eventKey="applications" style={{color: "black", textDecoration: "none"}}
                         onClick={() => handleLinkClick('gigs')}
                         href="/account#applications"
-                    >Applications</Nav.Link>
+                    >Applications
+                    </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
                     <Nav.Link eventKey="financials" style={{color: "black", textDecoration: "none"}}
@@ -109,17 +111,16 @@ function Sidebar({ handleLinkClick, isAdmin }) {
                     <Nav.Link eventKey="profile" style={{color: "black", textDecoration: "none"}}
                         onClick={() => handleLinkClick('editProfile')}
                         href="/account#profile"
-                        >Profile
+                    >Profile
                     </Nav.Link>
                 </Nav.Item>
                 {isAdmin && (
                     <Nav.Item>
-                    <Nav.Link eventKey="admin" style={{color: "black", textDecoration: "none"}}
-                        onClick={() => handleLinkClick('adminActions')}
-                        href="account#admin"
-                    >
-                        Admin
-                    </Nav.Link>
+                        <Nav.Link eventKey="admin" style={{color: "black", textDecoration: "none"}}
+                            onClick={() => handleLinkClick('adminActions')}
+                            href="account#admin"
+                        >Admin
+                        </Nav.Link>
                     </Nav.Item>
                 )}
             </Nav>
