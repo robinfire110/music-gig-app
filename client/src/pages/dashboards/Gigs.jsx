@@ -56,7 +56,7 @@ function Gigs({ userData, gigs, onGigsChange}) {
 						{gigs
 							.filter(gig => gig.is_listed && gig.status === 'accept')
 							.map((gig) => (
-								<Col lg={4} md={6} sm={12}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} /></Col>
+								<Col lg={4} md={6} sm={12} key={gig.event_id}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} /></Col>
 							))}
 						{gigs.filter(gig => gig.is_listed && gig.status === 'accept').length === 0 && (
 							<div className="no-gigs-message">
@@ -72,7 +72,7 @@ function Gigs({ userData, gigs, onGigsChange}) {
 						{gigs
 							.filter(gig => gig.is_listed && gig.status === 'applied')
 							.map((gig) => (
-								<Col lg={4} md={6} sm={12}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} withdrawEnabled={true} handleWithdrawEvent={handleWithdrawEvent}/></Col>
+								<Col lg={4} md={6} sm={12} key={gig.event_id}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} withdrawEnabled={true} handleWithdrawEvent={handleWithdrawEvent}/></Col>
 							))}
 						{gigs.filter(gig => gig.is_listed && gig.status === 'applied').length === 0 && (
 							<div className="no-gigs-message">
@@ -87,7 +87,7 @@ function Gigs({ userData, gigs, onGigsChange}) {
 						{gigs
 							.filter(gig => gig.status === 'withdraw' || gig.status === 'rejected')
 							.map((gig) => (
-								<Col lg={4} md={6} sm={12}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} /></Col>
+								<Col lg={4} md={6} sm={12} key={gig.event_id}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} /></Col>
 							))}
 						{gigs.filter(gig => gig.status === 'withdraw' || gig.status === 'rejected').length === 0 && (
 							<div className="no-gigs-message">

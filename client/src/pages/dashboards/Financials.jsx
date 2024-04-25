@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Col, Container, Form, Row, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { saveSpreadsheetAll } from '../../Utils';
+import { getTotalFinHours, saveSpreadsheetAll } from '../../Utils';
 import ConfirmationModal from './ConfirmationModal';
 import { PaginationControl } from 'react-bootstrap-pagination-control';
 import moment from 'moment';
@@ -118,7 +118,7 @@ function Financials({ financials, onDeleteFinancial }) {
 	return (
 		<div>
 			<Row>
-				<Col lg={4} sm={12}>
+				<Col lg={4} sm={12} xs={12}>
 					<div className='text-start'>
 						<h2>Financials</h2>
 						<br />
@@ -126,10 +126,10 @@ function Financials({ financials, onDeleteFinancial }) {
 					</div>
 				</Col>
 				<Col>
-					<Row className="button-container text-lg-end text-md-start text-sm-start text-xs-start">
-						<Col xl={6} lg={5} md={4} xs={12}><Button className="btn btn-dark mb-1" variant="primary" onClick={handleCreateNewCalc}>Create New Financial</Button></Col>
-						<Col><Button className="mb-1" variant="success mr-2" onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export Selected to Spreadsheet</Button></Col>
-					</Row>
+					<div className="text-lg-end text-md-start text-sm-start text-xs-start" style={{textAlign: "left"}}>
+						<Button className="my-1 me-2 btn btn-dark" variant="primary" onClick={handleCreateNewCalc}>Create New Financial</Button>
+						<Button className="my-2" variant="success" onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export Selected to Spreadsheet</Button>
+					</div>
 				</Col>
 			</Row>
 			<Row style={{ marginTop: '20px', marginBottom: '10px', width: '100%'}}>
@@ -164,9 +164,9 @@ function Financials({ financials, onDeleteFinancial }) {
 				<tr>
 					<th>Select</th>
 					<th>Date</th>
-					<th>Event Hours</th>
-					<th>Calculation</th>
-					<th>Total Wage</th>
+					<th>Name</th>
+					<th>Total Hours</th>
+					<th>Hourly Wage</th>
 					<th>Action</th>
 				</tr>
 				</thead>
@@ -175,9 +175,9 @@ function Financials({ financials, onDeleteFinancial }) {
 					<tr key={index} style={{ cursor: 'pointer' }}>
 						<td onClick={() => handleRowSelect(index)}><input type="checkbox" checked={selectedRows.includes(index)} onChange={() => handleRowSelect(index)} /></td>
 						<td onClick={() => handleRowClick(financial)}>{moment(financial.date).format("M/DD/YYYY")}</td>
-						<td onClick={() => handleRowClick(financial)}>{financial.event_hours}</td>
 						<td onClick={() => handleRowClick(financial)}>{financial.fin_name}</td>
-						<td onClick={() => handleRowClick(financial)}>${financial.total_wage}</td>
+						<td onClick={() => handleRowClick(financial)}>{getTotalFinHours(financial).toFixed(2)}</td>
+						<td onClick={() => handleRowClick(financial)}>${financial.hourly_wage.toFixed(2)}</td>
 						<td>
 							<Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeleteFinancial(financial); }}>Delete</Button>
 						</td>
@@ -195,7 +195,7 @@ function Financials({ financials, onDeleteFinancial }) {
 					<PaginationControl page={currentPage} total={filteredFinancials.length} limit={financialsPerPage} changePage={(page) => {setCurrentPage(page)}} ellipsis={1}/>
 				</Col>
 				<Col lg={1} sm={1} xs={1}>
-					<Form.Select className="float-right" value={financialsPerPage} style={{width: "5rem", float: "right"}} onChange={(e) => {setFinancialsPerPage(e.target.value); resetRowSelect();}}>
+					<Form.Select className="float-right" value={financialsPerPage} style={{width: "5rem", float: "right"}} onChange={(e) => {setFinancialsPerPage(e.target.value); setCurrentPage(1); resetRowSelect();}}>
 						<option value={10}>10</option>
 						<option value={25}>25</option>
 						<option value={50}>50</option>

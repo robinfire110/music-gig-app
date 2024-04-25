@@ -128,6 +128,10 @@ function Account() {
 
 
     const handleLinkClick = (content) => {
+        //Filter
+        if (content === "admin") content = "adminActions";
+        if (content === "profile") content = "editProfile";
+        if (content === "applications") content = "gigs";
         setSelectedContent(content);
     };
 
@@ -314,17 +318,7 @@ function Account() {
     
 
     const renderContent = () => {
-        switch(selectedContent) {
-            case 'listings':
-                return <Listings userData={userData} gigs={gigs}
-                                 onDeleteEvent={handleDeleteEvent}
-                                 onUnlistEvent={handleUnlistEvent}
-                                 handleShowDeleteModal={handleShowDeleteModal}
-                                 handleCloseDeleteModal={handleCloseDeleteModal}
-                                 handleShowUnlistModal={handleShowUnlistModal}
-                                 handleCloseUnlistModal={handleCloseUnlistModal}
-                                 />;
-                                        
+        switch(selectedContent) {       
             case 'editProfile':
                 return <EditProfile userData={userData}
                                     onUserChange={setUserData} />
@@ -345,6 +339,17 @@ function Account() {
                                  onDemoteUser={handleDemoteUser}
                                  onDeleteUser={handleDeleteUser}
                                  onDeletePost={handleDeletePost}/>;
+            default:
+                if (window.location.hash != "listings") window.location.hash = "listings";
+            case 'listings':
+                return <Listings userData={userData} gigs={gigs}
+                                onDeleteEvent={handleDeleteEvent}
+                                onUnlistEvent={handleUnlistEvent}
+                                handleShowDeleteModal={handleShowDeleteModal}
+                                handleCloseDeleteModal={handleCloseDeleteModal}
+                                handleShowUnlistModal={handleShowUnlistModal}
+                                handleCloseUnlistModal={handleCloseUnlistModal}
+                                />;
         }
     };
 
@@ -384,33 +389,6 @@ function Account() {
         </Row>
         </Container>
     );
-
-    /*
-    return (
-        <div className='wrapper'>
-                <Title title={"Account"} />
-                <Container className="sidebar-vertical">
-                    <Sidebar handleLinkClick={handleLinkClick} isAdmin={isAdmin} />
-                </Container>
-                <Container className='content'>
-                    {selectedContent && renderContent()}
-                </Container>
-                <ConfirmationModal
-                show={showDeleteModal}
-                handleClose={handleCloseDeleteModal}
-                message="Are you sure you want to delete this event?"
-                onConfirm={() => handleDeleteEvent(eventToDelete)}
-                />
-                <ConfirmationModal
-                    show={showUnlistModal}
-                    handleClose={handleCloseUnlistModal}
-                    message="Are you sure you want to unlist this event?"
-                    onConfirm={() => handleUnlistEvent(eventToUnlist)}
-                />
-        </div>
-    );
-    */
-
 }
 
 export default Account;
