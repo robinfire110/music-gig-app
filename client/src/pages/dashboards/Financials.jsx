@@ -118,7 +118,7 @@ function Financials({ financials, onDeleteFinancial }) {
 	return (
 		<div>
 			<Row>
-				<Col lg={4} sm={12}>
+				<Col lg={4} sm={12} xs={12}>
 					<div className='text-start'>
 						<h2>Financials</h2>
 						<br />
@@ -126,10 +126,10 @@ function Financials({ financials, onDeleteFinancial }) {
 					</div>
 				</Col>
 				<Col>
-					<Row className="button-container text-lg-end text-md-start text-sm-start text-xs-start">
-						<Col xl={6} lg={5} md={4} xs={12}><Button className="btn btn-dark mb-1" variant="primary" onClick={handleCreateNewCalc}>Create New Financial</Button></Col>
-						<Col><Button className="mb-1" variant="success mr-2" onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export Selected to Spreadsheet</Button></Col>
-					</Row>
+					<div className="text-lg-end text-md-start text-sm-start text-xs-start" style={{textAlign: "left"}}>
+						<Button className="my-1 me-2 btn btn-dark" variant="primary" onClick={handleCreateNewCalc}>Create New Financial</Button>
+						<Button className="my-2" variant="success" onClick={handleExportAllToSpreadsheet} disabled={selectedRows.length === 0}>Export Selected to Spreadsheet</Button>
+					</div>
 				</Col>
 			</Row>
 			<Row style={{ marginTop: '20px', marginBottom: '10px', width: '100%'}}>

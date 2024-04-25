@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Form, Button, Container, Col, Row} from 'react-bootstrap';
+import {Form, Button, Container, Col, Row, InputGroup} from 'react-bootstrap';
 import {toast, ToastContainer} from 'react-toastify';
 import axios from 'axios';
 import {getBackendURL, maxBioLength, maxFNameLength, maxLNameLength} from "../../Utils";
@@ -111,11 +111,13 @@ function EditProfile({ userData,  onUserChange }) {
 
 	return (
 		<div style={{ maxWidth: '600px', margin: "auto" }}>
-			<h2>{userData.f_name} {userData.l_name} Profile</h2>
+			<h2>{userData?.f_name} {userData?.l_name} Profile</h2>
+			<br />
+			<br />
 			<Form onSubmit={handleSubmit}>
 				<Col>
 					<Row>
-						<Col>
+						<Col lg={6} sm={12}>
 							<Form.Group className="text-start mb-3" controlId="formBasicEmail">
 								<Form.Label>Email Address<span style={{color: "red"}}>*</span></Form.Label>
 								<Form.Control
@@ -128,12 +130,9 @@ function EditProfile({ userData,  onUserChange }) {
 								/>
 							</Form.Group>
 						</Col>
-					</Row>
-
-					<Row>
-						<Col>
-							<Form.Group className="text-start mb-3" controlId="formBasicPassword">
-								<Form.Label>Password<span style={{color: "red"}}>*</span></Form.Label>
+						<Col className="text-start mb-3">
+							<Form.Label>Password<span style={{color: "red"}}>*</span></Form.Label>
+							<InputGroup controlId="formBasicPassword">
 								<Form.Control
 									type="password"
 									placeholder="Password"
@@ -145,18 +144,11 @@ function EditProfile({ userData,  onUserChange }) {
 								<Button className="btn btn-dark" variant="secondary" onClick={togglePasswordResetModal}>
 								Update Password
 								</Button>
-							</Form.Group>
-						</Col>
-						<Col lg={4} className='text-start'>
-							<Form.Group className="text-start mb-3" controlId="formBasicPassword">
-								
-							</Form.Group>
-							
+							</InputGroup>
 						</Col>
 					</Row>
-
 					<Row>
-						<Col>
+						<Col lg={6} sm={6} xs={12}>
 							<Form.Group className="text-start mb-3" controlId="formBasicName">
 								<Form.Label>First Name<span style={{color: "red"}}>*</span></Form.Label>
 								<Form.Control

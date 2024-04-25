@@ -731,7 +731,7 @@ const Calculator = () => {
         if (userData)
         {
             const financials = userData.Financials.map((fin, index) =>
-                <Row className="my-1 py-1 align-middle" style={{backgroundColor: `rgba(100,100,100,${.15+(index % 2 * .15)}`, borderRadius: "3px", verticalAlign: "middle"}} key={fin.fin_id}>
+                <Row className="my-1 py-1 align-text-middle" style={{backgroundColor: `rgba(100,100,100,${.15+(index % 2 * .15)}`, borderRadius: "3px", verticalAlign: "middle"}} key={fin.fin_id}>
                     <Col><h6>{fin.fin_name}</h6></Col>
                     <Col lg={3} md={3} sm={3} xs={3}><Button variant="secondary" size="sm" disabled={isEvent ? fin.event_id==finId : fin.fin_id==finId} href={fin.event_id ? `/calculator/${fin.event_id}?event=true` : `/calculator/${fin.fin_id}`}>Load</Button></Col>
                 </Row>
@@ -1123,25 +1123,24 @@ const Calculator = () => {
                         <br />
                         <Row>
                         <Row>
-
-                                {user && <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={!user}>{saveStatus ? <BarLoader color="#FFFFFF" height={4} width={50} /> : user && ((!isEvent && paramId) || (isEvent && !isNewEvent)) ? "Update" : "Save"}</Button></Col>}
-                                {!user && <Col lg={3} md={2} sm={3} xs={3}><OverlayTrigger placement="bottom" overlay={<Popover id="popover-trigger-hover-focus" title="Tool Tip" style={{padding: "10px"}}><div dangerouslySetInnerHTML={{__html: "You must be logged in to save."}}/></Popover>}><div><Button type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={!user}>Save</Button></div></OverlayTrigger></Col>}
-                                <Col lg={3} md={2} sm={3} xs={3}><Button type="submit" variant="secondary" onClick={() => {saveFinancial(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Export</Button></Col>
-                                {isEvent ? <Col lg={5} md={5} sm={5} xs={5}><Button variant="secondary" onClick={() => {loadEventData(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Reload Data</Button></Col> : ""}
+                            <div>
+                                {user && <Button className="me-3" type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={!user}>{saveStatus ? <BarLoader color="#FFFFFF" height={4} width={50} /> : user && ((!isEvent && paramId) || (isEvent && !isNewEvent)) ? "Update" : "Save"}</Button>}
+                                {!user && <OverlayTrigger placement="bottom" overlay={<Popover id="popover-trigger-hover-focus" title="Tool Tip" style={{padding: "10px"}}><div dangerouslySetInnerHTML={{__html: "You must be logged in to save."}}/></Popover>}><div><Button type="submit" variant="success" onClick={() => {saveFinancial(false)}} style={{paddingLeft: "10px", paddingRight: "10px"}} disabled={!user}>Save</Button></div></OverlayTrigger>}
+                                <Button className="me-3" type="submit" variant="secondary" onClick={() => {saveFinancial(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Export</Button>
+                                {isEvent ? <Button variant="secondary" onClick={() => {loadEventData(true)}} style={{paddingLeft: "10px", paddingRight: "10px"}}>Reload Data</Button> : ""}
+                            </div>
                             </Row>
                         </Row>
                             {user && <Row className="mt-4">
                                 <Col><h4>Saved Financials</h4></Col>
                                 </Row>}
-                        <Row>
-                            
+                            <Row>
                                 <Col style={{maxHeight: "300px", overflowY: "auto", overflowX: "hidden"}}>
                                 <Container>
                                         {userFinancials}
                                 </Container>
                                 </Col>
-                            
-                        </Row>   
+                            </Row>   
                         </Container>
                     </Col>
                 </Row>
