@@ -100,7 +100,18 @@ async function sendEmail(to, subject, text=null, html=null)
     await axios.post(`${getBackendURL()}/api/email`, data);
 }
 
-
+//Get fin total
+function getTotalFinHours(fin)
+{
+    let event_num = Math.max(fin.event_num, 1);
+    let multiplyGigHours = fin.multiply_hours == 1 ? event_num : 1;
+    let multiplyTravel = fin.multiply_travel == 1 ? event_num : 1;
+    let multiplyPractice = fin.multiply_practice == 1 ? event_num : 1;
+    let multiplyRehearsal = fin.multiply_rehearsal == 1 ? event_num : 1;
+    let totalHours = (fin.event_hours*multiplyGigHours) + (fin.practice_hours*multiplyPractice) + (fin.rehearse_hours*multiplyRehearsal) + (fin.travel_hours*multiplyTravel*(fin.round_trip == 1 ? 2 : 1));
+    console.log(fin.event_hours*multiplyGigHours);
+    return totalHours;
+}
 
 //Save all financials for user
 async function saveSpreadsheetAll(data, filename = 'Harmonize_Export')
@@ -156,7 +167,7 @@ async function saveSpreadsheetAll(data, filename = 'Harmonize_Export')
         let totalPay = fin.total_wage * multiplyPay;
         let taxCut = totalPay * (fin.tax * .01);
         let travelCosts = fin.total_mileage*(gasPerMile-fin.mileage_pay)*multiplyTravel*(isRoundTrip ? 2 : 1);
-        let totalHours = (fin.event_hours*fin.event_num) + (fin.practice_hours*multiplyPractice) + (fin.rehearse_hours*multiplyRehearsal) + (fin.travel_hours*multiplyTravel*(isRoundTrip ? 2 : 1));
+        let totalHours = getTotalFinHours(fin);
 
         //Set Formulas
         worksheet.getCell(`L${rowCount}`).value = {formula: `IFERROR(J${rowCount}/K${rowCount}, 0)`}; //Gas Price Per Mile
@@ -194,4 +205,4 @@ async function saveSpreadsheetAll(data, filename = 'Harmonize_Export')
     saveAs(new Blob([buf]), `${filename}.xlsx`);
 }
 
-module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, getEventOwner, autoSizeColumn, sendEmail, maxDescriptionLength, maxFNameLength, maxLNameLength, maxBioLength, maxEventNameLength, maxFinancialNameLength, statesList, toastSuccess, toastError, toastInfo, saveSpreadsheetAll};
+module.exports = {formatCurrency, metersToMiles, parseFloatZero, parseIntZero, parseStringUndefined, getBackendURL, getEventOwner, autoSizeColumn, sendEmail, getTotalFinHours, maxDescriptionLength, maxFNameLength, maxLNameLength, maxBioLength, maxEventNameLength, maxFinancialNameLength, statesList, toastSuccess, toastError, toastInfo, saveSpreadsheetAll};

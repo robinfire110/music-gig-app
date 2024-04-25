@@ -17,7 +17,6 @@ function Sidebar({ handleLinkClick, isAdmin }) {
         //Redirect to correct one
         if (currentTab)
         {
-            console.log(currentTab);
             handleLinkClick(currentTab);
         }
 

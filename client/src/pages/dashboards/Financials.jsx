@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Col, Container, Form, Row, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { saveSpreadsheetAll } from '../../Utils';
+import { getTotalFinHours, saveSpreadsheetAll } from '../../Utils';
 import ConfirmationModal from './ConfirmationModal';
 import { PaginationControl } from 'react-bootstrap-pagination-control';
 import moment from 'moment';
@@ -164,9 +164,9 @@ function Financials({ financials, onDeleteFinancial }) {
 				<tr>
 					<th>Select</th>
 					<th>Date</th>
-					<th>Event Hours</th>
-					<th>Calculation</th>
-					<th>Total Wage</th>
+					<th>Name</th>
+					<th>Total Hours</th>
+					<th>Hourly Wage</th>
 					<th>Action</th>
 				</tr>
 				</thead>
@@ -175,9 +175,9 @@ function Financials({ financials, onDeleteFinancial }) {
 					<tr key={index} style={{ cursor: 'pointer' }}>
 						<td onClick={() => handleRowSelect(index)}><input type="checkbox" checked={selectedRows.includes(index)} onChange={() => handleRowSelect(index)} /></td>
 						<td onClick={() => handleRowClick(financial)}>{moment(financial.date).format("M/DD/YYYY")}</td>
-						<td onClick={() => handleRowClick(financial)}>{financial.event_hours}</td>
 						<td onClick={() => handleRowClick(financial)}>{financial.fin_name}</td>
-						<td onClick={() => handleRowClick(financial)}>${financial.total_wage}</td>
+						<td onClick={() => handleRowClick(financial)}>{getTotalFinHours(financial).toFixed(2)}</td>
+						<td onClick={() => handleRowClick(financial)}>${financial.hourly_wage.toFixed(2)}</td>
 						<td>
 							<Button variant="danger" style={{ marginRight: '5px' }} onClick={(e) => { e.stopPropagation(); handleDeleteFinancial(financial); }}>Delete</Button>
 						</td>
