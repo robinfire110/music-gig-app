@@ -45,17 +45,15 @@ const PasswordResetModal = ({ show, handleClose, onConfirm }) => {
 				<Modal.Title>Update Password</Modal.Title>
 			</Modal.Header>
 			<Modal.Body>
-				<Form.Group controlId="formOldPassword">
+				<Form.Group className="mb-3" controlId="formOldPassword">
 					<Form.Label>Old Password</Form.Label>
 					<Form.Control type="password" placeholder="Enter old password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} />
 				</Form.Group>
-
-				<Form.Group controlId="formNewPassword">
+				<Form.Group className="mb-3" controlId="formNewPassword">
 					<Form.Label>New Password</Form.Label>
 					<Form.Control type="password" placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
 				</Form.Group>
-
-				<Form.Group controlId="formNewPasswordCheck">
+				<Form.Group className="mb-3" controlId="formNewPasswordCheck">
 					<Form.Label>Confirm New Password</Form.Label>
 					<Form.Control type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
 				</Form.Group>
