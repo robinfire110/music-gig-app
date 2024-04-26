@@ -832,7 +832,7 @@ const Calculator = () => {
                                                 <Form.Check type="switch" style={{marginTop: "5px", paddingLeft: "35px"}} onChange={() => {setGigNumEnabled(!gigNumEnabled)}} checked={gigNumEnabled}></Form.Check>
                                                 <FormNumber id="gigNum" max={2} value={gigNum || ""} placeholder="Ex. 1" disabled={!gigNumEnabled} onChange={e => setGigNum(e.target.value)} />
                                                 <Button variant='light' disabled={!gigNumEnabled} onClick={() => {setGigNumModalOpen(!gigNumModalOpen)}}>Options</Button>
-                                                <TooltipButton text='Number of gigs. Used if you have multiple of the same gig or service. Will multiply <i>Pay per gig</i>, <i>Hours per gig</i> and any activated fields in the options.'/>
+                                                <TooltipButton text='Number of gigs. Used if you have multiple of the same gig or service. Will multiply any activated fields in the options by number of gigs.'/>
                                             </InputGroup>
                                             <Modal show={gigNumModalOpen} onHide={() => {setGigNumModalOpen(false);}} centered={true}>
                                                     <Modal.Header closeButton>
