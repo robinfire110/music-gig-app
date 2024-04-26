@@ -29,6 +29,9 @@ function AdminActions({  userData, postData, onPasswordReset, onPromoteUser, onD
     }, [userData]);
 
     useEffect(() => {
+        //Set page
+        setCurrentPage(1);
+
         const filtered = userData.filter(user =>
             user.f_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.l_name.toLowerCase().includes(searchQuery.toLowerCase()) ||

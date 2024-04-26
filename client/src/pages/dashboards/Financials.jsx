@@ -27,6 +27,9 @@ function Financials({ financials, onDeleteFinancial }) {
 		//Update end date
 		if (endDate && startDate > endDate) setEndDate(startDate);
 
+		//Set page
+		setCurrentPage(1);
+
 		//Filter results
 		const filtered = financials.filter(financial => {
 			let search = financial.fin_name.toLowerCase().includes(searchQuery.toLowerCase());
