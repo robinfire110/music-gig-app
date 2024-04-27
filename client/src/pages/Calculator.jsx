@@ -900,7 +900,7 @@ const Calculator = () => {
                                                             <Modal.Title>Calculate Mileage by Location</Modal.Title>
                                                         </Modal.Header>
                                                         <Modal.Body>
-                                                            <p>Input origin and destination zip codes to calculate milage and distance using Google Maps.</p>
+                                                            <p>Input origin and destination zip codes to calculate mileage and distance using Google Maps.</p>
                                                             {zipCodeError ? <Alert variant="danger" dismissible>An error occured, please ensure zip codes are correct</Alert> : ""}
                                                             <InputGroup className="mb-2">
                                                                 <InputGroup.Text>Origin Zip</InputGroup.Text>
