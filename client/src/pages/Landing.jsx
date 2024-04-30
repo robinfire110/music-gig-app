@@ -103,16 +103,16 @@ function Landing() {
                                                     setIsLoading(false);
                                                 })
                                             }
-                                            else setGetRecent(true);
+                                            else { setGetRecent(true); alert("I tried 4") }
                                         }
-                                        else setGetRecent(true);
+                                        else { setGetRecent(true); alert("I tried 3") }
                                     })
                                 }
-                                else setGetRecent(true);
+                                else { setGetRecent(true); alert("I tried 2") }
                             }
                         })              
                     }
-                    else setGetRecent(true);
+                    else{ setGetRecent(true); alert("I tried 1") }
                 });   
             }
             catch (error)
