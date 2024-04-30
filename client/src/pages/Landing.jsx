@@ -38,11 +38,13 @@ function Landing() {
                     if (res.data?.user)
                     {
                         //Get user data
-                        axios.get(`${getBackendURL()}/user/id/${res.data?.user?.user_id}`, { withCredentials: true }).then(async res => {
+                        axios.get(`${getBackendURL()}/user/id/${res.data?.user.user_id}`, { withCredentials: true }).then(async res => {
                             const userData = res.data;
                             if (userData)
                             {
+                                
                                 setUser(userData);
+
                                 //Set user events
                                 const userEventList = [];
                                 userData.Events.forEach(event => {
@@ -66,7 +68,6 @@ function Landing() {
                                     axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${30}`).then(res => {
                                         //Filter out our events
                                         const data = res.data;
-                                        console.log(data);
                                         if (data && data?.length > 0)
                                         {
                                             const instrumentEventSearch = data.filter(event => {
@@ -104,16 +105,16 @@ function Landing() {
                                                     setIsLoading(false);
                                                 })
                                             }
-                                            else { setGetRecent(true); alert("I tried 4") }
+                                            else setGetRecent(true);
                                         }
-                                        else { setGetRecent(true); alert("I tried 3") }
+                                        else setGetRecent(true);
                                     })
                                 }
-                                else { setGetRecent(true); alert("I tried 2") }
+                                else setGetRecent(true);
                             }
                         })              
                     }
-                    else{ setGetRecent(true); alert("I tried 1") }
+                    else setGetRecent(true);
                 });   
             }
             catch (error)
