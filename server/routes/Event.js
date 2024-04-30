@@ -75,7 +75,7 @@ router.get("/id/:id", checkUserOptional, async (req, res) => {
 //?sort=true (allows to return sorted by date posted)
 //?limit=# (limit the result number)
 //?exclude_user=# (exclude events from user of id provided)
-router.get("/instrument/:id", checkUserOptional, async (req, res) => {
+router.get("/instrument/:id", async (req, res) => {
     try {
         const id = req.params.id.split("|");
         const isSorted = req.query.sort; //Sort by date posted
@@ -93,11 +93,6 @@ router.get("/instrument/:id", checkUserOptional, async (req, res) => {
         let event = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, userWhere], where: {is_listed: true}, order: sortOrder, limit: sequelize.literal(limit)});
         console.log(id);
         console.log(event);
-        //Check user (if owner, give full data)
-        if (req.user && ((event?.Users?.length > 0 && req.user.user_id == event?.Users[0].user_id) || req.user.isAdmin == 1))
-        {
-            event = await db.Event.findAll({where: {event_id: id}, include: [db.Instrument, db.Address, {model: db.User, attributes: {exclude: ['password', 'isAdmin']}}]});
-        }
         res.json(event);
     } catch (error) {
         res.status(500).send(error.message);
