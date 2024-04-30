@@ -91,7 +91,8 @@ router.get("/instrument/:id", checkUserOptional, async (req, res) => {
         
         //Search
         let event = await db.Event.findAll({include: [{model: db.Instrument, where: {[Op.or]: {instrument_id: id}}}, db.Address, userWhere], where: {is_listed: true}, order: sortOrder, limit: sequelize.literal(limit)});
-        
+        console.log(id);
+        console.log(event);
         //Check user (if owner, give full data)
         if (req.user && ((event?.Users?.length > 0 && req.user.user_id == event?.Users[0].user_id) || req.user.isAdmin == 1))
         {
