@@ -66,6 +66,7 @@ function Landing() {
                                     axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${30}`).then(res => {
                                         //Filter out our events
                                         const data = res.data;
+                                        console.log(data);
                                         if (data && data?.length > 0)
                                         {
                                             const instrumentEventSearch = data.filter(event => {
