@@ -7,6 +7,8 @@ function EventHorizontalScroll({data, persistantArrows=false}) {
     const [isScrolling, setIsScrolling] = useState(false);
     const [isOverflow, setIsOverflow] = useState(false);
     const [deviceType, setDeviceType] = useState("browser");
+    const [arrowColor, setArrowColor] = useState({right: "blue", left: "disabled"})
+
 
     //Use effect
     useEffect(() => {
@@ -22,18 +24,31 @@ function EventHorizontalScroll({data, persistantArrows=false}) {
     {
         if (!isScrolling)
         {
-            const scrollAmount = 500;
+            const scrollAmount = 550;
             setIsScrolling(true);
             if (navRef)
             {
-                if (dir == "left") navRef.current.scrollLeft -= scrollAmount;
-                else navRef.current.scrollLeft += scrollAmount;
-            }
+                //Check for max
+                const maxScrollRight = navRef.current.scrollWidth - navRef.current.clientWidth;
+                const minScrollLeft = 0;
+                setArrowColor({right: "blue", left: "blue"});
 
-            //Reset is scrolling
-            setTimeout(() => {
-                setIsScrolling(false);
-            }, 300);
+                if (dir == "left")
+                {
+                    if (navRef.current.scrollLeft - scrollAmount <= minScrollLeft) setArrowColor({right: "blue", left: "disabled"});
+                    navRef.current.scrollLeft -= scrollAmount;
+                } 
+                else
+                {
+                    if (navRef.current.scrollLeft + scrollAmount >= maxScrollRight) setArrowColor({right: "disabled", left: "blue"});
+                    navRef.current.scrollLeft += scrollAmount;
+                } 
+
+                //Reset is scrolling
+                setTimeout(() => {
+                    setIsScrolling(false);
+                }, 325);
+            }
         }
     }
     
@@ -62,14 +77,14 @@ function EventHorizontalScroll({data, persistantArrows=false}) {
         {
             return (
                 <>
-                <HorizontalScrollButton dir="left" visible={isOverflow} onClick={() => handleNav("left")} persistantArrows={persistantArrows}/>
+                <HorizontalScrollButton dir="left" visible={isOverflow} onClick={() => handleNav("left")} persistantArrows={persistantArrows} color={arrowColor.left}/>
                 <div style={{display: "flex", flexWrap: "nowrap", overflowX: "hidden", WebkitOverflowScrolling: "touch", scrollBehavior: "smooth"}} ref={navRef}>
                     {data && data.map(event => {
                         return (<Col key={event.event_id} style={{flex: "0 0 auto"}}><EventCard eventId={event.event_id}/></Col>)
                     })
                     }
                 </div>
-                <HorizontalScrollButton dir="right" visible={isOverflow} onClick={() => handleNav("right")} persistantArrows={persistantArrows}/>
+                <HorizontalScrollButton dir="right" visible={isOverflow} onClick={() => handleNav("right")} persistantArrows={persistantArrows} color={arrowColor.right}/>
                 </>
             );
         }

@@ -1,40 +1,80 @@
 import React, { useState, useEffect } from 'react';
-import {Form, Button, Container} from 'react-bootstrap';
+import {Form, Button, Container, Col, Row, InputGroup} from 'react-bootstrap';
 import {toast, ToastContainer} from 'react-toastify';
 import axios from 'axios';
-import {getBackendURL} from "../../Utils";
+import {getBackendURL, maxBioLength, maxFNameLength, maxLNameLength} from "../../Utils";
+import UserPasswordResetModal from "../dashboards/UserPasswordResetModal";
+import Select from "react-select";
+import FormNumber from '../../components/FormNumber';
 
-function EditProfile({ userData }) {
-	console.log(userData);
+function EditProfile({ userData,  onUserChange }) {
 	const [formData, setFormData] = useState({
 		email: '',
 		password: '',
 		f_name: '',
 		l_name: '',
 		zip: '',
-		instruments: '',
+		instruments: [],
 		bio: ''
-
 	});
+	const [bioLength, setBioLength] = useState(maxBioLength);
+
+	const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
+	const [instruments, setInstruments] = useState([])
+	const [selectedInstruments, setSelectedInstruments] = useState([])
 
 	const generateError = (err) => toast.error(err, {
 		position: "bottom-right",
 	})
 
 	useEffect(() => {
+		axios.get(`${getBackendURL()}/instrument/`).then(async (res) => {
+			setInstruments(res.data);
+		}).catch(error => {
+			console.error(error);
+		});
+	}, []);
+
+	useEffect(() => {
 		if (userData) {
 			setFormData(prevFormData => ({
 				...prevFormData,
 				email: userData.email || '',
-				password: userData.password || '',
+				password: '', //For now, it's better to have this empty than the giant hash.
 				f_name: userData.f_name || '',
 				l_name: userData.l_name || '',
 				zip: userData.zip || '',
-				instruments: userData.instruments || '',
+				instruments: userData.Instruments || [],
 				bio: userData.bio || ''
 			}));
+			
+			//Set instruments
+			const instrumentList = [];
+			userData.Instruments.forEach(instrument => {
+				instrumentList.push({ value: instrument.instrument_id, label: instrument.name });
+			});
+			if (instrumentList.length > 0) setSelectedInstruments(instrumentList);
 		}
 	}, [userData]);
+
+	useEffect(() => {
+		//Update bio length
+		const bioBox = document.getElementById("bio");
+		if (bioBox)
+		{
+			setBioLength(maxBioLength-bioBox.value.length);
+		} 
+	}, [formData]);
+
+	const configureInstrumentList = (data) => {
+		const instrumentOptionList = [];
+		data.forEach(instrument => {
+			instrumentOptionList.push({ value: instrument.instrument_id, label: instrument.name });
+		});
+		console.log("InstrumetnOptionList")
+		console.log(instrumentOptionList)
+		return instrumentOptionList;
+	}
 
 
 	const handleChange = (e) => {
@@ -44,120 +84,160 @@ function EditProfile({ userData }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		console.log(userData);
+		console.log("Selected instrument IDs:", selectedInstruments.map(instrument => instrument.value));
 		try {
-			const response = await axios.post(`${getBackendURL()}/update_user`, formData, {
+			const response = await axios.post(`${getBackendURL()}/account/update_user`, {
+				...formData,
+				instruments: selectedInstruments.map(instrument => instrument.value)
+			}, {
 				withCredentials: true
 			});
 			if (response.data.success) {
-				toast.success('Profile updated successfully');
-				window.location.reload()
+				onUserChange(userData);
+				toast.success('Profile updated successfully' , { theme: 'dark' });
 			} else {
-				toast.error('Failed to update profile');
+				toast.error('Failed to update profile', { theme: 'dark' });
 			}
 		} catch (error) {
 			console.error('Error updating profile:', error);
 			toast.error('Failed to update profile');
 		}
 	};
-	const handleGoBackToDashboard = () => {
-		window.location.reload();
+
+	const togglePasswordResetModal = () => {
+		setShowPasswordResetModal(!showPasswordResetModal);
 	};
 
-
 	return (
-
-		<Container style={{ maxWidth: '600px', position: 'relative' }}>
-			<div style={{ position: 'absolute', left: '0', top: '0' }}>
-				<Button variant="link" onClick={handleGoBackToDashboard} style={{ textDecoration: 'underline' }}>Go back to Dashboard</Button>
-			</div>
-			<h2>{formData.f_name}'s Profile</h2>
+		<div style={{ maxWidth: '600px', margin: "auto" }}>
+			<h2>{userData?.f_name} {userData?.l_name} Profile</h2>
+			<br />
+			<br />
 			<Form onSubmit={handleSubmit}>
-				<Form.Group className="mb-3" controlId="formBasicEmail">
-					<Form.Label>Email address</Form.Label>
-					<Form.Control
-						type="email"
-						placeholder="Enter email"
-						name="email"
-						value={formData.email}
-						onChange={handleChange}
-						disabled
-					/>
-				</Form.Group>
+				<Col>
+					<Row>
+						<Col lg={6} sm={12}>
+							<Form.Group className="text-start mb-3" controlId="formBasicEmail">
+								<Form.Label>Email Address<span style={{color: "red"}}>*</span></Form.Label>
+								<Form.Control
+									type="email"
+									placeholder="Enter email"
+									name="email"
+									value={formData.email}
+									onChange={handleChange}
+									required
+								/>
+							</Form.Group>
+						</Col>
+						<Col className="text-start mb-3">
+							<Form.Label>Password<span style={{color: "red"}}>*</span></Form.Label>
+							<InputGroup controlId="formBasicPassword">
+								<Form.Control
+									type="password"
+									placeholder="Password"
+									name="password"
+									value={"greatpassword"}
+									onChange={handleChange}
+									disabled={true}
+								/>
+								<Button className="btn btn-dark" variant="secondary" onClick={togglePasswordResetModal}>
+								Update Password
+								</Button>
+							</InputGroup>
+						</Col>
+					</Row>
+					<Row>
+						<Col lg={6} sm={6} xs={12}>
+							<Form.Group className="text-start mb-3" controlId="formBasicName">
+								<Form.Label>First Name<span style={{color: "red"}}>*</span></Form.Label>
+								<Form.Control
+									type="text"
+									placeholder="Enter your name"
+									name="f_name"
+									value={formData.f_name}
+									maxLength={maxFNameLength}
+									onChange={handleChange}
+									required
+								/>
+							</Form.Group>
+						</Col>
+						<Col>
+							<Form.Group className="text-start mb-3" controlId="formBasicLastName">
+								<Form.Label>Last Name<span style={{color: "red"}}>*</span></Form.Label>
+								<Form.Control
+									type="text"
+									placeholder="Enter your last name"
+									name="l_name"
+									value={formData.l_name}
+									maxLength={maxLNameLength}
+									onChange={handleChange}
+									required
+								/>
+							</Form.Group>
+						</Col>
+					</Row>
 
-				<Form.Group className="mb-3" controlId="formBasicPassword">
-					<Form.Label>Password</Form.Label>
-					<Form.Control
-						type="password"
-						placeholder="Password"
-						name="password"
-						value={formData.password}
-						onChange={handleChange}
-						disabled
-					/>
-				</Form.Group>
-				<Form.Group className="mb-3" controlId="formBasicName">
-					<Form.Label>Profile Name</Form.Label>
-					<Form.Control
-						type="text"
-						placeholder="Enter your name"
-						name="f_name"
-						value={formData.f_name}
-						onChange={handleChange}
-						required
-					/>
-				</Form.Group>
-				<Form.Group className="mb-3" controlId="formBasicLastName">
-					<Form.Label>Profile Name</Form.Label>
-					<Form.Control
-						type="text"
-						placeholder="Enter your last name"
-						name="l_name"
-						value={formData.l_name}
-						onChange={handleChange}
-						required
-					/>
-				</Form.Group>
+					<Row>
+						<Col lg={4}>
+							<Form.Group className="text-start mb-3" controlId="formBasicLocation">
+								<Form.Label>Location<span style={{color: "red"}}>*</span></Form.Label>
+								<FormNumber
+									placeholder="Ex. 27412"
+									name="zip"
+									min={5}
+									max={5}
+									integer={true}
+									value={formData.zip}
+									onChange={handleChange}
+									required
+								/>
+							</Form.Group>
+						</Col>
 
-				<Form.Group className="mb-3" controlId="formBasicLocation">
-					<Form.Label>Location</Form.Label>
-					<Form.Control
-						type="text"
-						placeholder="Enter your Zipcode"
-						name="zip"
-						value={formData.zip}
-						onChange={handleChange}
-						required
-					/>
-				</Form.Group>
+						<Col>
+							<Form.Group className="text-start mb-3" controlId="formBasicInstruments">
+								<Form.Label>Instruments</Form.Label>
+								<Select
+									options={configureInstrumentList(instruments)}
+									name="instruments"
+									isMulti
+									onChange={(selectedOptions) => setSelectedInstruments(selectedOptions)}
+									value={selectedInstruments}
+								/>
+							</Form.Group>
+						</Col>
+					</Row>
 
-				<Form.Group className="mb-3" controlId="formBasicInstruments">
-					<Form.Label>Instruments</Form.Label>
-					<Form.Control
-						type="text"
-						placeholder="Enter instruments you play"
-						name="instruments"
-						value={formData.instruments}
-						onChange={handleChange}
-					/>
-				</Form.Group>
-
-				<Form.Group className="mb-3" controlId="formBasicBio">
-					<Form.Label>Bio</Form.Label>
-					<Form.Control
-						as="textarea"
-						rows={3}
-						placeholder="Enter a short bio"
-						name="bio"
-						value={formData.bio}
-						onChange={handleChange}
-					/>
-				</Form.Group>
-
+					<Form.Group className="text-start mb-3">
+						<Form.Label style={{width: '100%'}}>
+							<Row>
+								<Col lg={10}>Bio</Col>
+								<Col className="text-end">{bioLength}/{maxBioLength}</Col>
+							</Row>
+						</Form.Label>
+						<Form.Control
+							as="textarea"
+							rows={3}
+							placeholder="Enter a short bio"
+							maxLength={maxBioLength}
+							name="bio"
+							id="bio"
+							value={formData.bio}
+							onChange={handleChange}
+						/>
+					</Form.Group>
+				</Col>
 				<Button className="btn btn-dark" variant="primary" type="submit">
 					Update Profile
 				</Button>
 			</Form>
-		</Container>
+			<UserPasswordResetModal
+				show={showPasswordResetModal}
+				handleClose={togglePasswordResetModal}
+				isAdmin={false}
+			/>
+		</div>
 	);
 }
 

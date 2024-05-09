@@ -68,6 +68,49 @@ module.exports = (sequelize, Sequelize) => {
     }
   };
 
-return User;
+  User.findApplicantsByUserIds = async function(userIds) {
+    try {
+      const users = await User.findAll({
+        where: {
+          user_id: userIds
+        },
+        attributes: ['user_id', 'f_name', 'l_name']
+      });
+
+      return users.map(user => ({
+        user_id: user.user_id,
+        f_name: user.f_name,
+        l_name: user.l_name
+      }));
+    } catch (error) {
+      throw new Error('Error finding users by user_ids: ' + error.message);
+    }
+  };
+
+  User.resetUserPassword = async function(userId, oldPassword, newPassword) {
+    try {
+      //find user, compare passwords, if true update pass to new pass
+      const user = await this.findByPk(userId);
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+      if (!isPasswordValid) {
+        throw new Error("Incorrect old password");
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      await user.update({ password: hashedPassword });
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error resetting user password:", error);
+      throw error;
+    }
+  };
+
+  return User;
 };
 

@@ -4,7 +4,8 @@ import {toast, ToastContainer} from 'react-toastify';
 import { Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import '../App.css';
-import {getBackendURL} from "../Utils";
+import {getBackendURL, toastError} from "../Utils";
+import Title from "../components/Title";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -13,9 +14,7 @@ const Login = () => {
         password: '',
     });
 
-    const generateError = (err) => toast.error(err, {
-        position: "bottom-right",
-    })
+    const generateError = (err) => toast("Login failed. Please ensure email and password are correct.", toastError)
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -33,7 +32,7 @@ const Login = () => {
             }, {
                 withCredentials:true,
             });
-            console.log(data)
+
             if(data){
                 if(data.errors){
                     const {email,password} = data.errors;
@@ -51,9 +50,9 @@ const Login = () => {
         }
     };
 
-
     return (
         <div>
+            <Title title="Login"/>
             <div className="login-container">
                 <div className="container-login" style={{ maxWidth: '600px' }}>
                     <h2>Login</h2>
@@ -82,6 +81,8 @@ const Login = () => {
                         <Button className="btn btn-dark" variant="primary" type="submit">
                             Submit
                         </Button>
+                        <br />
+                        <br />
                         <span>Want to join? <Link to="/register">Register</Link></span>
                     </Form>
                     <ToastContainer></ToastContainer>

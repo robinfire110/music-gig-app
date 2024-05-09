@@ -38,17 +38,42 @@ module.exports = (sequelize, Sequelize, User, Event) => {
   UserStatus.findByUserId = async function(userId) {
     try {
       const userStatuses = await UserStatus.findAll({
-        attributes: ['event_id'],
+        attributes: ['event_id', 'status'],
         where: {
           user_id: userId
         },
         raw: true
       });
-      return userStatuses.map(status => status.event_id);
+      return userStatuses;
     } catch (error) {
       throw new Error('Error retrieving events by user_id: ' + error.message);
     }
   };
+
+  UserStatus.findUserIdsByEventIdsAndStatuses = async function(eventIds) {
+    try {
+      const userStatuses = await UserStatus.findAll({
+        where: {
+          event_id: eventIds,
+          status: ['applied', 'reject', 'accept']
+        },
+        attributes: ['user_id', 'status', 'event_id']
+      });
+
+      const result = userStatuses.map(status => ({
+        user_id: status.user_id,
+        status: status.status,
+        event_id: status.event_id
+      }));
+
+      return result;
+    } catch (error) {
+      throw new Error('Error finding user_ids by event_ids and statuses: ' + error.message);
+    }
+  };
+
+
+
 
   return UserStatus;
 };

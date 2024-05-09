@@ -2,8 +2,9 @@ const db = require("../models/models");
 const instrument = require('./instrumentList');
 const axois = require('axios');
 const { faker } = require("@faker-js/faker");
-const moment= require("moment");
+const moment = require("moment");
 const cheerio = require('cheerio');
+const { Op, where } = require('sequelize');
 require('dotenv').config();
 
 /* Functions */
@@ -13,16 +14,10 @@ function getRandomInt(max) {
 
 //Import Instruments
 async function importInstruments() {
-    const instrumentExists = await db.Instrument.findOne();
-    if (instrumentExists == null) {
-        console.log("Creating instrument list.")
-        instrument.instrumentList.forEach(instrument => {
-            db.Instrument.create({ name: instrument });
-        });
-    }
-    else {
-        console.log("Instrument List exists, skipping inserts.")
-    }
+    //console.log("Creating instrument list.")
+    instrument.instrumentList.forEach(instrument => {
+        db.Instrument.findOrCreate({where: { name: instrument }});
+    });
 }
 
 //Get gas prices
@@ -71,7 +66,7 @@ async function getGasPrices() {
 
 //Create faker data
 async function createFakerData(userNum, eventNum, financialNum) {
-    console.log("Inserting faker data");
+    //console.log("Inserting faker data");
     //Vars
     let userIds = [];
     let instrument_count;
@@ -88,7 +83,7 @@ async function createFakerData(userNum, eventNum, financialNum) {
             try {
                 await db.UserInstrument.findOrCreate({ where: { instrument_id: getRandomInt(instrument.instrumentList.length), user_id: newUser.user_id } });
             } catch (error) {
-                console.log(`Skipping - Error occured adding UserInstruments ${error}`);
+                console.error(`Skipping - Error occured adding UserInstruments ${error}`);
             }
         }
     }
@@ -112,7 +107,7 @@ async function createFakerData(userNum, eventNum, financialNum) {
             try {
                 await db.EventInstrument.findOrCreate({ where: { instrument_id: getRandomInt(instrument.instrumentList.length), event_id: newEvent.event_id } });
             } catch (error) {
-                console.log(`Skipping - Error occured adding EventInstruments ${error}}`);
+                console.error(`Skipping - Error occured adding EventInstruments ${error}}`);
             }
         }
     }
@@ -137,8 +132,61 @@ async function getInstrumentId(instrument) {
     }
 }
 
+//Ensure instrument array is only made up of ids
+async function instrumentArrayToIds(instrumentArray)
+{
+    const newArray = [];
+    if (instrumentArray)
+    {
+        for (const instrument of instrumentArray) 
+        {
+            instrumentId = await getInstrumentId(instrument);
+            if (instrumentId) newArray.push(instrumentId);
+            else console.error("Instrument not found. Possibly incorrect ID or name?. Skipping instrument");
+        }
+    }
+    return newArray;
+}
+
 function getEventHours(start_time, end_time) {
     return (moment(end_time) - moment(start_time)) / 3600000;
+}
+
+//Check if userId exists
+async function checkValidUserId(id)
+{
+    let user = await db.User.findOne({where: {user_id: id}});
+    if (parseInt(id) == parseInt(user?.user_id)) return true;
+    return false;
+}
+
+//Check if eventId exists
+async function checkValidEventId(id)
+{
+    let event = await db.Event.findOne({where: {event_id: id}});
+    if (parseInt(id) == parseInt(event?.event_id)) return true;
+    return false;
+}
+
+//Check if finId exists
+async function checkValidFinancialId(id)
+{
+    let financial = await db.Financial.findOne({where: {fin_id: id}});
+    if (parseInt(id) == parseInt(financial?.fin_id)) return true;
+    return false;
+}
+
+//Set Unlisted Data
+//If time has passed (based on start time)
+async function updateUnlistedData(id=-1)
+{
+    //Get time passed events
+    const where = id == -1 ? {start_time: {[Op.lte]: moment().toDate()}} : {event_id: id, start_time: {[Op.lte]: moment().toDate()}};
+    const events = await db.Event.update({is_listed: false}, {where: where});
+
+    //Print
+    if (events.length > 0 && events[0] != 0) console.log("Unlisted past events.");
+
 }
 
 async function fixData() {
@@ -160,6 +208,41 @@ async function fixData() {
         await event.save();
     });
     */
+
+    //Fix is_listed
+    /*
+    let eventList = await db.Event.findAll();
+    eventList.forEach(async event => {
+        event.set({is_listed: true});
+        await event.save();
+    }); 
+    */
+
+    //Delete Placeholder Data
+    //Delete users <= user_id 100
+    /*
+    for (let i = 0; i < 101; i++)
+    {
+        let user = await db.User.findOne({where: {user_id: i}, include: [db.Event, db.Financial]});
+        if (user)
+        {
+            //Destroy events
+            user.Events.forEach(async event => {
+                //If owner, delete
+                if (event.UserStatus.status == "owner")
+                {
+                    await event.destroy();
+                }
+            });
+            user.Financials.forEach(async fin => {
+                await fin.destroy();
+            });
+            await user.destroy();
+        }
+        
+    }
+    console.log("It's done");
+    */
 }
 
-module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, getEventHours, fixData }
+module.exports = { getRandomInt, importInstruments, getGasPrices, createFakerData, getInstrumentId, instrumentArrayToIds, getEventHours, updateUnlistedData, fixData, checkValidUserId, checkValidEventId, checkValidFinancialId }

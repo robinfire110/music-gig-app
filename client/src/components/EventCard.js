@@ -3,13 +3,14 @@ import { Card, Button } from 'react-bootstrap';
 import axios from 'axios';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
-import { getBackendURL } from "../Utils"
+import { getBackendURL, getEventOwner } from "../Utils"
 
 function EventCard({eventId}) {
     //Get Data
     const descriptionCharacterLimit = 200;
     const [eventData, setEventData] = useState();
     const [owner, setOwner] = useState()
+    const [deviceType, setDeviceType] = useState("browser");
     
     //Call API
     useEffect(() => {
@@ -19,29 +20,34 @@ function EventCard({eventId}) {
             //console.log(res.data);
 
             //Get owner
-            res.data.Users.forEach(user => {
-                if (user.UserStatus.status == "owner")
-                {
-                    setOwner(user);
-                }
-            });
+            setOwner(getEventOwner(res.data));
+
+            //Set update style
+            window.addEventListener("resize", updateStyle); 
         }).catch(error => {
             console.log(error);
         });
     }, [])
 
+    //Update style based on width
+    function updateStyle()
+    {
+        if (window.innerWidth >= 992) setDeviceType("browser");
+        else setDeviceType("mobile");
+    }
+
     return (
         <div>
-        <Card className="m-2 shadow-sm" style={{backgroundColor: "#e3e3e3", width: "22rem", height: "28rem", marginLeft: "auto", marginRight: "auto", textAlign: "left"}}>
+        <Card className="m-2 shadow-sm" style={{backgroundColor: "#e3e3e3", width: deviceType == "browser" ? "23rem" : "18rem", height: "28rem", marginLeft: "auto", marginRight: "auto", textAlign: "left"}}>
             <Card.Header>
                 <Card.Title><Link to={`/event/${eventId}`} style={{color: "#000"}}><h4>{eventData && eventData.event_name}</h4></Link></Card.Title>
                 <h6>Posted by:</h6> {owner && <Link to={`/profile/${owner.user_id}`} style={{color: "#000"}}>{owner.f_name} {owner.l_name}</Link>}
                 <br />
-                <h6>Date Posted:</h6> {eventData && moment.utc(eventData.date_posted).format("M/DD/YYYY")}
+                <h6>Date Posted:</h6> {eventData && moment(eventData.date_posted).format("M/DD/YYYY")}
                 <br />
-                <h6>Event Date:</h6> {eventData && moment.utc(eventData.start_time).format("M/DD/YYYY")}
+                <h6>Event Date:</h6> {eventData && moment(eventData.start_time).format("M/DD/YYYY")}
                 <br />
-                <h6>Event Time:</h6> {eventData && moment.utc(eventData.start_time).format("h:mm A")} - {eventData && moment.utc(eventData.end_time).format("h:mm A")}
+                <h6>Event Time:</h6> {eventData && moment(eventData.start_time).format("h:mm A")} - {eventData && moment(eventData.end_time).format("h:mm A")}
                 <br />
                 <h6>Location:</h6> {eventData && eventData.Address.city}, {eventData && eventData.Address.state}
                 <br />

@@ -69,7 +69,35 @@ module.exports = (sequelize, Sequelize, Event) => {
     fees: {
       type: Sequelize.FLOAT,
       defaultValue: 0.0
-    }
+    },
+    round_trip: {
+      type: Sequelize.FLOAT,
+      defaultValue: true
+    },
+    multiply_pay: {
+      type: Sequelize.FLOAT,
+      defaultValue: true
+    },
+    multiply_hours: {
+      type: Sequelize.FLOAT,
+      defaultValue: true
+    },
+    multiply_travel: {
+      type: Sequelize.FLOAT,
+      defaultValue: true
+    },
+    multiply_practice: {
+      type: Sequelize.FLOAT,
+      defaultValue: false
+    },
+    multiply_rehearsal: {
+      type: Sequelize.FLOAT,
+      defaultValue: false
+    },
+    multiply_other: {
+      type: Sequelize.FLOAT,
+      defaultValue: false
+    },
   });
 
   /* Financial with Event */
@@ -93,6 +121,20 @@ module.exports = (sequelize, Sequelize, Event) => {
       });
     } catch (error) {
       console.error('Error retrieving financials:', error);
+      throw error;
+    }
+  };
+
+  Financial.deleteFinancialByFinId = async (finId) => {
+    try {
+      const deletedFinancial = await Financial.destroy({
+        where: {
+          fin_id: finId
+        }
+      });
+      return deletedFinancial;
+    } catch (error) {
+      console.error('Error deleting financial:', error);
       throw error;
     }
   };

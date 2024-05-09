@@ -1,74 +1,108 @@
-import React, {useEffect} from 'react';
-import {Card, Container, Row, Col, Button} from 'react-bootstrap';
+import React, {useEffect, useState} from 'react';
+import {Button, Col, Row, Tab, Tabs} from 'react-bootstrap';
 import {useNavigate} from "react-router-dom";
+import ConfirmationModal from "./ConfirmationModal";
+import ProfileEventCard from '../../components/ProfileEventCard';
 
-function Gigs({ userData, gigs }) {
+function Gigs({ userData, gigs, onGigsChange}) {
 	const navigate = useNavigate();
+	const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+	const [confirmationMessage, setConfirmationMessage] = useState('');
+	const [actionToConfirm, setActionToConfirm] = useState(null);
 
-	const handleCardClick = (eventId) => {
-		navigate(`../event/${eventId}`);
-	};
-	const handleCreateNewListing = () => {
-		navigate('/form');
-	};
-	const handleGoBackToDashboard = () => {
-		window.location.reload();
+	useEffect(() => {
+
+		if (onGigsChange) {
+			onGigsChange(gigs);
+		}
+	}, [gigs, onGigsChange]);
+
+	const handleWithdrawEvent = (event) => {
+		navigate(`/event/${event.event_id}`);
+	}
+
+	const handleConfirmation = () => {
+		if (actionToConfirm) {
+			actionToConfirm();
+			setActionToConfirm(null);
+		}
+		setShowConfirmationModal(false);
 	};
 
-	const isInPast = (dateString) => {
-		const eventDate = new Date(dateString);
-		const currentDate = new Date();
-		return eventDate < currentDate;
-	};
+	const handleSeeMoreClick = (gig) => {
+		navigate(`/event/${gig.event_id}`);
+	}
 
-	const pastEvents = gigs.filter((gig) => isInPast(gig.end_time) || !gig.is_listed);
-	const currentUserEvents = gigs.filter(gig => gig.is_listed);
-
-	const renderGigsAsCards = (gigs) => {
-		return (
-			<Container>
-				<Row xs={1} md={2} lg={3}>
-					{gigs.map((gig) => (
-						<Col key={gig.event_id}>
-							<Card onClick={() => handleCardClick(gig.event_id)} style={{ cursor: 'pointer' }}>
-								<Card.Body>
-									<Card.Title>{gig.event_name}</Card.Title>
-									<Card.Text>{gig.description}</Card.Text>
-								</Card.Body>
-							</Card>
-						</Col>
-					))}
-				</Row>
-			</Container>
-		);
-	};
+	function truncateText(text, maxLength = 50) {
+		if (text.length <= maxLength) {
+			return text;
+		} else {
+			return text.substring(0, maxLength) + '...';
+		}
+	}
 
 	return (
 		<div>
-			<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-				<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column' }}>
-					<Button variant="link" onClick={handleGoBackToDashboard} style={{ textDecoration: 'underline' }}>Go back to Dashboard</Button>
-					<h2>Listings</h2>
-				</div>
+		<div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+			<h2>Your Gigs</h2>
+			<div>
+				<Button className="btn btn-dark" variant="primary" onClick={() => navigate(`/eventsearch`)}>Apply to more Gigs!</Button>
+			</div>
+		</div>
+			<Tabs defaultActiveKey="gigs" id="listings-tabs">
+				<Tab eventKey="gigs" title="Gigs">
+					<h2 className="current-listings-header">Your Upcoming Gigs</h2>
+					<Row>
+						{gigs
+							.filter(gig => gig.is_listed && gig.status === 'accept')
+							.map((gig) => (
+								<Col lg={4} md={6} sm={12} key={gig.event_id}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} /></Col>
+							))}
+						{gigs.filter(gig => gig.is_listed && gig.status === 'accept').length === 0 && (
+							<div className="no-gigs-message">
+								<Button className="btn btn-dark" variant="primary" style={{ marginTop: '20px' }} onClick={() => navigate('/eventsearch')}>View all Events</Button>
+							</div>
+						)}
+					</Row>
+				</Tab>
 
-				<div>
-					<Button className="btn btn-dark" variant="primary" onClick={handleCreateNewListing}>Create New Listing</Button>
-				</div>
-			</div>
-			<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-				<h3>Your Current Listings</h3>
-				{renderGigsAsCards(gigs.filter((gig) => gig.is_listed))}
-			</div>
-			<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-				<h3>Past Listings</h3>
-				{renderGigsAsCards(
-					gigs.filter((gig) => new Date(gig.end_time) < new Date() || !gig.is_listed)
-				)}
-			</div>
-
-			<div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-				<h3>Listings you've applied to</h3>
-			</div>
+				<Tab eventKey="pending" title="Pending">
+					<h2 className="current-listings-header">Pending Applications</h2>
+					<Row>
+						{gigs
+							.filter(gig => gig.is_listed && gig.status === 'applied')
+							.map((gig) => (
+								<Col lg={4} md={6} sm={12} key={gig.event_id}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} withdrawEnabled={true} handleWithdrawEvent={handleWithdrawEvent}/></Col>
+							))}
+						{gigs.filter(gig => gig.is_listed && gig.status === 'applied').length === 0 && (
+							<div className="no-gigs-message">
+								<p>Nothing to show.</p>
+							</div>
+						)}
+					</Row>
+				</Tab>
+				<Tab eventKey="closed" title="Closed">
+					<h2 className="current-listings-header">Closed Gigs</h2>
+					<Row>
+						{gigs
+							.filter(gig => gig.status === 'withdraw' || gig.status === 'rejected')
+							.map((gig) => (
+								<Col lg={4} md={6} sm={12} key={gig.event_id}><ProfileEventCard gig={gig} deleteEnabled={false} unlistEnabled={false} editEnabled={false} /></Col>
+							))}
+						{gigs.filter(gig => gig.status === 'withdraw' || gig.status === 'rejected').length === 0 && (
+							<div className="no-gigs-message">
+								<p>Nothing to show.</p>
+							</div>
+						)}
+					</Row>
+				</Tab>
+			</Tabs>
+			<ConfirmationModal
+				show={showConfirmationModal}
+				handleClose={() => setShowConfirmationModal(false)}
+				message={confirmationMessage}
+				onConfirm={handleConfirmation}
+			/>
 		</div>
 	);
 }

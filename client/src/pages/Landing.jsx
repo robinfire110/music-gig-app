@@ -2,15 +2,13 @@ import React, { useRef } from "react";
 import { useEffect, useState} from "react";
 import { Link, Router } from "react-router-dom";
 import { Container, Row, Col, CardGroup, Button, Carousel } from "react-bootstrap";
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import EventCard from "../components/EventCard";
 import axios from "axios";
 import EventHorizontalScroll from "../components/EventHorizontalScroll";
 import { ClipLoader } from "react-spinners";
 import { useCookies } from "react-cookie";
 import { toast } from "react-toastify";
-import { getBackendURL } from "../Utils"
+import { getBackendURL, getEventOwner, toastError, toastInfo, toastSuccess } from "../Utils"
+import Title from "../components/Title";
 
 function Landing() {
     //Varaibles
@@ -40,63 +38,80 @@ function Landing() {
                     if (res.data?.user)
                     {
                         //Get user data
-                        axios.get(`${getBackendURL()}/user/id/${res.data.user.user_id}`).then(async res => {
+                        axios.get(`${getBackendURL()}/user/id/${res.data?.user.user_id}`, { withCredentials: true }).then(async res => {
                             const userData = res.data;
-                            setUser(userData);
-
-                            //Set user events
-                            const userEventList = [];
-                            userData.Events.forEach(event => {
-                                if (event.UserStatus.status == "owner")
-                                {
-                                    userEventList.push(event);
-                                }
-                            });
-                            if (userEventList.length > 0) setUserEvents(userEventList);
-
-                            //Get list of instrument ids
-                            const instruments = userData.Instruments;
-                            let instrumentSearch = [];
-                            instruments.forEach(instrument => {
-                                instrumentSearch.push(instrument.instrument_id);
-                            })
-
-                            //Get event data
-                            if (instrumentSearch.length > 0)
+                            if (userData)
                             {
-                                axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${25}`).then(res => {
-                                    //Get list of locations
-                                    const instrumentEventSearch = res.data;
-                                    const zipList = [];
-                                    res.data.forEach(event => {
-                                        zipList.push(event.Address.zip);
-                                    });
+                                
+                                setUser(userData);
 
-                                    //Sort by location
-                                    axios.get(`${getBackendURL()}/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
-                                        const distanceMatrixData = res.data.rows[0].elements;
-                                        //Add to data
-                                        for (let i = 0; i < instrumentEventSearch.length; i++)
-                                        {
-                                            if (distanceMatrixData[i].status == "OK" && distanceMatrixData[i].distance)
-                                            {
-                                                instrumentEventSearch[i]["distance"] = distanceMatrixData[i].distance.value;
-                                            }
-                                            else 
-                                            {
-                                                instrumentEventSearch[i]["distance"] = 9999;
-                                            }
-                                        }
+                                //Set user events
+                                const userEventList = [];
+                                userData.Events.forEach(event => {
+                                    if (event.UserStatus.status == "owner" && event.is_listed)
+                                    {
+                                        userEventList.push(event);
+                                    }
+                                });
+                                if (userEventList.length > 0) setUserEvents(userEventList);
 
-                                        //Sort
-                                        instrumentEventSearch.sort((a, b) => a.distance - b.distance);
-                                        console.log("Got Relevant");
-                                        setRelevantEvents(instrumentEventSearch);
-                                        setIsLoading(false);
-                                    })
+                                //Get list of instrument ids
+                                const instruments = userData.Instruments;
+                                let instrumentSearch = [];
+                                instruments.forEach(instrument => {
+                                    instrumentSearch.push(instrument.instrument_id);
                                 })
+
+                                //Get event data
+                                if (instrumentSearch.length > 0)
+                                {
+                                    axios.get(`${getBackendURL()}/event/instrument/${instrumentSearch.join("|")}?sort=true&limit=${30}`).then(res => {
+                                        //Filter out our events
+                                        const data = res.data;
+                                        if (data && data?.length > 0)
+                                        {
+                                            const instrumentEventSearch = data.filter(event => {
+                                                return getEventOwner(event)?.user_id != userData?.user_id
+                                            });
+                                            
+                                            //Get list of locations
+                                            const zipList = [];
+                                            instrumentEventSearch.forEach(event => {
+                                                zipList.push(event.Address.zip);
+                                            });
+
+                                            if (zipList.length > 0)
+                                            {
+                                                //Sort by location
+                                                axios.get(`${getBackendURL()}/api/distance_matrix/${userData.zip}/${zipList.join("|")}`).then(res => {
+                                                    const distanceMatrixData = res.data.rows[0].elements;
+                                                    //Add to data
+                                                    for (let i = 0; i < instrumentEventSearch.length; i++)
+                                                    {
+                                                        if (distanceMatrixData[i].status == "OK" && distanceMatrixData[i].distance)
+                                                        {
+                                                            instrumentEventSearch[i]["distance"] = distanceMatrixData[i].distance.value;
+                                                        }
+                                                        else 
+                                                        {
+                                                            instrumentEventSearch[i]["distance"] = 9999;
+                                                        }
+                                                    }
+                                                    
+                                                    //Sort
+                                                    instrumentEventSearch.sort((a, b) => a.distance - b.distance);
+                                                    console.log("Got Relevant");
+                                                    setRelevantEvents(instrumentEventSearch.slice(0, Math.min(relevantNum, instrumentEventSearch.length)));
+                                                    setIsLoading(false);
+                                                })
+                                            }
+                                            else setGetRecent(true);
+                                        }
+                                        else setGetRecent(true);
+                                    })
+                                }
+                                else setGetRecent(true);
                             }
-                            else setGetRecent(true);
                         })              
                     }
                     else setGetRecent(true);
@@ -105,7 +120,7 @@ function Landing() {
             catch (error)
             {
                 console.log(error);
-                toast("An error occured loading event data.", { theme: 'dark', position: "top-center", type: "error" });
+                toast("An error occured loading event data.", toastError);
                 setGetRecent(true); //Try to get recent events
             }
         }
@@ -121,13 +136,21 @@ function Landing() {
         {
             //Get non-logged in data
             axios.get(`${getBackendURL()}/event/recent/${recentNum}`).then(res => {
-                setRecentEvents(res.data);
+                let recentEvents = res.data;
+                if (user)
+                {
+                    recentEvents = res.data.filter((event) => {
+                        return getEventOwner(event)?.user_id != user?.user_id;
+                    });
+                }
+                
+                setRecentEvents(recentEvents);
                 setIsLoading(false);
                 setGetRecent(false);
                 console.log("Got recent");
             }).catch(error => {
                 console.log(error);
-                toast("An error occured loading event data.", { theme: 'dark', position: "top-center", type: "error" })
+                toast("An error occured loading event data.", toastError)
                 setIsLoading(false);
             });
         }
@@ -180,13 +203,18 @@ function Landing() {
     //Loading
     return (
         <div>
+            <Title title="Home"/>
             <Container>
-                <h1>Harmonize</h1>
-                <br />
-                <h3>Connecting musicians and organizers.</h3>
-                <br />
-                <br />
-
+                <Row>
+                    <Col xl={5} lg={4} md={4} className={"text-lg-end text-md-end text-sm-center"}>
+                        <img src={require('../img/logo-circle.png')} height={200}></img>
+                    </Col>
+                    <Col className="my-auto text-lg-start text-md-start text-sm-middle">
+                        <h1>Harmonize</h1>
+                        <br />
+                        <h3>Connecting musicians and organizers.</h3>
+                    </Col>
+                </Row>
                 {/* 
                 <Carousel interval={1000}>
                     <Carousel.Item>

@@ -41,43 +41,31 @@
 
 
 /*Sidebar/Dashboard styling*/
-.custom-sidebar-container {
-  height: auto;
-  margin: 0;
-  position: relative;
+.sidebar-vertical {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+  width: 75px;
+  text-align: center;
+}
+.wrapper {
+  display: grid;
+  grid-template-columns: 0% 100%;
+  min-height: 200px;
+}
+.content {
+  align-self: start;
 }
 
-.custom-sidebar {
-  margin-top: 50px;
-  width: 200px;
-  height: 100%;
-  position: relative; /* Add this to make the line break absolute positioning relative to this container */
+.sidebar-vertical {
+  display: flex;
+  flex-direction: column;
+}
+.all-space {
+  width: 100%;
+  height: 100%
 }
 
-.custom-sidebar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50px; /* Adjust this value to position the line break closer to the nav items */
-  width: 1px;
-  height: 100%;
-  background-color: #000;
-}
-
-
-
-.custom-link {
-  color: #000000;
-  text-decoration: none;
-}
-
-.custom-link:hover {
-  color: #834248
-}
-
-.custom-link.active {
-  color: #bd4d58;
-}
 
 /*Login*/
 .login-container {
@@ -89,3 +77,100 @@
 .container-login {
   width: 300px;
 }
+.register-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+}
+
+.register-form {
+  width: 300px;
+}
+
+/*Cards */
+.card-container {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+.custom-card {
+  width: 240px;
+  height: 200px;
+  margin: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.card-title {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.card-text {
+  font-size: 14px;
+}
+
+.card-container a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.edit-button {
+  margin-right: 10px;
+  border: none;
+}
+
+.delete-button {
+  margin-left: 10px;
+  border: none;
+}
+.custom-card:hover {
+  cursor: pointer;
+}
+
+
+/* Cards inside of tabs */
+.listings-card-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.listings-custom-card {
+  width: calc(25% - 32px);
+  height: 225px;
+  margin: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.listings-custom-card:hover {
+  cursor: pointer;
+}
+
+.current-listings-header {
+  display: flex;
+  margin-top: 20px;
+}
+
+.button-container {
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+
